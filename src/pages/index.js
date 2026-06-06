@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// 🔥 修复1：Docusaurus 正确的 Layout 导入（核心报错）
 import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
@@ -11,6 +10,8 @@ export default function Home() {
   const [now, setNow] = useState(new Date());
   const [currentUser, setCurrentUser] = useState(null);
   const [userCount, setUserCount] = useState(0);
+  // 最新注册用户名
+  const [newestUserName, setNewestUserName] = useState('');
 
   // 实时时钟
   useEffect(() => {
@@ -18,13 +19,11 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // 登录状态监听 + 统计会员数
+  // 登录状态监听 + 会员统计 + 最新用户
   useEffect(() => {
     // 监听登录状态
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setCurrentUser(session?.user || null);
-
-      // 🔥 修复2：清理URL改为 /，解决重复路由警告
       if (event === 'SIGNED_IN') {
         window.history.replaceState({}, document.title, '/');
       }
@@ -35,12 +34,35 @@ export default function Home() {
       const { count } = await supabase.from('users').select('*', { count: 'exact', head: true });
       setUserCount(count || 0);
     };
+
+    // 获取最新注册用户
+    const getNewestUser = async () => {
+      try {
+        const { data } = await supabase
+          .from('users')
+          .select('raw_user_meta_data, email')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (data && data.length > 0) {
+          const user = data[0];
+          const name = user.raw_user_meta_data?.name || user.email.split('@')[0] || '新用户';
+          setNewestUserName(name);
+        } else {
+          setNewestUserName(homeData.newUser);
+        }
+      } catch (err) {
+        setNewestUserName(homeData.newUser);
+      }
+    };
+
     getUserTotal();
+    getNewestUser();
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // 登录/退出（路径正确）
+  // 登录/退出
   const login = () => supabase.auth.signInWithOAuth({ 
     provider: 'github',
     options: { 
@@ -49,7 +71,8 @@ export default function Home() {
   });
   const logout = () => supabase.auth.signOut().then(() => window.location.reload());
 
-  const weekJp = ['日', '一', '二', '三', '四', '五', '六'][now.getDay()];
+  // ✅ 动态日本曜日 + 英文星期
+  const weekJp = ['日', '月', '火', '水', '木', '金', '土'][now.getDay()];
   const weekEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
 
   return (
@@ -62,14 +85,18 @@ export default function Home() {
             <div className={styles.statItem}><span className={styles.statCircle}>昨</span><p>昨日:{homeData.yestCount}</p></div>
             <div className={styles.statItem}><span className={styles.statCircle}>总</span><p>总帖:{homeData.totalPost}</p></div>
             <div className={styles.statItem}><span className={styles.statCircle}>会</span><p>会员:{userCount}</p></div>
-            <div className={styles.statItem}><span className={styles.statCircle}>新</span><p>最新:{homeData.newUser}</p></div>
+            {/* 实时最新用户 */}
+            <div className={styles.statItem}><span className={styles.statCircle}>新</span><p>最新:{newestUserName}</p></div>
           </div>
         </div>
 
-        {/* 登录区域 */}
+        {/* 登录区域 ✅ 修复：动态日本曜日 */}
         <div className={styles.bannerRight}>
           <div className={styles.clockText}>{now.toLocaleTimeString()}</div>
-          <div className={styles.dateText}>土曜日({weekJp}) {weekEn}<br/>{now.getFullYear()}-{(now.getMonth()+1+'').padStart(2,'0')}-{(now.getDate()+'').padStart(2,'0')}</div>
+          <div className={styles.dateText}>
+            {weekJp}曜日 ({weekEn})<br/>
+            {now.getFullYear()}-{(now.getMonth()+1+'').padStart(2,'0')}-{(now.getDate()+'').padStart(2,'0')}
+          </div>
           <div className={styles.userBox}>
             {currentUser ? (
               <div className={styles.userInfo}>
