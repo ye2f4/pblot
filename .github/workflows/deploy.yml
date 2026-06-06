@@ -16,31 +16,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 1. 先装 PNPM（必须放最前面）
       - name: 安装 PNPM
         run: npm install -g pnpm@11.5.2
 
-      # 2. 再设置 Node（关闭缓存，彻底解决报错）
       - name: 设置 Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # 3. 安装依赖（无报错版）
-      - name: 安装项目依赖
+      - name: 安装依赖
         run: pnpm install --ignore-scripts --prefer-offline
 
-      # 4. 构建
       - name: 构建网站
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: pnpm build
 
-      # 5. 部署
       - name: 发布到 GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:

@@ -15,9 +15,9 @@ const config = {
   organizationName: "ye2f4",
   projectName: "pblot",
 
-  // 极速构建（提速3~5倍）
+  // ✅ 修复：重命名为 faster（官方正式名称）
   future: {
-    experimental_faster: {
+    faster: {
       rspackBundler: true,
       rspackPersistentCache: true,
     },
@@ -116,7 +116,7 @@ const config = {
   i18n: { defaultLocale: "en", locales: ["en"] },
   markdown: { mermaid: true },
   themes: ["@docusaurus/theme-mermaid"],
-  cache: true,
+  // ✅ 已删除无效的 cache: true 配置
 };
 
 module.exports = config;
