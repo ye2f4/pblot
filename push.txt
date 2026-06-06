@@ -1,0 +1,8 @@
+# 提交代码到main分支
+git add .
+git commit -m "更新内容"
+git push
+
+# 重新部署
+$env:GIT_USER = "ye2f4"
+npx docusaurus deploy

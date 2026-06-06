@@ -1,0 +1,49 @@
+name: 自动部署到GitHub Pages
+
+on:
+  # 当有代码推送到main分支时自动部署
+  push:
+    branches: [ main ]
+  # 当有PR合并到main分支时自动部署
+  pull_request:
+    branches: [ main ]
+
+# 设置必要的权限
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# 允许并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 设置Node.js环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 构建站点
+        run: npm run build
+
+      - name: 部署到GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+          # 保留gh-pages分支的历史记录
+          keep_files: true
