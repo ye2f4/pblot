@@ -1,0 +1,34 @@
+{
+  "siteTitle": "Monoの小窝",
+  "stats": [
+    { "label": "今", "value": "今日:88", "color": "#333" },
+    { "label": "昨", "value": "昨日:120", "color": "#34a853" },
+    { "label": "总", "value": "总帖:5680", "color": "#999" },
+    { "label": "会", "value": "会员:1250", "color": "#999" },
+    { "label": "新", "value": "最新:小明", "color": "#999" }
+  ],
+  "tabs": [
+    { "name": "最新主题", "color": "#4285f4" },
+    { "name": "最新回复", "color": "#ea4335" },
+    { "name": "热门主题", "color": "#fbbc05" },
+    { "name": "精华推荐", "color": "#34a853" }
+  ],
+  "carouselImages": [
+    { "filename": "carousel1.png", "title": "AsteorBar 简洁状态栏" },
+    { "filename": "carousel2.png", "title": "钻石工艺模组分享" },
+    { "filename": "carousel3.png", "title": "PVP材质包推荐" }
+  ],
+  "rankList": [
+    { "title": "React入门到精通", "link": "blog/react-guide", "date": "2025-06-07" },
+    { "title": "GitHub Pages部署教程", "link": "blog/gh-pages", "date": "2025-06-06" },
+    { "title": "Docusaurus静态站点搭建", "link": "blog/docusaurus", "date": "2025-06-05" },
+    { "title": "React-Slick轮播使用", "link": "blog/react-slick", "date": "2025-06-04" },
+    { "title": "CSS模糊效果实现", "link": "blog/css-blur", "date": "2025-06-03" },
+    { "title": "JavaScript定时器详解", "link": "blog/js-timer", "date": "2025-06-02" },
+    { "title": "JSON静态数据管理", "link": "blog/json-data", "date": "2025-06-01" }
+  ],
+  "ads": [
+    { "filename": "ad_right_1.png" },
+    { "filename": "ad_right_2.png" }
+  ]
+}
