@@ -1,0 +1,65 @@
+.authCard {
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 30px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  text-align: center;
+  background: #fff;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.mainBtn {
+  width: 100%;
+  padding: 12px;
+  background: #0070f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.githubBtn {
+  width: 100%;
+  padding: 12px;
+  background: #222;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logoutBtn {
+  padding: 10px 20px;
+  background: #ff4545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.toggle {
+  margin: 15px 0;
+  color: #666;
+  cursor: pointer;
+}
+
+.divider {
+  margin: 20px 0;
+  color: #999;
+}
+
+.msg {
+  color: #ff4545;
+  font-size: 14px;
+}
