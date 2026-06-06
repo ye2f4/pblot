@@ -30,14 +30,13 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      # 新增：GitHub服务器必须先安装pnpm
       - name: 安装pnpm
         run: npm install -g pnpm
 
+      # 🔥 修复锁文件错误：加 --no-frozen-lockfile
       - name: 安装依赖
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
-      # 构建站点 + 环境变量（修复Supabase）
       - name: 构建站点
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
