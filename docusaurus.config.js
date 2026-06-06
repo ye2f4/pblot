@@ -8,7 +8,7 @@ const config = {
   title: "Monoの小窝",
   tagline:
     "一半白发藏温柔，一半黑鬓载星网。",
-  url: "https://ye2f4.github.io/ye2f4",
+  url: "https://ye2f4.github.io",
   baseUrl: "/pblot/",
   trailingSlash: true,
   onBrokenLinks: "throw",
