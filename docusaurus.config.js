@@ -1,101 +1,185 @@
-// @ts-check
-import { themes as prismThemes } from 'prism-react-renderer';
+require("dotenv").config();
+
+import path from "node:path";
+import remarkDefList from "remark-deflist";
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Monoの小窝',
-  tagline: '一半白发藏温柔，一半黑鬓载星网。',
-  favicon: 'img/favicon.ico',
-
-  url: 'https://ye2f4.github.io',
-  baseUrl: '/pblot/',
-  organizationName: 'ye2f4',
-  projectName: 'pblot',
-  deploymentBranch: 'gh-pages',
-
-  // ✅ 修复：断链只警告，不阻止打包（关键！）
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
-
-  i18n: {
-    defaultLocale: 'zh-Hans',
-    locales: ['zh-Hans'],
-  },
-
-  presets: [
-    [
-      'classic',
-      ({
-        docs: {
-          sidebarPath: './sidebars.js',
-          editUrl: 'https://github.com/ye2f4/pblot/edit/main/',
+  title: "Meshtastic",
+  tagline:
+    "An open source, off-grid, decentralized, mesh network built to run on affordable, low-power devices",
+  url: "https://meshtastic.org",
+  baseUrl: "/",
+  trailingSlash: true,
+  onBrokenLinks: "throw",
+  favicon: "img/logo.svg",
+  organizationName: "meshtastic",
+  projectName: "meshtastic",
+  themeConfig: /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ {
+    respectPrefersColorScheme: true,
+    docs: {
+      sidebar: {
+        autoCollapseCategories: true,
+      },
+    },
+    navbar: {
+      hideOnScroll: false,
+      title: "Meshtastic",
+      logo: {
+        alt: "Meshtastic Logo",
+        src: "img/logo.svg",
+        srcDark: "img/logo.svg",
+      },
+      items: [
+        {
+          label: "Docs",
+          to: "/docs/introduction/",
+          position: "left",
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          routeBasePath: '/blog',
-          postsPerPage: 10,
-          blogSidebarCount: 'ALL',
-          editUrl: 'https://github.com/ye2f4/pblot/edit/main/',
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
+        {
+          label: "Blog",
+          to: "/blog/",
+          position: "left",
         },
-        theme: {
-          customCss: './src/css/custom.css',
+        {
+          label: "Downloads",
+          to: "/downloads/",
+          position: "left",
         },
-      }),
-    ],
-  ],
-
-  themeConfig: ({
-    image: 'img/docusaurus-social-card.jpg',
+        {
+          label: "Flasher",
+          href: "https://flasher.meshtastic.org",
+          position: "left",
+        },
+        {
+          type: "localeDropdown",
+          position: "right",
+        },
+        {
+          type: "search",
+          position: "right",
+        },
+        {
+          label: "Donate",
+          href: "https://opencollective.com/meshtastic",
+          position: "right",
+        },
+        {
+          label: "GitHub",
+          href: "https://github.com/meshtastic",
+          position: "right",
+        },
+      ],
+    },
+    footer: {
+      copyright: `<a href="https://vercel.com/?utm_source=meshtastic&utm_campaign=oss">Powered by ▲ Vercel</a> | Meshtastic® is a registered trademark of Meshtastic LLC. | <a href="/docs/legal">Legal Information</a>.`,
+    },
+    algolia: {
+      appId: "IG2GQB8L3V",
+      apiKey: "2e4348812173ec7ea6f7879c7032bb21",
+      indexName: "meshtastic",
+      contextualSearch: true,
+      searchPagePath: "search",
+    },
     colorMode: {
       respectPrefersColorScheme: true,
     },
-
-    // ✅ 修复：导航栏删除无效文档链接
-    navbar: {
-      title: 'Monoの小窝',
-      logo: {
-        alt: 'Monoの小窝 Logo',
-        src: 'img/logo.png',
+    mermaid: {
+      theme: { light: "base", dark: "base" },
+      options: {
+        themeVariables: {
+          primaryColor: "#67EA94",
+          primaryTextColor: "#1a1a1a",
+          primaryBorderColor: "#4D4D4D",
+          lineColor: "#EAD667",
+          secondaryColor: "#EA67BD",
+          tertiaryColor: "#677CEA",
+        },
       },
-      items: [
-        { to: '/blog', label: '博客', position: 'left' },
-        // ✅ 修复：绿色按钮指向有效链接（首页）
-        {
-          to: '/',
-          label: 'Get Started',
-          position: 'right',
-          className: 'nav-green-btn',
-        },
-        {
-          href: 'https://github.com/ye2f4/pblot',
-          label: 'GitHub',
-          position: 'right',
-        },
-      ],
     },
-
-    footer: {
-      style: 'dark',
-      links: [
-        { title: '文档', items: [{ label: '教程', to: '/blog' }] },
-        { title: '社区', items: [{ label: 'GitHub 讨论', href: 'https://github.com/ye2f4/pblot/discussions' }] },
-        { title: '更多', items: [{ label: '博客', to: '/blog' }, { label: 'GitHub', href: 'https://github.com/ye2f4/pblot' }] },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} Monoの小窝. Built with Docusaurus.`,
-    },
-
     prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      additionalLanguages: ["shell-session", "bash"],
     },
-  }),
+  },
+  plugins: [
+    () => {
+      return {
+        name: "docusaurus-tailwindcss",
+        configurePostCss(postcssOptions) {
+          postcssOptions.plugins.push(require("tailwindcss"));
+          postcssOptions.plugins.push(require("autoprefixer"));
+          return postcssOptions;
+        },
+      };
+    },
+    () => {
+      return {
+        name: "docusaurus-webpack-alias",
+        configureWebpack() {
+          return {
+            resolve: {
+              alias: {
+                "@": path.resolve(__dirname, "src"),
+              },
+            },
+          };
+        },
+      };
+    },
+    "@docusaurus/plugin-vercel-analytics",
+  ],
+  scripts: [
+    ...(process.env.COOKIEYES_CLIENT_ID
+      ? [
+          {
+            src: `https://cdn-cookieyes.com/client_data/${process.env.COOKIEYES_CLIENT_ID}/script.js`,
+            async: true,
+          },
+        ]
+      : []),
+  ],
+  presets: [
+    [
+      "@docusaurus/preset-classic",
+      /** @type {import('@docusaurus/preset-classic').Options} */
+      {
+        docs: {
+          sidebarPath: require.resolve("./sidebars.js"),
+          editUrl: "https://github.com/meshtastic/meshtastic/edit/master/",
+          breadcrumbs: false,
+          showLastUpdateAuthor: true,
+          remarkPlugins: [remarkDefList],
+        },
+        blog: {
+          blogTitle: "Meshtastic Blog",
+          blogDescription:
+            "Discover in-depth insights from developers and maintainers, including project updates and changes. Hear from the community about their projects and ideas.",
+        },
+        theme: {
+          customCss: require.resolve("./src/css/custom.css"),
+        },
+      },
+    ],
+  ],
+  customFields: {
+    API_URL: process.env.API_URL,
+  },
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en"],
+  },
+  markdown: {
+    mermaid: true,
+    hooks: {
+        onBrokenMarkdownLinks: "warn"
+    },
+  },
+  themes: ["@docusaurus/theme-mermaid"],
+  future: {
+    v4: {
+      useCssCascadeLayers: false,
+    },
+  },
 };
 
-export default config;
+module.exports = config;
