@@ -35,8 +35,12 @@ export default function Home() {
   }, []);
 
   // 登录/退出
-  const login = () => supabase.auth.signInWithOAuth({ provider: 'github' });
-  const logout = () => supabase.auth.signOut();
+const login = () => supabase.auth.signInWithOAuth({ 
+  provider: 'github',
+  // 关键：自动跳转到当前页面，本地/线上通用，再也不跳localhost
+  options: { redirectTo: window.location.origin }
+});
+const logout = () => supabase.auth.signOut();
 
   const weekJp = ['日', '一', '二', '三', '四', '五', '六'][now.getDay()];
   const weekEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
