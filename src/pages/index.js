@@ -3,7 +3,7 @@ import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import homeData from '../data/home.json';
-import { supabase } from '../supabase/client';
+import { supabase } from '../supabase/supabaseClient';
 
 export default function Home() {
   const base = useBaseUrl('');
