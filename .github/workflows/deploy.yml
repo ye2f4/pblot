@@ -28,17 +28,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'  # 1. 改成 pnpm 缓存
+          cache: 'pnpm'
+
+      # 新增：GitHub服务器必须先安装pnpm
+      - name: 安装pnpm
+        run: npm install -g pnpm
 
       - name: 安装依赖
-        run: pnpm install  # 2. 改成 pnpm 安装（你项目用的pnpm）
+        run: pnpm install
 
-      # 3. 给构建步骤 添加 Supabase 环境变量（核心修复！）
+      # 构建站点 + 环境变量（修复Supabase）
       - name: 构建站点
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: npm run build
+        run: pnpm build
 
       - name: 部署到GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
