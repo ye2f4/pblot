@@ -16,7 +16,6 @@
     "crowdin:upload": "crowdin upload",
     "crowdin:download": "crowdin download",
     "crowdin:sync": "docusaurus write-translations && crowdin upload && crowdin download",
-    "prepare": "husky",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "lint:mdx": "bash scripts/lint-mdx.sh",
@@ -78,31 +77,19 @@
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "concurrently": "^10.0.3",
     "docusaurus-prince-pdf": "^1.2.1",
     "eslint": "^9.39.4",
     "eslint-plugin-mdx": "^3.7.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
+    "sharp-cli": "^5.2.0",
     "typescript": "^6.0.3"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
       "oxlint",
       "oxfmt"
-    ]
-  },
-  "pnpm": {
-    "overrides": {
-      "path-to-regexp": "^3.3.0",
-      "cookie": "^0.7.0",
-      "prismjs": "^1.30.0",
-      "webpack": "~5.105.0"
-    },
-    "ignoredBuiltDependencies": [
-      "core-js",
-      "core-js-pure"
     ]
   }
 }

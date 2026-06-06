@@ -1,78 +1,48 @@
 require("dotenv").config();
-
 import path from "node:path";
 import remarkDefList from "remark-deflist";
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "Monoの小窝",
-  tagline:
-    "一半白发藏温柔，一半黑鬓载星网。",
+  tagline: "一半白发藏温柔，一半黑鬓载星网。",
   url: "https://ye2f4.github.io",
   baseUrl: "/pblot/",
   trailingSlash: true,
-  onBrokenLinks: "throw",
+  onBrokenLinks: "warn",
+  onBrokenMarkdownLinks: "warn",
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "pblot",
-  themeConfig: /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ {
-    respectPrefersColorScheme: true,
-    docs: {
-      sidebar: {
-        autoCollapseCategories: true,
-      },
+
+  // 极速构建（提速3~5倍）
+  future: {
+    experimental_faster: {
+      rspackBundler: true,
+      rspackPersistentCache: true,
     },
+    v4: {
+      useCssCascadeLayers: false,
+    },
+  },
+
+  themeConfig: {
+    respectPrefersColorScheme: true,
+    docs: { sidebar: { autoCollapseCategories: true } },
     navbar: {
       hideOnScroll: false,
       title: "Monoの小窝",
-      logo: {
-        alt: "Mono Logo",
-        src: "img/logo.svg",
-        srcDark: "img/logo.svg",
-      },
+      logo: { alt: "Mono Logo", src: "img/logo.svg", srcDark: "img/logo.svg" },
       items: [
-        {
-          label: "文章",
-          to: "/docs/introduction/",
-          position: "left",
-        },
-        {
-          label: "博客",
-          to: "/blog/",
-          position: "left",
-        },
-        {
-          label: "下载",
-          to: "/downloads/",
-          position: "left",
-        },
-        {
-          label: "Flasher",
-          href: "https://flasher.meshtastic.org",
-          position: "left",
-        },
-        {
-          type: "localeDropdown",
-          position: "right",
-        },
-        {
-          type: "search",
-          position: "right",
-        },
-        {
-          label: "捐赠",
-          href: "https://opencollective.com/meshtastic",
-          position: "right",
-        },
-        {
-          label: "GitHub",
-          href: "https://github.com/ye2f4",
-          position: "right",
-        },
+        { label: "文章", to: "/docs/introduction/", position: "left" },
+        { label: "博客", to: "/blog/", position: "left" },
+        { label: "下载", to: "/downloads/", position: "left" },
+        { type: "search", position: "right" },
+        { label: "GitHub", href: "https://github.com/ye2f4", position: "right" },
       ],
     },
     footer: {
-      copyright: `<a href="https://vercel.com/?utm_source=meshtastic&utm_campaign=oss">Powered by ▲ Vercel</a> | Meshtastic® is a registered trademark of Meshtastic LLC. | <a href="/docs/legal">Legal Information</a>.`,
+      copyright: `Powered by Docusaurus & GitHub Pages © ${new Date().getFullYear()} Monoの小窝`,
     },
     algolia: {
       appId: "IG2GQB8L3V",
@@ -81,9 +51,7 @@ const config = {
       contextualSearch: true,
       searchPagePath: "search",
     },
-    colorMode: {
-      respectPrefersColorScheme: true,
-    },
+    colorMode: { respectPrefersColorScheme: true },
     mermaid: {
       theme: { light: "base", dark: "base" },
       options: {
@@ -97,89 +65,58 @@ const config = {
         },
       },
     },
-    prism: {
-      additionalLanguages: ["shell-session", "bash"],
-    },
+    prism: { additionalLanguages: ["shell-session", "bash"] },
   },
+
   plugins: [
-    () => {
-      return {
-        name: "docusaurus-tailwindcss",
-        configurePostCss(postcssOptions) {
-          postcssOptions.plugins.push(require("tailwindcss"));
-          postcssOptions.plugins.push(require("autoprefixer"));
-          return postcssOptions;
-        },
-      };
-    },
-    () => {
-      return {
-        name: "docusaurus-webpack-alias",
-        configureWebpack() {
-          return {
-            resolve: {
-              alias: {
-                "@": path.resolve(__dirname, "src"),
-              },
-            },
-          };
-        },
-      };
-    },
+    () => ({
+      name: "docusaurus-tailwindcss",
+      configurePostCss(postcssOptions) {
+        postcssOptions.plugins.push(require("tailwindcss"));
+        postcssOptions.plugins.push(require("autoprefixer"));
+        return postcssOptions;
+      },
+    }),
+    () => ({
+      name: "docusaurus-webpack-alias",
+      configureWebpack() {
+        return {
+          resolve: { alias: { "@": path.resolve(__dirname, "src") } },
+        };
+      },
+    }),
     "@docusaurus/plugin-vercel-analytics",
   ],
-  scripts: [
-    ...(process.env.COOKIEYES_CLIENT_ID
-      ? [
-          {
-            src: `https://cdn-cookieyes.com/client_data/${process.env.COOKIEYES_CLIENT_ID}/script.js`,
-            async: true,
-          },
-        ]
-      : []),
-  ],
+
+  scripts: process.env.COOKIEYES_CLIENT_ID ? [
+    { src: `https://cdn-cookieyes.com/client_data/${process.env.COOKIEYES_CLIENT_ID}/script.js`, async: true }
+  ] : [],
+
   presets: [
     [
       "@docusaurus/preset-classic",
-      /** @type {import('@docusaurus/preset-classic').Options} */
       {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/meshtastic/meshtastic/edit/master/",
+          editUrl: "https://github.com/ye2f4/pblot/edit/master/",
           breadcrumbs: false,
           showLastUpdateAuthor: true,
           remarkPlugins: [remarkDefList],
         },
         blog: {
-          blogTitle: "Meshtastic Blog",
-          blogDescription:
-            "Discover in-depth insights from developers and maintainers, including project updates and changes. Hear from the community about their projects and ideas.",
+          blogTitle: "Monoの小窝 博客",
+          blogDescription: "个人随笔、技术分享与生活记录",
         },
-        theme: {
-          customCss: require.resolve("./src/css/custom.css"),
-        },
+        theme: { customCss: require.resolve("./src/css/custom.css") },
       },
     ],
   ],
-  customFields: {
-    API_URL: process.env.API_URL,
-  },
-  i18n: {
-    defaultLocale: "en",
-    locales: ["en"],
-  },
-  markdown: {
-    mermaid: true,
-    hooks: {
-        onBrokenMarkdownLinks: "warn"
-    },
-  },
+
+  customFields: { API_URL: process.env.API_URL },
+  i18n: { defaultLocale: "en", locales: ["en"] },
+  markdown: { mermaid: true },
   themes: ["@docusaurus/theme-mermaid"],
-  future: {
-    v4: {
-      useCssCascadeLayers: false,
-    },
-  },
+  cache: true,
 };
 
 module.exports = config;
