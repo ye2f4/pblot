@@ -5,16 +5,16 @@ import remarkDefList from "remark-deflist";
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "Meshtastic",
+  title: "Monoの小窝",
   tagline:
-    "An open source, off-grid, decentralized, mesh network built to run on affordable, low-power devices",
-  url: "https://ye2f4.github.io",
+    "一半白发藏温柔，一半黑鬓载星网。",
+  url: "https://ye2f4.github.io/ye2f4",
   baseUrl: "/pblot/",
   trailingSlash: true,
   onBrokenLinks: "throw",
   favicon: "img/logo.svg",
-  organizationName: "meshtastic",
-  projectName: "meshtastic",
+  organizationName: "ye2f4",
+  projectName: "pblot",
   themeConfig: /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ {
     respectPrefersColorScheme: true,
     docs: {
@@ -24,25 +24,25 @@ const config = {
     },
     navbar: {
       hideOnScroll: false,
-      title: "Meshtastic",
+      title: "Monoの小窝",
       logo: {
-        alt: "Meshtastic Logo",
+        alt: "Mono Logo",
         src: "img/logo.svg",
         srcDark: "img/logo.svg",
       },
       items: [
         {
-          label: "Docs",
+          label: "文章",
           to: "/docs/introduction/",
           position: "left",
         },
         {
-          label: "Blog",
+          label: "博客",
           to: "/blog/",
           position: "left",
         },
         {
-          label: "Downloads",
+          label: "下载",
           to: "/downloads/",
           position: "left",
         },
@@ -60,13 +60,13 @@ const config = {
           position: "right",
         },
         {
-          label: "Donate",
+          label: "捐赠",
           href: "https://opencollective.com/meshtastic",
           position: "right",
         },
         {
           label: "GitHub",
-          href: "https://github.com/meshtastic",
+          href: "https://github.com/ye2f4",
           position: "right",
         },
       ],
