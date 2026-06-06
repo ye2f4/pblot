@@ -8,8 +8,8 @@ const config = {
   title: "Meshtastic",
   tagline:
     "An open source, off-grid, decentralized, mesh network built to run on affordable, low-power devices",
-  url: "https://meshtastic.org",
-  baseUrl: "/",
+  url: "https://ye2f4.github.io",
+  baseUrl: "/pblot/",
   trailingSlash: true,
   onBrokenLinks: "throw",
   favicon: "img/logo.svg",
