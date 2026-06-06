@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '@theme/Layout';
+import Layout from '@docusaurus/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import homeData from '../data/home.json';
@@ -19,9 +19,14 @@ export default function Home() {
 
   // 登录状态监听 + 统计会员数
   useEffect(() => {
-    // 监听登录
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    // 监听登录状态（🔥 修复：添加事件判断 + 清理URL）
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setCurrentUser(session?.user || null);
+
+      // 🔥 核心修复：登录成功后清空URL里的token参数，解决"无网页"报错
+      if (event === 'SIGNED_IN') {
+        window.history.replaceState({}, document.title, '/pblot/');
+      }
     });
 
     // 获取会员总数
@@ -34,13 +39,14 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 登录/退出
-const login = () => supabase.auth.signInWithOAuth({ 
-  provider: 'github',
-  // 关键：自动跳转到当前页面，本地/线上通用，再也不跳localhost
-  options: { redirectTo: window.location.origin }
-});
-const logout = () => supabase.auth.signOut();
+  // 登录/退出（已适配你的 GitHub Pages 路径）
+  const login = () => supabase.auth.signInWithOAuth({ 
+    provider: 'github',
+    options: { 
+      redirectTo: 'https://ye2f4.github.io/pblot/'
+    }
+  });
+  const logout = () => supabase.auth.signOut().then(() => window.location.reload());
 
   const weekJp = ['日', '一', '二', '三', '四', '五', '六'][now.getDay()];
   const weekEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
@@ -54,7 +60,6 @@ const logout = () => supabase.auth.signOut();
             <div className={styles.statItem}><span className={styles.statCircle}>今</span><p>今日:{homeData.todayCount}</p></div>
             <div className={styles.statItem}><span className={styles.statCircle}>昨</span><p>昨日:{homeData.yestCount}</p></div>
             <div className={styles.statItem}><span className={styles.statCircle}>总</span><p>总帖:{homeData.totalPost}</p></div>
-            {/* 🔥 动态会员数（云端实时） */}
             <div className={styles.statItem}><span className={styles.statCircle}>会</span><p>会员:{userCount}</p></div>
             <div className={styles.statItem}><span className={styles.statCircle}>新</span><p>最新:{homeData.newUser}</p></div>
           </div>
@@ -78,7 +83,7 @@ const logout = () => supabase.auth.signOut();
         </div>
       </section>
 
-      {/* 主内容（不变） */}
+      {/* 主内容 */}
       <div className={styles.pageWrap}>
         <main className={styles.mainLeft}>
           <div className={styles.annBanner}><img src={base+"img/home_ann_banner.png"} alt="公告"/></div>
@@ -104,7 +109,7 @@ const logout = () => supabase.auth.signOut();
           ))}
         </main>
 
-        {/* 侧边栏（不变） */}
+        {/* 侧边栏 */}
         <aside className={styles.sidebarRight}>
           <div className={styles.signBtnBox}>
             <button className={styles.greenBtn} onClick={()=>currentUser?alert('签到成功'):login()}>签到</button>
