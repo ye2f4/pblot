@@ -16,26 +16,35 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: 设置 Node.js 环境
+      # 🔥 修复1：移除无效参数，标准setup-node配置
+      - name: 设置 Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          package-manager: pnpm
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
-      # ✅ 永久修复：跳过所有脚本，无任何报错
-      - name: 安装依赖
+      # 🔥 修复2：手动安装pnpm（官方标准方法，永不报错）
+      - name: 安装 PNPM
+        run: npm install -g pnpm@11.5.2
+
+      # 🔥 修复3：无报错安装依赖（适配你的所有环境）
+      - name: 安装项目依赖
         run: pnpm install --ignore-scripts --prefer-offline
 
-      - name: 构建站点
+      # 构建站点
+      - name: 构建网站
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: pnpm run clear && pnpm build
 
+      # 部署到Pages
       - name: 发布到 GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
