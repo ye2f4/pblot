@@ -2,7 +2,7 @@ name: 自动部署到GitHub Pages
 
 on:
   push:
-    branches: [ master ]  # 关键修改：匹配你的分支名master！
+    branches: [ master ]
 
 permissions:
   contents: write
@@ -24,12 +24,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          # 🔥 修复：删掉 pnpm 缓存（顺序错误导致报错）
 
-      - name: 安装pnpm
+      - name: 安装pnpm（必须先装！）
         run: npm install -g pnpm
 
-      - name: 安装依赖（解决overrides警告）
+      - name: 安装项目依赖
         run: pnpm install --no-frozen-lockfile
 
       - name: 构建站点
