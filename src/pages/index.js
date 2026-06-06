@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '@docusaurus/Layout';
+// 🔥 修复1：Docusaurus 正确的 Layout 导入（核心报错）
+import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import homeData from '../data/home.json';
@@ -19,13 +20,13 @@ export default function Home() {
 
   // 登录状态监听 + 统计会员数
   useEffect(() => {
-    // 监听登录状态（🔥 修复：添加事件判断 + 清理URL）
+    // 监听登录状态
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setCurrentUser(session?.user || null);
 
-      // 🔥 核心修复：登录成功后清空URL里的token参数，解决"无网页"报错
+      // 🔥 修复2：清理URL改为 /，解决重复路由警告
       if (event === 'SIGNED_IN') {
-        window.history.replaceState({}, document.title, '/pblot/');
+        window.history.replaceState({}, document.title, '/');
       }
     });
 
@@ -39,7 +40,7 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 登录/退出（已适配你的 GitHub Pages 路径）
+  // 登录/退出（路径正确）
   const login = () => supabase.auth.signInWithOAuth({ 
     provider: 'github',
     options: { 
