@@ -25,6 +25,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
+  // 评论区状态
+  const [comments, setComments] = useState([]);
+  const [commentContent, setCommentContent] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
+
   // GitHub 登录
   const handleGitHubLogin = async () => {
     if (!isClient) return;
@@ -65,6 +70,40 @@ export default function Home() {
       }
     } catch (err) {
       alert(`${siteData.texts.loginTips.logoutError}${err.message}`);
+    }
+  };
+
+  // 🔥 加载评论数据
+  const fetchComments = async () => {
+    if (!isClient) return;
+    const { data } = await supabase
+      .from('comments')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setComments(data || []);
+  };
+
+  // 🔥 发表评论
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!user) return alert(siteData.texts.comments.loginTip);
+    if (!commentContent.trim()) return;
+
+    setCommentLoading(true);
+    try {
+      await supabase.from('comments').insert([{
+        user_id: user.id,
+        username: user.user_metadata?.full_name || user.email,
+        avatar_url: user.user_metadata?.avatar_url || `${base}avatar.png`,
+        content: commentContent.trim()
+      }]);
+      setCommentContent('');
+      fetchComments();
+      alert(siteData.texts.comments.success);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCommentLoading(false);
     }
   };
 
@@ -121,6 +160,11 @@ export default function Home() {
       clearTimeout(retryTimer2);
       subscription.unsubscribe();
     };
+  }, [isClient]);
+
+  // 页面加载后获取评论
+  useEffect(() => {
+    if (isClient) fetchComments();
   }, [isClient]);
 
   // 轮播配置
@@ -659,6 +703,7 @@ export default function Home() {
               animation: 'fadeIn 0.8s ease-out 0.7s both'
             }}
           >
+            {/* 🔥 最新主题模块（原有） */}
             <div style={{
               backgroundColor: '#fff',
               padding: 15,
@@ -743,6 +788,101 @@ export default function Home() {
               </div>
             </div>
 
+            {/* ============================================== */}
+            {/* 🔥🔥🔥 评论区（你指定的位置，完美嵌入） 🔥🔥🔥 */}
+            {/* ============================================== */}
+            <div style={{
+              backgroundColor: '#fff',
+              padding: 15,
+              borderRadius: 8,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              marginBottom: 15,
+              width: '100%'
+            }}>
+              <h4 style={{
+                margin: '0 0 15px 0',
+                fontSize: 16,
+                position: 'relative',
+                paddingBottom: 8,
+                borderBottom: '2px solid #f0f0f0'
+              }}>
+                {siteData.texts.comments.title}
+              </h4>
+
+              {/* 发表评论框 */}
+              <form onSubmit={handleSubmitComment} style={{ marginBottom: 15 }}>
+                <textarea
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  disabled={commentLoading || !user}
+                  placeholder={siteData.texts.comments.placeholder}
+                  style={{
+                    width: '100%',
+                    minHeight: 80,
+                    padding: 8,
+                    border: '1px solid #eee',
+                    borderRadius: 4,
+                    resize: 'none',
+                    fontSize: 14,
+                    marginBottom: 8
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={commentLoading || !user}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#4285f4',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 12,
+                    cursor: commentLoading ? 'not-allowed' : 'pointer',
+                    opacity: commentLoading ? 0.7 : 1
+                  }}
+                >
+                  {commentLoading ? "发布中..." : siteData.texts.comments.submit}
+                </button>
+              </form>
+
+              {/* 评论列表 */}
+              <div style={{ maxHeight: 300, overflowY: 'auto', gap: 10, display: 'flex', flexDirection: 'column' }}>
+                {comments.length === 0 ? (
+                  <p style={{ color: '#999', fontSize: 12, textAlign: 'center', margin: 0 }}>
+                    {siteData.texts.comments.empty}
+                  </p>
+                ) : (
+                  comments.map((item) => (
+                    <div key={item.id} style={{
+                      display: 'flex',
+                      gap: 8,
+                      paddingBottom: 8,
+                      borderBottom: '1px solid #f5f5f5'
+                    }}>
+                      <img
+                        src={item.avatar_url}
+                        style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover' }}
+                        alt="avatar"
+                        onError={(e) => e.target.src = `${base}avatar.png`}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 12, fontWeight: 500, color: '#333' }}>
+                          {item.username}
+                        </div>
+                        <p style={{ margin: '2px 0', fontSize: 12, color: '#666' }}>
+                          {item.content}
+                        </p>
+                        <div style={{ fontSize: 10, color: '#999' }}>
+                          {new Date(item.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* 🔥 广告模块（原有，评论区之后） */}
             {siteData.ads.map((ad, i) => (
               <div
                 key={i}
