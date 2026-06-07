@@ -1,10 +1,16 @@
-/* ✅ 字节跳动CDN镜像，国内秒加载 */
-@import url('https://lf6-cdn-tos.bytecdntp.com/cdn/expire-10-M/press-start-2p/16.0.0/css/press-start-2p.min.css');
-.pixel-font { font-family: 'Press Start 2P', cursive; letter-spacing: 2px; }
-
 /* 基础响应式重置 + 护眼淡黄色背景 */
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0; background-color: #FFF9E6; }
+
+/* ===== 新增：引入像素字体（修复字体消失）===== */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+/* 像素字体核心样式（修复时钟像素字） */
+.pixel-font {
+  font-family: "Press Start 2P", monospace !important;
+  letter-spacing: 1px !important;
+  -webkit-font-smoothing: none !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
 
 /* ===== 核心动画定义 ===== */
 /* 页面加载渐入 */
@@ -25,10 +31,10 @@ body { margin: 0; padding: 0; background-color: #FFF9E6; }
   50% { opacity: 0.9; transform: scale(1.02); }
 }
 
-/* 数字跳动（时钟专用） */
+/* 数字跳动（时钟专用 · 优化像素字体适配） */
 @keyframes digitPulse {
-  0%, 100% { text-shadow: 0 0 2px #333; }
-  50% { text-shadow: 0 0 8px #4285f4; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
 }
 
 /* 排行榜数字闪烁 */
@@ -37,10 +43,10 @@ body { margin: 0; padding: 0; background-color: #FFF9E6; }
   50% { box-shadow: 0 0 8px rgba(234, 67, 53, 0.4); }
 }
 
-/* 滚动通知文字动画 */
+/* 滚动通知文字动画（修复溢出卡顿） */
 @keyframes scrollText {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
+  0% { transform: translateX(120%); }
+  100% { transform: translateX(-120%); }
 }
 
 /* 滚动渐入 */
@@ -319,8 +325,8 @@ body { margin: 0; padding: 0; background-color: #FFF9E6; }
   .top-col { flex: 1 1 100% !important; min-width: 100% !important; }
   .stats-container { gap: 15px !important; justify-content: center !important; }
   .clock-container { padding: 10px !important; text-align: center !important; }
-  .clock-text { font-size: 24px !important; }
-  .date-text { font-size: 16px !important; }
+  .clock-text { font-size: 20px !important; }
+  .date-text { font-size: 14px !important; }
   .main-content { flex-direction: column; gap: 15px !important; }
   .carousel-container, .sidebar-container { flex: 1 1 100% !important; }
   .tab-buttons { flex-wrap: wrap; }
@@ -339,7 +345,7 @@ body { margin: 0; padding: 0; background-color: #FFF9E6; }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .stats-container { gap: 20px !important; }
-  .clock-text { font-size: 32px !important; }
+  .clock-text { font-size: 28px !important; }
   .carousel-container { flex: 6 !important; }
   .sidebar-container { flex: 4 !important; }
   
