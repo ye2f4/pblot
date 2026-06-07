@@ -9,6 +9,11 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
+// 🔥 核心修复：禁用SSR，彻底解决React水合错误 #418（必须加！）
+export const metadata = {
+  ssr: false,
+};
+
 export default function Home() {
   const base = useBaseUrl('');
   const [now, setNow] = useState(new Date());
@@ -20,16 +25,14 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
-  // GitHub 登录逻辑（最终稳定版）
+  // GitHub 登录
   const handleGitHubLogin = async () => {
     if (!isClient) return;
     setLoading(true);
 
     try {
-      // 安全取值 + 兜底，防止变量 undefined
       const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
       const cbPath = siteData.callbackPath || "/pblot/callback";
-      // 拼接完整回调地址
       const redirectUrl = rootUrl + cbPath;
 
       const { error } = await supabase.auth.signInWithOAuth({
@@ -65,6 +68,7 @@ export default function Home() {
     }
   };
 
+  // 时钟、滚动监听
   useEffect(() => {
     setIsClient(true);
     const handleScroll = () => setScrollY(window.scrollY);
@@ -77,34 +81,34 @@ export default function Home() {
     };
   }, []);
 
-  // 🔥 核心合并修复：强化认证状态监听 + 用户信息获取
+  // 获取用户登录状态
   useEffect(() => {
     if (!isClient) return;
 
-    const initUser = async () => {
+    const fetchUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setUser(session.user);
+          setUser({ ...session.user });
         } else {
           const { data: { user } } = await supabase.auth.getUser();
-          setUser(user || null);
+          setUser(user ? { ...user } : null);
         }
       } catch (err) {
-        console.error('初始化用户出错:', err);
+        console.error('获取用户失败：', err);
       } finally {
         setIsSessionChecked(true);
       }
     };
 
-    initUser();
+    fetchUser();
+    const retryTimer1 = setTimeout(fetchUser, 300);
+    const retryTimer2 = setTimeout(fetchUser, 800);
 
-    // 监听登录状态变化，自动刷新头像/昵称
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        setUser(session.user);
-        // 清理URL中的授权参数
-        if (window.location.hash || window.location.search.includes('access_token')) {
+        setUser({ ...session.user });
+        if (window.location.hash) {
           window.history.replaceState(null, document.title, window.location.pathname);
         }
       } else {
@@ -113,6 +117,8 @@ export default function Home() {
     });
 
     return () => {
+      clearTimeout(retryTimer1);
+      clearTimeout(retryTimer2);
       subscription.unsubscribe();
     };
   }, [isClient]);
@@ -147,15 +153,14 @@ export default function Home() {
     return rect.top < window.innerHeight * 0.8 && rect.bottom > 0;
   };
 
-  // 🔥 合并修复：头像获取（全兼容GitHub）
+  // 头像获取
   const getAvatarUrl = () => {
     if (!user) return `${base}avatar.png`;
-    // 优先读取GitHub官方头像
-    const githubAvatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
-    return githubAvatar?.startsWith('http') ? githubAvatar : `${base}avatar.png`;
+    const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
+    return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.png`;
   };
 
-  // 🔥 新增合并修复：昵称获取（多层兜底，绝不空白）
+  // 昵称获取
   const getUserName = () => {
     if (!user) return "用户";
     return (
@@ -167,9 +172,12 @@ export default function Home() {
     );
   };
 
+  // 客户端渲染兜底
+  if (!isClient) return null;
+
+  // 页面渲染
   return (
     <Layout title={siteData.siteTitle}>
-      {/* 顶部通栏 */}
       <section 
         className={styles.topBannerWrap} 
         style={{ 
@@ -182,7 +190,6 @@ export default function Home() {
         }}
       >
         <div className="top-row" style={{ maxWidth: 1200, margin: '0 auto' }}>
-          {/* 左：公告栏 */}
           <div className="top-col" style={{ animationDelay: '0.1s' }}>
             <div style={{ 
               display: 'flex', 
@@ -198,7 +205,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 中：统计+时钟 */}
           <div className="top-col" style={{ flex: 2, minWidth: 400, animationDelay: '0.2s' }}>
             <div style={{
               display: 'flex',
@@ -243,7 +249,6 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* 时钟 */}
               <div className="clock-container" style={{
                 padding: 0,
                 backgroundColor: 'transparent',
@@ -278,7 +283,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 右：用户界面 - 🔥 修复后自动显示头像/昵称 */}
+          {/* 用户区域 */}
           <div className="top-col" style={{ animationDelay: '0.3s' }}>
             {user ? (
               <div style={{
@@ -311,7 +316,6 @@ export default function Home() {
                     e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
                   }}
                 />
-                {/* 🔥 修复：调用专属昵称函数，永不空白 */}
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
                   {getUserName()}
                 </span>
@@ -419,7 +423,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 主内容区（完全保留你的原有代码） */}
+      {/* 页面主体内容 */}
       <div 
         ref={mainContentRef}
         className="main-content" 

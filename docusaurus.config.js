@@ -82,7 +82,7 @@ const config = {
         };
       },
     }),
-    "@docusaurus/plugin-vercel-analytics",
+    // 已删除 vercel-analytics 插件
   ],
 
   scripts: [],
