@@ -1,5 +1,7 @@
 {
   "siteTitle": "Monoの小窝",
+  "siteUrl": "https://ye2f4.github.io",
+  "callbackPath": "/pblot/callback",
   "texts": {
     "announcement": "欢迎来到Mono的小窝！本站为个人技术分享站点~",
     "notification": "📢 欢迎来到Mono的小窝！本站持续更新技术教程和资源分享，记得常来看看哦~ 🔥 最新上线React入门系列教程！",
@@ -8,7 +10,19 @@
       "register": "注册",
       "githubLogin": "GitHub登录",
       "signIn": "签到",
-      "drawPost": "抽贴"
+      "drawPost": "抽贴",
+      "logout": "退出登录",
+      "logging": "登录中..."
+    },
+    "loginTips": {
+      "loginFailed": "登录失败: ",
+      "loginError": "登录出错: ",
+      "logoutFailed": "登出失败: ",
+      "logoutError": "登出出错: "
+    },
+    "callback": {
+      "title": "登录中...",
+      "message": "✅ 登录成功，正在返回首页..."
     },
     "rankTitle": "最新主题",
     "weekJp": ["日", "月", "火", "水", "木", "金", "土"],
