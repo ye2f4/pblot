@@ -27,7 +27,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // GitHub 登录逻辑
+  // GitHub 登录逻辑（方案2：跳转到回调页）
   const handleGitHubLogin = async () => {
     if (!isClient) return;
     setLoading(true);
@@ -36,7 +36,8 @@ export default function Home() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}${base}`,
+          // 🔥 核心修改：跳转到专属回调页面
+          redirectTo: 'https://ye2f4.github.io/pblot/callback',
         },
       });
       
@@ -79,7 +80,7 @@ export default function Home() {
     };
   }, []);
 
-  // ====================== 修复版：认证监听 + 自动清理URL令牌 ======================
+  // 认证状态监听 + 兜底清理URL
   useEffect(() => {
     if (!isClient) return;
 
@@ -97,15 +98,6 @@ export default function Home() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
-
-        // 🔥 核心修复：登录成功后自动删除URL里的 access_token 等参数
-        if (window.location.hash) {
-          window.history.replaceState(
-            null,
-            document.title,
-            window.location.pathname + window.location.search
-          );
-        }
       } else {
         setUser(null);
       }
@@ -525,7 +517,7 @@ export default function Home() {
               animation: 'fadeIn 0.8s ease-out 0.6s both'
             }}
           >
-            {/* 轮播图（修复显示不全+箭头不明显） */}
+            {/* 轮播图 */}
             {isClient && (
               <div style={{
                 backgroundColor: '#fff',
@@ -562,7 +554,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* ========== 新增：快速导航板块 ========== */}
+            {/* 快速导航板块 */}
             <div className="section-card" style={{ animationDelay: '0.8s' }}>
               <h3 className="section-title">{siteData.texts.quickNavTitle}</h3>
               <div className="nav-grid">
@@ -580,7 +572,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ========== 新增：最新更新板块 ========== */}
+            {/* 最新更新板块 */}
             <div className="section-card" style={{ animationDelay: '1.0s' }}>
               <h3 className="section-title">{siteData.texts.updatesTitle}</h3>
               <ul className="update-list">
@@ -593,7 +585,7 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* ========== 新增：技术标签云板块 ========== */}
+            {/* 技术标签云板块 */}
             <div className="section-card" style={{ animationDelay: '1.2s' }}>
               <h3 className="section-title">{siteData.texts.tagsTitle}</h3>
               <div className="tag-cloud">
@@ -615,7 +607,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ========== 新增：友情链接 + 关于本站 ========== */}
+            {/* 友情链接 + 关于本站 */}
             <div style={{ display: 'flex', gap: 20, width: '100%' }}>
               {/* 友情链接 */}
               <div className="section-card" style={{ flex: 1, animationDelay: '1.4s' }}>
@@ -652,7 +644,7 @@ export default function Home() {
               animation: 'fadeIn 0.8s ease-out 0.7s both'
             }}
           >
-            {/* 排行榜（数字闪烁+条目悬浮） */}
+            {/* 排行榜 */}
             <div style={{
               backgroundColor: '#fff',
               padding: 15,
@@ -712,7 +704,6 @@ export default function Home() {
                         justifyContent: 'center',
                         fontSize: 12,
                         marginRight: 10,
-                        // 前三名添加闪烁动画
                         ...(i < 3 ? { animation: 'rankFlash 2s infinite' } : {})
                       }}>{i+1}</span>
                       <a 
@@ -738,7 +729,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 广告位（悬浮放大） */}
+            {/* 广告位 */}
             {siteData.ads.map((ad, i) => (
               <div 
                 key={i} 
