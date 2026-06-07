@@ -1,7 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 固定配置（直接上传GitHub，无需本地测试）
-const SUPABASE_URL = "https://xwhwcmorcmgpfpocmgez.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aHdjbW9yY21ncGZwb2NtZ2V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2ODk2MzQsImV4cCI6MjA5NjI2NTYzNH0.O5YcPuehUMjEofFdoNfE5NDxT71qtcMdYeLCvyyoQgw";
+// 确保使用环境变量，不要硬编码密钥
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true, // 🔥 关键：启用会话持久化
+    autoRefreshToken: true, // 自动刷新token
+    detectSessionInUrl: true, // 检测URL中的会话信息
+    storage: typeof window !== 'undefined' ? window.localStorage : null,
+  }
+});

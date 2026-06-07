@@ -1,17 +1,10 @@
-// 1. 导入React核心依赖
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import siteData from '../data/siteData.json';
-
-// ✅ 导入抽离后的独立样式文件
 import '../css/home.css';
-
-// 导入 Supabase 客户端
 import { supabase } from '../supabase/supabaseClient';
-
-// 导入轮播组件
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -23,11 +16,12 @@ export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const mainContentRef = useRef(null);
   
-  // 用户状态和加载状态
+  // 用户状态和加载状态（添加isSessionChecked避免重复检查）
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isSessionChecked, setIsSessionChecked] = useState(false);
 
-  // GitHub 登录逻辑（方案2：跳转到回调页）
+  // GitHub 登录逻辑
   const handleGitHubLogin = async () => {
     if (!isClient) return;
     setLoading(true);
@@ -36,8 +30,8 @@ export default function Home() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          // 🔥 核心修改：跳转到专属回调页面
-          redirectTo: 'https://ye2f4.github.io/pblot/callback',
+          redirectTo: `${window.location.origin}${base}callback`,
+          scopes: 'user:email' // 🔥 新增：获取GitHub用户邮箱和头像权限
         },
       });
       
@@ -57,6 +51,10 @@ export default function Home() {
       const { error } = await supabase.auth.signOut();
       if (error) {
         alert('登出失败: ' + error.message);
+      } else {
+        setUser(null); // 🔥 强制清空用户状态
+        // 清除本地存储，确保完全登出
+        localStorage.removeItem('supabase.auth.token');
       }
     } catch (err) {
       alert('登出出错: ' + err.message);
@@ -80,24 +78,52 @@ export default function Home() {
     };
   }, []);
 
-  // 认证状态监听 + 兜底清理URL
+  // 🔥 核心修复：认证状态持久化（解决刷新后用户丢失）
   useEffect(() => {
     if (!isClient) return;
 
-    // 初始化获取当前用户
+    // 初始化获取当前用户（带重试机制）
     const initUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
+      try {
+        // 1. 先尝试恢复会话
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          console.log('会话恢复成功:', session.user);
+          setUser(session.user);
+        } else {
+          // 2. 会话不存在时，明确获取用户状态
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            console.log('获取用户成功:', user);
+            setUser(user);
+          } else {
+            console.log('未登录');
+            setUser(null);
+          }
+        }
+      } catch (err) {
+        console.error('初始化用户出错:', err);
+      } finally {
+        setIsSessionChecked(true);
       }
     };
 
+    // 立即执行初始化
     initUser();
 
-    // 监听登录/登出状态变化
+    // 监听登录/登出状态变化（包含初始会话）
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth状态变化:', event, session);
       if (session?.user) {
         setUser(session.user);
+        // 清理URL令牌
+        if (window.location.hash) {
+          window.history.replaceState(
+            null,
+            document.title,
+            window.location.pathname + window.location.search
+          );
+        }
       } else {
         setUser(null);
       }
@@ -106,7 +132,7 @@ export default function Home() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [isClient]);
+  }, [isClient, base]);
 
   // 轮播配置
   const carouselSettings = {
@@ -140,9 +166,30 @@ export default function Home() {
     return rect.top < window.innerHeight * 0.8 && rect.bottom > 0;
   };
 
+  // 🔥 头像加载容错函数（解决头像URL为空/无效问题）
+  const getAvatarUrl = () => {
+    if (!user) return `${base}avatar.png`;
+    
+    // 1. 尝试从user_metadata获取GitHub头像
+    const githubAvatar = user.user_metadata?.avatar_url;
+    if (githubAvatar) {
+      // 确保是完整URL（避免相对路径问题）
+      return githubAvatar.startsWith('http') ? githubAvatar : `${base}avatar.png`;
+    }
+    
+    // 2. 尝试从raw_user_meta_data获取（Supabase有时会放在这里）
+    const rawAvatar = user.raw_user_meta_data?.avatar_url;
+    if (rawAvatar) {
+      return rawAvatar.startsWith('http') ? rawAvatar : `${base}avatar.png`;
+    }
+    
+    // 3. 所有方式都失败时，使用默认头像
+    return `${base}avatar.png`;
+  };
+
   return (
     <Layout title={siteData.siteTitle}>
-      {/* 顶部通栏（背景图保留 + 加载动画） */}
+      {/* 顶部通栏 */}
       <section 
         className={styles.topBannerWrap} 
         style={{ 
@@ -155,7 +202,7 @@ export default function Home() {
         }}
       >
         <div className="top-row" style={{ maxWidth: 1200, margin: '0 auto' }}>
-          {/* ========== 左：公告栏（呼吸动画） ========== */}
+          {/* 左：公告栏 */}
           <div className="top-col" style={{ animationDelay: '0.1s' }}>
             <div style={{ 
               display: 'flex', 
@@ -171,7 +218,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ========== 中：统计+时钟 ========== */}
+          {/* 中：统计+时钟 */}
           <div className="top-col" style={{ flex: 2, minWidth: 400, animationDelay: '0.2s' }}>
             <div style={{
               display: 'flex',
@@ -179,7 +226,7 @@ export default function Home() {
               alignItems: 'center',
               height: '100%'
             }}>
-              {/* 统计项（悬浮缩放） */}
+              {/* 统计项 */}
               <div className="stats-container" style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
                 {siteData.stats.map((item, i) => (
                   <div 
@@ -217,7 +264,7 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* 时钟（数字跳动动画） */}
+              {/* 时钟 */}
               <div className="clock-container" style={{
                 padding: 0,
                 backgroundColor: 'transparent',
@@ -252,7 +299,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ========== 右：用户界面（头像+登录/用户信息） ========== */}
+          {/* 右：用户界面（头像+登录/用户信息） */}
           <div className="top-col" style={{ animationDelay: '0.3s' }}>
             {user ? (
               // 已登录状态：显示用户头像、名称、登出按钮
@@ -264,10 +311,15 @@ export default function Home() {
                 height: '100%',
                 justifyContent: 'center'
               }}>
-                {/* 用户头像（来自 GitHub） */}
+                {/* 用户头像（修复：使用容错函数 + 加载失败兜底） */}
                 <img 
-                  src={user.user_metadata?.avatar_url || `${base}avatar.png`} 
-                  alt={user.user_metadata?.full_name || '用户头像'}
+                  src={getAvatarUrl()} 
+                  alt={user.user_metadata?.full_name || user.email || '用户头像'}
+                  onError={(e) => {
+                    // 🔥 头像加载失败时自动替换为默认头像
+                    e.target.src = `${base}avatar.png`;
+                    console.log('头像加载失败，使用默认头像');
+                  }}
                   style={{
                     width: 50,
                     height: 50,
@@ -288,7 +340,7 @@ export default function Home() {
                 />
                 {/* 用户名 */}
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
-                  {user.user_metadata?.full_name || user.email}
+                  {user.user_metadata?.full_name || user.email || '用户'}
                 </span>
                 {/* 退出登录按钮 */}
                 <button 
@@ -399,7 +451,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== 主内容区（滚动动画） ========== */}
+      {/* 主内容区 */}
       <div 
         ref={mainContentRef}
         className="main-content" 
@@ -417,7 +469,7 @@ export default function Home() {
           transition: 'opacity 0.8s ease, transform 0.8s ease'
         }}
       >
-        {/* ========== 顶部行（标签栏 + 通知栏 + 签到按钮） ========== */}
+        {/* 顶部行 */}
         <div 
           className="main-content-top"
           style={{ 
@@ -428,7 +480,7 @@ export default function Home() {
             animation: 'fadeIn 0.8s ease-out 0.4s both'
           }}
         >
-          {/* 标签栏（按钮悬浮动画） */}
+          {/* 标签栏 */}
           <div className="tab-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
             {siteData.tabs.map((tab, i) => (
               <button 
@@ -477,7 +529,7 @@ export default function Home() {
             </span>
           </div>
 
-          {/* 功能按钮（签到+抽贴） */}
+          {/* 功能按钮 */}
           <div className="action-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
             <button className="btn-hover" style={{ 
               padding: '8px 16px',
@@ -506,9 +558,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ========== 下方内容区（轮播图 + 侧边栏） ========== */}
+        {/* 下方内容区 */}
         <div style={{ display: 'flex', gap: 20, width: '100%' }}>
-          {/* 左侧区域（轮播图 + 新增板块） */}
+          {/* 左侧区域 */}
           <div 
             className="left-container" 
             style={{ 
