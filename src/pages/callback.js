@@ -1,46 +1,46 @@
 import { useEffect } from 'react';
 import Layout from '@theme/Layout';
 import { supabase } from '../supabase/supabaseClient';
-import useBaseUrl from '@docusaurus/useBaseUrl';
 import siteData from '../data/siteData.json';
 
-// 禁用服务端渲染（必须保留，构建不报错）
+// 禁用服务端渲染（构建必需，保留）
 export const metadata = {
   ssr: false,
 };
 
 export default function AuthCallback() {
-  const base = useBaseUrl('');
-
   useEffect(() => {
-    // ✅ 核心修复：100%跳转到你的子站点首页，绝不跳根域名
+    // 跳转至站点首页
     const redirectToHome = () => {
-      // 拼接结果：https://ye2f4.github.io/pblot/
-      const homeUrl = `${siteData.siteUrl}${siteData.basePath}`;
-      window.location.replace(homeUrl);
+      // 安全取值 + 兜底
+      const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
+      const homePath = siteData.basePath || "/pblot/";
+      const homeFullUrl = rootUrl + homePath;
+      
+      window.location.replace(homeFullUrl);
     };
 
+    // 处理授权令牌
     const handleCallback = async () => {
       try {
-        // 处理GitHub登录的令牌
         if (supabase?.auth) {
           await supabase.auth.getSessionFromUrl();
         }
       } catch (err) {
-        console.error('登录授权失败', err);
+        console.error('登录回调失败', err);
       } finally {
-        // 授权完成立即跳转
+        // 解析完成立即跳转
         redirectToHome();
       }
     };
 
-    // 执行登录回调逻辑
     handleCallback();
-
-    // 安全兜底：3秒后强制跳转（防止页面卡死）
+    // 3秒兜底跳转（防止页面卡死）
     const timer = setTimeout(redirectToHome, 3000);
+
+    // 组件销毁清除定时器
     return () => clearTimeout(timer);
-  }, []);
+  }, []); // 依赖项清空，只执行一次
 
   return (
     <Layout title={siteData.texts.callback.title}>

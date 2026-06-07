@@ -20,29 +20,35 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
-  // GitHub 登录（回调地址从siteData读取，无硬编码）
-  const handleGitHubLogin = async () => {
-    if (!isClient) return;
-    setLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${siteData.siteUrl}${siteData.callbackPath}`,
-          scopes: 'user:email'
-        },
-      });
-      
-      if (error) {
-        alert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
+  // GitHub 登录逻辑（最终稳定版）
+const handleGitHubLogin = async () => {
+  if (!isClient) return;
+  setLoading(true);
+
+  try {
+    // 安全取值 + 兜底，防止变量 undefined
+    const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
+    const cbPath = siteData.callbackPath || "/pblot/callback";
+    // 拼接完整回调地址
+    const redirectUrl = rootUrl + cbPath;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: redirectUrl,
+        scopes: "user:email"
       }
-    } catch (err) {
-      alert(`${siteData.texts.loginTips.loginError}${err.message}`);
-    } finally {
-      setLoading(false);
+    });
+
+    if (error) {
+      alert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
     }
-  };
+  } catch (err) {
+    alert(`${siteData.texts.loginTips.loginError}${err.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 退出登录（提示文字从siteData读取）
   const handleSignOut = async () => {
