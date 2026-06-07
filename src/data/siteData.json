@@ -1,5 +1,19 @@
 {
   "siteTitle": "Monoの小窝",
+  "texts": {
+    "announcement": "欢迎来到Mono的小窝！本站为个人技术分享站点~",
+    "notification": "📢 欢迎来到Mono的小窝！本站持续更新技术教程和资源分享，记得常来看看哦~ 🔥 最新上线React入门系列教程！",
+    "buttons": {
+      "login": "登录",
+      "register": "注册",
+      "githubLogin": "GitHub登录",
+      "signIn": "签到",
+      "drawPost": "抽贴"
+    },
+    "rankTitle": "最新主题",
+    "weekJp": ["日", "月", "火", "水", "木", "金", "土"],
+    "weekEn": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  },
   "stats": [
     { "label": "今", "value": "今日:88", "color": "#333" },
     { "label": "昨", "value": "昨日:120", "color": "#34a853" },
