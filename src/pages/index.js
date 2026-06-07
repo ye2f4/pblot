@@ -79,7 +79,7 @@ export default function Home() {
     };
   }, []);
 
-  // Supabase 认证状态监听
+  // ====================== 修复版：认证监听 + 自动清理URL令牌 ======================
   useEffect(() => {
     if (!isClient) return;
 
@@ -97,6 +97,15 @@ export default function Home() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
+
+        // 🔥 核心修复：登录成功后自动删除URL里的 access_token 等参数
+        if (window.location.hash) {
+          window.history.replaceState(
+            null,
+            document.title,
+            window.location.pathname + window.location.search
+          );
+        }
       } else {
         setUser(null);
       }
