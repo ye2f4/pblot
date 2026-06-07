@@ -21,36 +21,36 @@ export default function Home() {
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
   // GitHub 登录逻辑（最终稳定版）
-const handleGitHubLogin = async () => {
-  if (!isClient) return;
-  setLoading(true);
+  const handleGitHubLogin = async () => {
+    if (!isClient) return;
+    setLoading(true);
 
-  try {
-    // 安全取值 + 兜底，防止变量 undefined
-    const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
-    const cbPath = siteData.callbackPath || "/pblot/callback";
-    // 拼接完整回调地址
-    const redirectUrl = rootUrl + cbPath;
+    try {
+      // 安全取值 + 兜底，防止变量 undefined
+      const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
+      const cbPath = siteData.callbackPath || "/pblot/callback";
+      // 拼接完整回调地址
+      const redirectUrl = rootUrl + cbPath;
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: {
-        redirectTo: redirectUrl,
-        scopes: "user:email"
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: {
+          redirectTo: redirectUrl,
+          scopes: "user:email"
+        }
+      });
+
+      if (error) {
+        alert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
       }
-    });
-
-    if (error) {
-      alert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
+    } catch (err) {
+      alert(`${siteData.texts.loginTips.loginError}${err.message}`);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    alert(`${siteData.texts.loginTips.loginError}${err.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-  // 退出登录（提示文字从siteData读取）
+  // 退出登录
   const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -77,7 +77,7 @@ const handleGitHubLogin = async () => {
     };
   }, []);
 
-  // 认证状态监听
+  // 🔥 核心合并修复：强化认证状态监听 + 用户信息获取
   useEffect(() => {
     if (!isClient) return;
 
@@ -99,11 +99,13 @@ const handleGitHubLogin = async () => {
 
     initUser();
 
+    // 监听登录状态变化，自动刷新头像/昵称
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
-        if (window.location.hash) {
-          window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+        // 清理URL中的授权参数
+        if (window.location.hash || window.location.search.includes('access_token')) {
+          window.history.replaceState(null, document.title, window.location.pathname);
         }
       } else {
         setUser(null);
@@ -113,7 +115,7 @@ const handleGitHubLogin = async () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [isClient, base]);
+  }, [isClient]);
 
   // 轮播配置
   const carouselSettings = {
@@ -145,14 +147,24 @@ const handleGitHubLogin = async () => {
     return rect.top < window.innerHeight * 0.8 && rect.bottom > 0;
   };
 
-  // 头像容错
+  // 🔥 合并修复：头像获取（全兼容GitHub）
   const getAvatarUrl = () => {
     if (!user) return `${base}avatar.png`;
-    const githubAvatar = user.user_metadata?.avatar_url;
-    if (githubAvatar) return githubAvatar.startsWith('http') ? githubAvatar : `${base}avatar.png`;
-    const rawAvatar = user.raw_user_meta_data?.avatar_url;
-    if (rawAvatar) return rawAvatar.startsWith('http') ? rawAvatar : `${base}avatar.png`;
-    return `${base}avatar.png`;
+    // 优先读取GitHub官方头像
+    const githubAvatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
+    return githubAvatar?.startsWith('http') ? githubAvatar : `${base}avatar.png`;
+  };
+
+  // 🔥 新增合并修复：昵称获取（多层兜底，绝不空白）
+  const getUserName = () => {
+    if (!user) return "用户";
+    return (
+      user.user_metadata?.full_name ||
+      user.user_metadata?.preferred_username ||
+      user.raw_user_meta_data?.name ||
+      user.email ||
+      "用户"
+    );
   };
 
   return (
@@ -266,7 +278,7 @@ const handleGitHubLogin = async () => {
             </div>
           </div>
 
-          {/* 右：用户界面 */}
+          {/* 右：用户界面 - 🔥 修复后自动显示头像/昵称 */}
           <div className="top-col" style={{ animationDelay: '0.3s' }}>
             {user ? (
               <div style={{
@@ -279,7 +291,7 @@ const handleGitHubLogin = async () => {
               }}>
                 <img 
                   src={getAvatarUrl()} 
-                  alt={user.user_metadata?.full_name || user.email || '用户头像'}
+                  alt={getUserName()}
                   onError={(e) => e.target.src = `${base}avatar.png`}
                   style={{
                     width: 50,
@@ -299,8 +311,9 @@ const handleGitHubLogin = async () => {
                     e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
                   }}
                 />
+                {/* 🔥 修复：调用专属昵称函数，永不空白 */}
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
-                  {user.user_metadata?.full_name || user.email || '用户'}
+                  {getUserName()}
                 </span>
                 <button 
                   className="btn-hover" 
@@ -406,7 +419,7 @@ const handleGitHubLogin = async () => {
         </div>
       </section>
 
-      {/* 主内容区（剩余代码完全保留，无硬编码） */}
+      {/* 主内容区（完全保留你的原有代码） */}
       <div 
         ref={mainContentRef}
         className="main-content" 
@@ -423,7 +436,6 @@ const handleGitHubLogin = async () => {
           transition: 'opacity 0.8s ease, transform 0.8s ease'
         }}
       >
-        {/* 以下代码完全保留你的原有逻辑，仅文字读取siteData */}
         <div 
           className="main-content-top"
           style={{ 
@@ -509,7 +521,6 @@ const handleGitHubLogin = async () => {
           </div>
         </div>
 
-        {/* 左侧/右侧内容完全保留，无修改 */}
         <div style={{ display: 'flex', gap: 20, width: '100%' }}>
           <div 
             className="left-container" 
