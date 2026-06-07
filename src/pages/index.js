@@ -9,7 +9,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-// 🔥 核心修复：禁用SSR，彻底解决React水合错误 #418（必须加！）
+// 禁用SSR，根治水合错误
 export const metadata = {
   ssr: false,
 };
@@ -123,7 +123,7 @@ export default function Home() {
     };
   }, [isClient]);
 
-  // 轮播配置
+  // 轮播配置（移动端适配）
   const carouselSettings = {
     dots: false,
     infinite: true,
@@ -175,7 +175,6 @@ export default function Home() {
   // 客户端渲染兜底
   if (!isClient) return null;
 
-  // 页面渲染
   return (
     <Layout title={siteData.siteTitle}>
       <section
@@ -189,8 +188,20 @@ export default function Home() {
           animation: 'fadeIn 0.8s ease-out',
         }}
       >
-        <div className="top-row" style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="top-col" style={{ animationDelay: '0.1s' }}>
+        {/* 🔥 关键修复：top-row 开启 flex-wrap，小屏自动换行 */}
+        <div className="top-row" style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          display: 'flex',
+          flexWrap: 'wrap', // 允许自动换行
+          gap: '15px',      // 行内和行之间的间距
+          alignItems: 'flex-start' // 顶部对齐，避免挤压
+        }}>
+          {/* 公告栏 */}
+          <div className="top-col" style={{
+            flex: '1 1 100%', // 移动端占满整行
+            animationDelay: '0.1s'
+          }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -205,11 +216,17 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="top-col" style={{ flex: 2, minWidth: 400, animationDelay: '0.2s' }}>
+          {/* 统计+时钟 */}
+          <div className="top-col" style={{
+            flex: '2 1 300px', // 基础占2份，最小宽度300px，小屏自动收缩
+            animationDelay: '0.2s'
+          }}>
             <div style={{
               display: 'flex',
+              flexWrap: 'wrap', // 小屏时统计和时钟换行
               justifyContent: 'space-between',
               alignItems: 'center',
+              gap: '15px',
               height: '100%'
             }}>
               <div className="stats-container" style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
@@ -284,7 +301,10 @@ export default function Home() {
           </div>
 
           {/* 用户区域 */}
-          <div className="top-col" style={{ animationDelay: '0.3s' }}>
+          <div className="top-col" style={{
+            flex: '1 1 200px', // 基础占1份，最小宽度200px，小屏自动收缩
+            animationDelay: '0.3s'
+          }}>
             {user ? (
               <div style={{
                 display: 'flex',
@@ -319,7 +339,7 @@ export default function Home() {
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
                   {getUserName()}
                 </span>
-                {/* 🔥 蓝色个人中心按钮（与退出等大） */}
+                {/* 个人中心按钮 */}
                 <button
                   className="btn-hover"
                   onClick={() => window.location.href = '/pblot/profile'}
@@ -385,13 +405,13 @@ export default function Home() {
                   }}
                 />
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                  {/* 登录按钮 - 正确路径 */}
+                  {/* 登录按钮 */}
                   <button className="btn-hover" onClick={() => window.location.href = '/pblot/login'} style={{
                     flex: 1, padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
                     {siteData.texts.buttons.login}
                   </button>
-                  {/* 注册按钮 - 正确路径 */}
+                  {/* 注册按钮 */}
                   <button className="btn-hover" onClick={() => window.location.href = '/pblot/register'} style={{
                     flex: 1, padding: '6px 12px', background: '#999', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
@@ -429,7 +449,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 页面主体内容 */}
+      {/* 🔥 关键修复：主体内容改为响应式布局，小屏自动切换为垂直排列 */}
       <div
         ref={mainContentRef}
         className="main-content"
@@ -438,7 +458,7 @@ export default function Home() {
           margin: '20px auto',
           padding: '0 15px',
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'column', // 移动端默认垂直，PC端用媒体查询改回水平
           gap: 20,
           width: '100%',
           opacity: isInView(mainContentRef) ? 1 : 0,
@@ -450,13 +470,14 @@ export default function Home() {
           className="main-content-top"
           style={{
             display: 'flex',
+            flexWrap: 'wrap', // 小屏自动换行
             gap: 15,
             alignItems: 'center',
             width: '100%',
             animation: 'fadeIn 0.8s ease-out 0.4s both'
           }}
         >
-          <div className="tab-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
+          <div className="tab-buttons" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 0 }}>
             {siteData.tabs.map((tab, i) => (
               <button
                 key={i}
@@ -487,6 +508,7 @@ export default function Home() {
               alignItems: 'center',
               overflow: 'hidden',
               flex: 1,
+              minWidth: 200, // 小屏最小宽度
               padding: '0 12px',
               animation: 'fadeIn 0.6s ease-out 0.7s both'
             }}
@@ -531,12 +553,12 @@ export default function Home() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 20, width: '100%' }}>
+        {/* 🔥 关键修复：主体+侧边栏在PC端水平排列，小屏垂直排列 */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, width: '100%' }}>
           <div
             className="left-container"
             style={{
-              flex: 7,
-              minWidth: 0,
+              flex: '7 1 300px', // PC端占7份，小屏最小300px，自动收缩
               animation: 'fadeIn 0.8s ease-out 0.6s both'
             }}
           >
@@ -626,8 +648,8 @@ export default function Home() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 20, width: '100%' }}>
-              <div className="section-card" style={{ flex: 1, animationDelay: '1.4s' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, width: '100%' }}>
+              <div className="section-card" style={{ flex: '1 1 250px', animationDelay: '1.4s' }}>
                 <h3 className="section-title">{siteData.texts.friendsTitle}</h3>
                 <div className="friend-list">
                   {siteData.friends.map((friend, i) => (
@@ -644,7 +666,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="section-card" style={{ flex: 1, animationDelay: '1.6s' }}>
+              <div className="section-card" style={{ flex: '1 1 250px', animationDelay: '1.6s' }}>
                 <h3 className="section-title">{siteData.texts.aboutTitle}</h3>
                 <p className="about-text">{siteData.about}</p>
               </div>
@@ -654,8 +676,7 @@ export default function Home() {
           <div
             className="sidebar-container"
             style={{
-              flex: 3,
-              minWidth: 0,
+              flex: '3 1 250px', // PC端占3份，小屏最小250px，自动收缩
               animation: 'fadeIn 0.8s ease-out 0.7s both'
             }}
           >
