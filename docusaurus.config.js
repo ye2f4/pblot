@@ -103,15 +103,6 @@ const config = {
           blogDescription: "个人随笔、技术分享与生活记录",
         },
         theme: { customCss: require.resolve("./src/css/custom.css") },
-        
-        // 🔥 核心修复：configureWebpack 移动到这里（正确位置）
-        configureWebpack: {
-          plugins: [
-            new (require('webpack')).DefinePlugin({
-              process: { env: {} },
-            }),
-          ],
-        },
       },
     ],
   ],
