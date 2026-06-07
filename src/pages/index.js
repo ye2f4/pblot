@@ -319,6 +319,24 @@ export default function Home() {
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
                   {getUserName()}
                 </span>
+                {/* 🔥 蓝色个人中心按钮（与退出等大） */}
+                <button
+                  className="btn-hover"
+                  onClick={() => window.location.href = '/pblot/profile'}
+                  style={{
+                    width: '100%',
+                    padding: '6px 12px',
+                    backgroundColor: '#4285f4',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {siteData.texts.buttons.profile}
+                </button>
+                {/* 退出登录按钮 */}
                 <button
                   className="btn-hover"
                   onClick={handleSignOut}

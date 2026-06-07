@@ -13,13 +13,22 @@
       "signIn": "签到",
       "drawPost": "抽贴",
       "logout": "退出登录",
-      "logging": "登录中..."
+      "logging": "登录中...",
+      "profile": "个人中心"
     },
     "loginTips": {
       "loginFailed": "登录失败: ",
       "loginError": "登录出错: ",
       "logoutFailed": "登出失败: ",
       "logoutError": "登出出错: "
+    },
+    "profile": {
+      "title": "个人信息设置",
+      "nickname": "昵称",
+      "email": "邮箱",
+      "save": "保存修改",
+      "success": "修改成功！",
+      "error": "修改失败: "
     },
     "callback": {
       "title": "登录中...",
