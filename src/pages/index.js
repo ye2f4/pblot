@@ -5,6 +5,12 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import siteData from '../data/siteData.json';
 
+// ✅ 导入抽离后的独立样式文件
+import '../css/home.css';
+
+// 导入 Supabase 客户端
+import { supabase } from '../supabase/supabaseClient';
+
 // 导入轮播组件
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
@@ -16,6 +22,45 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const mainContentRef = useRef(null);
+  
+  // 用户状态和加载状态
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // GitHub 登录逻辑
+  const handleGitHubLogin = async () => {
+    if (!isClient) return;
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}${base}`,
+        },
+      });
+      
+      if (error) {
+        alert('登录失败: ' + error.message);
+      }
+    } catch (err) {
+      alert('登录出错: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 退出登录逻辑
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        alert('登出失败: ' + error.message);
+      }
+    } catch (err) {
+      alert('登出出错: ' + err.message);
+    }
+  };
 
   // 时钟逻辑 + 滚动监听
   useEffect(() => {
@@ -25,23 +70,42 @@ export default function Home() {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
 
-    const fetchOnlineTime = async () => {
-      try {
-        const res = await fetch('https://worldtimeapi.org/api/ip');
-        const data = await res.json();
-        setNow(new Date(data.datetime));
-      } catch (err) {
-        setNow(new Date());
-      }
-    };
-    fetchOnlineTime();
-    const timer = setInterval(() => setNow(prev => new Date(prev.getTime() + 1000)), 1000);
+    // 使用本地时间（避免境外API无法访问）
+    const timer = setInterval(() => setNow(new Date()), 1000);
     
     return () => {
       clearInterval(timer);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // Supabase 认证状态监听
+  useEffect(() => {
+    if (!isClient) return;
+
+    // 初始化获取当前用户
+    const initUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+      }
+    };
+
+    initUser();
+
+    // 监听登录/登出状态变化
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [isClient]);
 
   // 轮播配置
   const carouselSettings = {
@@ -77,358 +141,6 @@ export default function Home() {
 
   return (
     <Layout title={siteData.siteTitle}>
-      {/* 全局动画样式 + 原有样式 + 轮播修复样式 + 新增板块样式 */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        .pixel-font { font-family: 'Press Start 2P', cursive; letter-spacing: 2px; }
-        
-        /* 基础响应式重置 + 护眼淡黄色背景 */
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; background-color: #FFF9E6; }
-        
-        /* ===== 核心动画定义 ===== */
-        /* 页面加载渐入 */
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* 像素风弹跳 */
-        @keyframes pixelBounce {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        
-        /* 呼吸灯效果 */
-        @keyframes breathe {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.9; transform: scale(1.02); }
-        }
-        
-        /* 数字跳动（时钟专用） */
-        @keyframes digitPulse {
-          0%, 100% { text-shadow: 0 0 2px #333; }
-          50% { text-shadow: 0 0 8px #4285f4; }
-        }
-        
-        /* 排行榜数字闪烁 */
-        @keyframes rankFlash {
-          0%, 100% { box-shadow: 0 0 0 rgba(0,0,0,0.1); }
-          50% { box-shadow: 0 0 8px rgba(234, 67, 53, 0.4); }
-        }
-        
-        /* 滚动通知文字动画 */
-        @keyframes scrollText {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        
-        /* 滚动渐入 */
-        .scroll-fade-in {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-        
-        .scroll-fade-in.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
-        /* ===== 原有样式 ===== */
-        /* 顶部三栏响应式 */
-        .top-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: stretch; }
-        .top-col { 
-          flex: 1; 
-          min-width: 200px; 
-          background: #fff; 
-          border-radius: 12px; 
-          padding: 15px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-          animation: fadeIn 0.6s ease-out; /* 加载动画 */
-        }
-        
-        /* 按钮通用悬浮动画 */
-        .btn-hover {
-          transition: all 0.3s ease;
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .btn-hover::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          transition: left 0.6s ease;
-        }
-        
-        .btn-hover:hover::after {
-          left: 100%;
-        }
-        
-        .btn-hover:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-        }
-        
-        /* ===== 轮播图修复样式 ===== */
-        /* 修复轮播图显示不全 */
-        .slick-slider {
-          position: relative;
-          width: 100%;
-          overflow: hidden;
-        }
-        
-        .slick-list {
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-        
-        .slick-slide {
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-        
-        .slick-slide img {
-          width: 100%;
-          height: auto;
-          display: block;
-        }
-        
-        /* 修复箭头不明显：重写箭头样式 */
-        .slick-prev, .slick-next {
-          z-index: 100 !important;
-          width: 40px !important;
-          height: 40px !important;
-          background-color: rgba(0,0,0,0.6) !important;
-          border-radius: 50% !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          transition: all 0.3s ease !important;
-        }
-        
-        .slick-prev:hover, .slick-next:hover {
-          background-color: rgba(0,0,0,0.8) !important;
-          transform: scale(1.1) !important;
-        }
-        
-        .slick-prev {
-          left: 15px !important;
-        }
-        
-        .slick-next {
-          right: 15px !important;
-        }
-        
-        /* 重写箭头图标 */
-        .slick-prev::before, .slick-next::before {
-          font-size: 20px !important;
-          color: #fff !important;
-          opacity: 1 !important;
-        }
-        
-        /* ===== 新增：下方板块样式 ===== */
-        .section-card {
-          background: #fff;
-          border-radius: 8px;
-          padding: 20px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          margin-bottom: 20px;
-          animation: fadeIn 0.8s ease-out both;
-        }
-        
-        .section-title {
-          margin: 0 0 15px 0;
-          font-size: 18px;
-          font-weight: bold;
-          position: relative;
-          padding-bottom: 8px;
-          border-bottom: 2px solid #f0f0f0;
-        }
-        
-        /* 快速导航卡片 */
-        .nav-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 15px;
-        }
-        
-        .nav-card {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 15px;
-          border-radius: 8px;
-          text-decoration: none;
-          color: #333;
-          transition: all 0.3s ease;
-          background-color: #f8f9fa;
-        }
-        
-        .nav-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-        }
-        
-        .nav-icon {
-          font-size: 32px;
-          margin-bottom: 8px;
-        }
-        
-        .nav-name {
-          font-size: 14px;
-          font-weight: 500;
-        }
-        
-        /* 最新更新列表 */
-        .update-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-        
-        .update-item {
-          display: flex;
-          align-items: center;
-          padding: 8px 0;
-          border-bottom: 1px solid #f0f0f0;
-          transition: all 0.3s ease;
-        }
-        
-        .update-item:last-child {
-          border-bottom: none;
-        }
-        
-        .update-item:hover {
-          transform: translateX(5px);
-          background-color: rgba(0,0,0,0.02);
-        }
-        
-        .update-date {
-          font-size: 12px;
-          color: #999;
-          margin-right: 10px;
-          white-space: nowrap;
-        }
-        
-        .update-content {
-          font-size: 14px;
-          color: #333;
-        }
-        
-        /* 标签云 */
-        .tag-cloud {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-        
-        .tag-item {
-          display: inline-flex;
-          align-items: center;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 13px;
-          text-decoration: none;
-          transition: all 0.3s ease;
-        }
-        
-        .tag-item:hover {
-          transform: scale(1.05);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .tag-count {
-          margin-left: 6px;
-          font-size: 11px;
-          opacity: 0.8;
-        }
-        
-        /* 友情链接 */
-        .friend-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-        
-        .friend-link {
-          padding: 8px 16px;
-          background-color: #f8f9fa;
-          border-radius: 4px;
-          text-decoration: none;
-          color: #333;
-          font-size: 14px;
-          transition: all 0.3s ease;
-        }
-        
-        .friend-link:hover {
-          background-color: #e9ecef;
-          transform: translateY(-2px);
-        }
-        
-        /* 关于本站 */
-        .about-text {
-          font-size: 14px;
-          line-height: 1.6;
-          color: #666;
-          margin: 0;
-        }
-        
-        @media (max-width: 768px) {
-          /* 移动端顶部行垂直排列 */
-          .main-content-top {
-            flex-direction: column !important;
-            gap: 15px !important;
-            align-items: stretch !important;
-          }
-          .tab-buttons { 
-            justify-content: center !important; 
-            flex-wrap: wrap;
-          }
-          .action-buttons { 
-            flex-direction: row !important; 
-            justify-content: center !important;
-          }
-          
-          .top-row { flex-direction: column !important; gap: 10px !important; }
-          .top-col { flex: 1 1 100% !important; min-width: 100% !important; }
-          .stats-container { gap: 15px !important; justify-content: center !important; }
-          .clock-container { padding: 10px !important; text-align: center !important; }
-          .clock-text { font-size: 24px !important; }
-          .date-text { font-size: 16px !important; }
-          .main-content { flex-direction: column; gap: 15px !important; }
-          .carousel-container, .sidebar-container { flex: 1 1 100% !important; }
-          .tab-buttons { flex-wrap: wrap; }
-          .action-buttons { flex-direction: column; }
-          
-          /* 移动端隐藏轮播箭头 */
-          .slick-prev, .slick-next {
-            display: none !important;
-          }
-          
-          /* 移动端下方板块响应式 */
-          .nav-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-          .stats-container { gap: 20px !important; }
-          .clock-text { font-size: 32px !important; }
-          .carousel-container { flex: 6 !important; }
-          .sidebar-container { flex: 4 !important; }
-          
-          .nav-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-      `}</style>
-
       {/* 顶部通栏（背景图保留 + 加载动画） */}
       <section 
         className={styles.topBannerWrap} 
@@ -459,7 +171,7 @@ export default function Home() {
           </div>
 
           {/* ========== 中：统计+时钟 ========== */}
-          <div className="top-col" style={{ flex: 2, minWidth: "400px", animationDelay: '0.2s' }}>
+          <div className="top-col" style={{ flex: 2, minWidth: 400, animationDelay: '0.2s' }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -473,7 +185,7 @@ export default function Home() {
                     key={i} 
                     style={{ 
                       textAlign: 'center', 
-                      minWidth: "40px",
+                      minWidth: 40,
                       transition: 'all 0.3s ease',
                       animation: `fadeIn 0.6s ease-out ${0.3 + i * 0.1}s`
                     }}
@@ -510,7 +222,7 @@ export default function Home() {
                 backgroundColor: 'transparent',
                 backdropFilter: 'none',
                 textAlign: 'right',
-                minWidth: "160px"
+                minWidth: 160
               }}>
                 <div className="pixel-font clock-text" style={{
                   fontSize: 24,
@@ -539,86 +251,149 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ========== 右：用户界面（头像旋转+按钮动画） ========== */}
+          {/* ========== 右：用户界面（头像+登录/用户信息） ========== */}
           <div className="top-col" style={{ animationDelay: '0.3s' }}>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 12,
-              height: '100%',
-              justifyContent: 'center'
-            }}>
-              {/* 圆形头像（悬浮旋转） */}
-              <img 
-                src={`${base}avatar.png`} 
-                alt="头像"
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  transition: 'all 0.5s ease',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
-                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'rotate(0) scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-                }}
-              />
-              {/* 登录/注册按钮（新增hover动画） */}
-              <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                <button className="btn-hover" style={{
-                  flex: 1,
-                  padding: "6px 12px",
-                  backgroundColor: '#4285f4',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4,
-                  fontSize: 14,
-                  cursor: 'pointer',
-                }}>
-                  {siteData.texts.buttons.login}
-                </button>
-                <button className="btn-hover" style={{
-                  flex: 1,
-                  padding: "6px 12px",
-                  backgroundColor: '#999',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4,
-                  fontSize: 14,
-                  cursor: 'pointer',
-                }}>
-                  {siteData.texts.buttons.register}
+            {user ? (
+              // 已登录状态：显示用户头像、名称、登出按钮
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                height: '100%',
+                justifyContent: 'center'
+              }}>
+                {/* 用户头像（来自 GitHub） */}
+                <img 
+                  src={user.user_metadata?.avatar_url || `${base}avatar.png`} 
+                  alt={user.user_metadata?.full_name || '用户头像'}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    transition: 'all 0.5s ease',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
+                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                  }}
+                />
+                {/* 用户名 */}
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
+                  {user.user_metadata?.full_name || user.email}
+                </span>
+                {/* 退出登录按钮 */}
+                <button 
+                  className="btn-hover" 
+                  onClick={handleSignOut}
+                  style={{
+                    width: '100%',
+                    padding: '6px 12px',
+                    backgroundColor: '#dc3545',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  退出登录
                 </button>
               </div>
-              {/* GitHub登录按钮（新增hover动画） */}
-              <button className="btn-hover" style={{
-                width: '100%',
-                padding: "6px 12px",
-                backgroundColor: '#333',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 4,
-                fontSize: 14,
-                cursor: 'pointer',
+            ) : (
+              // 未登录状态：显示登录/注册/GitHub登录按钮
+              <div style={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
+                gap: 12,
+                height: '100%',
+                justifyContent: 'center'
               }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                {siteData.texts.buttons.githubLogin}
-              </button>
-            </div>
+                {/* 默认头像 */}
+                <img 
+                  src={`${base}avatar.png`} 
+                  alt="头像"
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    transition: 'all 0.5s ease',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
+                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                  }}
+                />
+                {/* 登录/注册按钮 */}
+                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                  <button className="btn-hover" style={{
+                    flex: 1,
+                    padding: '6px 12px',
+                    backgroundColor: '#4285f4',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}>
+                    {siteData.texts.buttons.login}
+                  </button>
+                  <button className="btn-hover" style={{
+                    flex: 1,
+                    padding: '6px 12px',
+                    backgroundColor: '#999',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}>
+                    {siteData.texts.buttons.register}
+                  </button>
+                </div>
+                {/* GitHub登录按钮 */}
+                <button 
+                  className="btn-hover" 
+                  onClick={handleGitHubLogin}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '6px 12px',
+                    backgroundColor: '#333',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 14,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    opacity: loading ? 0.7 : 1,
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  {loading ? '登录中...' : siteData.texts.buttons.githubLogin}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -659,7 +434,7 @@ export default function Home() {
                 key={i}
                 className="btn-hover"
                 style={{ 
-                  padding: "8px 16px", 
+                  padding: '8px 16px', 
                   backgroundColor: tab.color, 
                   color: '#fff', 
                   border: 'none', 
@@ -704,7 +479,7 @@ export default function Home() {
           {/* 功能按钮（签到+抽贴） */}
           <div className="action-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
             <button className="btn-hover" style={{ 
-              padding: "8px 16px",
+              padding: '8px 16px',
               backgroundColor: '#34a853', 
               color: '#fff', 
               border: 'none', 
@@ -716,7 +491,7 @@ export default function Home() {
               {siteData.texts.buttons.signIn}
             </button>
             <button className="btn-hover" style={{ 
-              padding: "8px 16px",
+              padding: '8px 16px',
               backgroundColor: '#ff9800', 
               color: '#fff', 
               border: 'none', 
@@ -761,7 +536,7 @@ export default function Home() {
                         style={{ 
                           width: '100%', 
                           borderRadius: 0,
-                          maxHeight: "350px",
+                          maxHeight: 350,
                           objectFit: 'contain',
                           backgroundColor: '#f5f5f5'
                         }}

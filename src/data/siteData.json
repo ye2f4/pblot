@@ -27,10 +27,10 @@
     { "label": "新", "value": "最新:小明", "color": "#999" }
   ],
   "tabs": [
-    { "name": "最新主题", "color": "#4285f4" },
-    { "name": "最新回复", "color": "#ea4335" },
-    { "name": "热门主题", "color": "#fbbc05" },
-    { "name": "精华推荐", "color": "#34a853" }
+    { "name": "最新主题", "link": "blog/latest_post", "color": "#4285f4" },
+    { "name": "最新回复", "link": "blog/latest_comments", "color": "#ea4335" },
+    { "name": "热门主题", "link": "blog/hot", "color": "#fbbc05" },
+    { "name": "精华推荐", "link": "blog/good", "color": "#34a853" }
   ],
   "carouselImages": [
     { "filename": "bar1.png", "title": "AsteorBar 简洁状态栏" },

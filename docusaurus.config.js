@@ -1,4 +1,3 @@
-require("dotenv").config();
 import path from "node:path";
 import remarkDefList from "remark-deflist";
 
@@ -15,7 +14,7 @@ const config = {
   organizationName: "ye2f4",
   projectName: "pblot",
 
-  // ✅ 修复：重命名为 faster（官方正式名称）
+  // 官方极速模式 Rspack 保留
   future: {
     faster: {
       rspackBundler: true,
@@ -59,7 +58,7 @@ const config = {
           primaryColor: "#67EA94",
           primaryTextColor: "#1a1a1a",
           primaryBorderColor: "#4D4D4D",
-          lineColor: "#EAD667",
+          lineColor: "#EAD67E",
           secondaryColor: "#EA67BD",
           tertiaryColor: "#677CEA",
         },
@@ -88,9 +87,7 @@ const config = {
     "@docusaurus/plugin-vercel-analytics",
   ],
 
-  scripts: process.env.COOKIEYES_CLIENT_ID ? [
-    { src: `https://cdn-cookieyes.com/client_data/${process.env.COOKIEYES_CLIENT_ID}/script.js`, async: true }
-  ] : [],
+  scripts: [],
 
   presets: [
     [
@@ -112,11 +109,10 @@ const config = {
     ],
   ],
 
-  customFields: { API_URL: process.env.API_URL },
+  customFields: {},
   i18n: { defaultLocale: "en", locales: ["en"] },
   markdown: { mermaid: true },
   themes: ["@docusaurus/theme-mermaid"],
-  // ✅ 已删除无效的 cache: true 配置
 };
 
-module.exports = config;
+export default config;
