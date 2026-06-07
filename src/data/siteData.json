@@ -12,7 +12,12 @@
     },
     "rankTitle": "最新主题",
     "weekJp": ["日", "月", "火", "水", "木", "金", "土"],
-    "weekEn": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    "weekEn": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "quickNavTitle": "🚀 快速导航",
+    "updatesTitle": "📰 最新更新",
+    "tagsTitle": "🏷️ 技术标签",
+    "friendsTitle": "🔗 友情链接",
+    "aboutTitle": "💡 关于本站"
   },
   "stats": [
     { "label": "今", "value": "今日:88", "color": "#333" },
@@ -32,6 +37,37 @@
     { "filename": "bar2.png", "title": "Inventorio" },
     { "filename": "bar3.png", "title": "超级修改器Super Editor" }
   ],
+  "quickNav": [
+    { "name": "React教程", "icon": "⚛️", "color": "#61dafb", "link": "blog/react" },
+    { "name": "前端开发", "icon": "🎨", "color": "#ff6b6b", "link": "blog/frontend" },
+    { "name": "后端技术", "icon": "⚙️", "color": "#4ecdc4", "link": "blog/backend" },
+    { "name": "工具资源", "icon": "🛠️", "color": "#ffe66d", "link": "blog/tools" },
+    { "name": "游戏模组", "icon": "🎮", "color": "#a78bfa", "link": "blog/minecraft" },
+    { "name": "开源项目", "icon": "📦", "color": "#f472b6", "link": "blog/opensource" }
+  ],
+  "updates": [
+    { "date": "2025-06-08", "content": "上线React入门系列教程第一章" },
+    { "date": "2025-06-07", "content": "修复网站轮播图显示问题" },
+    { "date": "2025-06-06", "content": "添加滚动通知栏功能" },
+    { "date": "2025-06-05", "content": "网站全新改版上线" }
+  ],
+  "tags": [
+    { "name": "React", "count": 28, "color": "#61dafb" },
+    { "name": "JavaScript", "count": 45, "color": "#f7df1e" },
+    { "name": "CSS", "count": 32, "color": "#264de4" },
+    { "name": "Node.js", "count": 18, "color": "#339933" },
+    { "name": "Docusaurus", "count": 12, "color": "#3ecc91" },
+    { "name": "Minecraft", "count": 25, "color": "#62b47a" },
+    { "name": "Git", "count": 15, "color": "#f05032" },
+    { "name": "Linux", "count": 10, "color": "#fcc624" }
+  ],
+  "friends": [
+    { "name": "张三的技术博客", "url": "https://example1.com" },
+    { "name": "李四的前端笔记", "url": "https://example2.com" },
+    { "name": "王五的游戏工坊", "url": "https://example3.com" },
+    { "name": "开源中国", "url": "https://oschina.net" }
+  ],
+  "about": "本站是Mono的个人技术分享博客，专注于前端开发、游戏模组和开源项目。在这里你可以找到实用的教程、有趣的项目和各种技术资源。欢迎大家一起交流学习！",
   "rankList": [
     { "title": "React入门到精通", "link": "blog/react-guide", "date": "2025-06-07" },
     { "title": "GitHub Pages部署教程", "link": "blog/gh-pages", "date": "2025-06-06" },

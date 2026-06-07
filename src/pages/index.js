@@ -77,7 +77,7 @@ export default function Home() {
 
   return (
     <Layout title={siteData.siteTitle}>
-      {/* 全局动画样式 + 原有样式 + 轮播修复样式 */}
+      {/* 全局动画样式 + 原有样式 + 轮播修复样式 + 新增板块样式 */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         .pixel-font { font-family: 'Press Start 2P', cursive; letter-spacing: 2px; }
@@ -232,6 +232,153 @@ export default function Home() {
           opacity: 1 !important;
         }
         
+        /* ===== 新增：下方板块样式 ===== */
+        .section-card {
+          background: #fff;
+          border-radius: 8px;
+          padding: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          margin-bottom: 20px;
+          animation: fadeIn 0.8s ease-out both;
+        }
+        
+        .section-title {
+          margin: 0 0 15px 0;
+          font-size: 18px;
+          font-weight: bold;
+          position: relative;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #f0f0f0;
+        }
+        
+        /* 快速导航卡片 */
+        .nav-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 15px;
+        }
+        
+        .nav-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 15px;
+          border-radius: 8px;
+          text-decoration: none;
+          color: #333;
+          transition: all 0.3s ease;
+          background-color: #f8f9fa;
+        }
+        
+        .nav-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        }
+        
+        .nav-icon {
+          font-size: 32px;
+          margin-bottom: 8px;
+        }
+        
+        .nav-name {
+          font-size: 14px;
+          font-weight: 500;
+        }
+        
+        /* 最新更新列表 */
+        .update-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        
+        .update-item {
+          display: flex;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px solid #f0f0f0;
+          transition: all 0.3s ease;
+        }
+        
+        .update-item:last-child {
+          border-bottom: none;
+        }
+        
+        .update-item:hover {
+          transform: translateX(5px);
+          background-color: rgba(0,0,0,0.02);
+        }
+        
+        .update-date {
+          font-size: 12px;
+          color: #999;
+          margin-right: 10px;
+          white-space: nowrap;
+        }
+        
+        .update-content {
+          font-size: 14px;
+          color: #333;
+        }
+        
+        /* 标签云 */
+        .tag-cloud {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        
+        .tag-item {
+          display: inline-flex;
+          align-items: center;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 13px;
+          text-decoration: none;
+          transition: all 0.3s ease;
+        }
+        
+        .tag-item:hover {
+          transform: scale(1.05);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tag-count {
+          margin-left: 6px;
+          font-size: 11px;
+          opacity: 0.8;
+        }
+        
+        /* 友情链接 */
+        .friend-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        
+        .friend-link {
+          padding: 8px 16px;
+          background-color: #f8f9fa;
+          border-radius: 4px;
+          text-decoration: none;
+          color: #333;
+          font-size: 14px;
+          transition: all 0.3s ease;
+        }
+        
+        .friend-link:hover {
+          background-color: #e9ecef;
+          transform: translateY(-2px);
+        }
+        
+        /* 关于本站 */
+        .about-text {
+          font-size: 14px;
+          line-height: 1.6;
+          color: #666;
+          margin: 0;
+        }
+        
         @media (max-width: 768px) {
           /* 移动端顶部行垂直排列 */
           .main-content-top {
@@ -263,6 +410,11 @@ export default function Home() {
           .slick-prev, .slick-next {
             display: none !important;
           }
+          
+          /* 移动端下方板块响应式 */
+          .nav-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
 
         @media (min-width: 769px) and (max-width: 1024px) {
@@ -270,6 +422,10 @@ export default function Home() {
           .clock-text { font-size: 32px !important; }
           .carousel-container { flex: 6 !important; }
           .sidebar-container { flex: 4 !important; }
+          
+          .nav-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
         }
       `}</style>
 
@@ -576,9 +732,9 @@ export default function Home() {
 
         {/* ========== 下方内容区（轮播图 + 侧边栏） ========== */}
         <div style={{ display: 'flex', gap: 20, width: '100%' }}>
-          {/* 左侧轮播区（修复显示问题） */}
+          {/* 左侧区域（轮播图 + 新增板块） */}
           <div 
-            className="carousel-container" 
+            className="left-container" 
             style={{ 
               flex: 7, 
               minWidth: 0,
@@ -589,11 +745,12 @@ export default function Home() {
             {isClient && (
               <div style={{
                 backgroundColor: '#fff',
-                padding: 0, // 移除内边距，让图片占满容器
+                padding: 0,
                 borderRadius: 8,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 width: '100%',
-                overflow: 'hidden' // 确保内容不溢出
+                overflow: 'hidden',
+                marginBottom: 20
               }}>
                 <Slider {...carouselSettings}>
                   {siteData.carouselImages.map((img, i) => (
@@ -603,10 +760,10 @@ export default function Home() {
                         alt={img.title}
                         style={{ 
                           width: '100%', 
-                          borderRadius: 0, // 移除圆角，让图片和容器圆角匹配
-                          maxHeight: "350px", // 增加最大高度，让图片显示更完整
-                          objectFit: 'contain', // 改为contain，确保图片完整显示不裁剪
-                          backgroundColor: '#f5f5f5' // 图片比例不同时的背景色
+                          borderRadius: 0,
+                          maxHeight: "350px",
+                          objectFit: 'contain',
+                          backgroundColor: '#f5f5f5'
                         }}
                       />
                       <p style={{ 
@@ -620,6 +777,86 @@ export default function Home() {
                 </Slider>
               </div>
             )}
+
+            {/* ========== 新增：快速导航板块 ========== */}
+            <div className="section-card" style={{ animationDelay: '0.8s' }}>
+              <h3 className="section-title">{siteData.texts.quickNavTitle}</h3>
+              <div className="nav-grid">
+                {siteData.quickNav.map((item, i) => (
+                  <a 
+                    key={i}
+                    href={`${base}${item.link}`}
+                    className="nav-card"
+                    style={{ borderLeft: `4px solid ${item.color}` }}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span className="nav-name">{item.name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* ========== 新增：最新更新板块 ========== */}
+            <div className="section-card" style={{ animationDelay: '1.0s' }}>
+              <h3 className="section-title">{siteData.texts.updatesTitle}</h3>
+              <ul className="update-list">
+                {siteData.updates.map((item, i) => (
+                  <li key={i} className="update-item">
+                    <span className="update-date">{item.date}</span>
+                    <span className="update-content">{item.content}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* ========== 新增：技术标签云板块 ========== */}
+            <div className="section-card" style={{ animationDelay: '1.2s' }}>
+              <h3 className="section-title">{siteData.texts.tagsTitle}</h3>
+              <div className="tag-cloud">
+                {siteData.tags.map((tag, i) => (
+                  <a 
+                    key={i}
+                    href={`${base}tags/${tag.name.toLowerCase()}`}
+                    className="tag-item"
+                    style={{ 
+                      backgroundColor: `${tag.color}20`, 
+                      color: tag.color,
+                      border: `1px solid ${tag.color}40`
+                    }}
+                  >
+                    {tag.name}
+                    <span className="tag-count">({tag.count})</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* ========== 新增：友情链接 + 关于本站 ========== */}
+            <div style={{ display: 'flex', gap: 20, width: '100%' }}>
+              {/* 友情链接 */}
+              <div className="section-card" style={{ flex: 1, animationDelay: '1.4s' }}>
+                <h3 className="section-title">{siteData.texts.friendsTitle}</h3>
+                <div className="friend-list">
+                  {siteData.friends.map((friend, i) => (
+                    <a 
+                      key={i}
+                      href={friend.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="friend-link"
+                    >
+                      {friend.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* 关于本站 */}
+              <div className="section-card" style={{ flex: 1, animationDelay: '1.6s' }}>
+                <h3 className="section-title">{siteData.texts.aboutTitle}</h3>
+                <p className="about-text">{siteData.about}</p>
+              </div>
+            </div>
           </div>
 
           {/* 右侧侧边栏 */}
