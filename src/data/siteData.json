@@ -14,9 +14,9 @@
     { "name": "精华推荐", "color": "#34a853" }
   ],
   "carouselImages": [
-    { "filename": "carousel1.png", "title": "AsteorBar 简洁状态栏" },
-    { "filename": "carousel2.png", "title": "钻石工艺模组分享" },
-    { "filename": "carousel3.png", "title": "PVP材质包推荐" }
+    { "filename": "bar1.png", "title": "AsteorBar 简洁状态栏" },
+    { "filename": "bar2.png", "title": "Inventorio" },
+    { "filename": "bar3.png", "title": "超级修改器Super Editor" }
   ],
   "rankList": [
     { "title": "React入门到精通", "link": "blog/react-guide", "date": "2025-06-07" },
@@ -29,6 +29,8 @@
   ],
   "ads": [
     { "filename": "ad_right_1.png" },
-    { "filename": "ad_right_2.png" }
+    { "filename": "ad_right_2.png" },
+    { "filename": "ad_right_3.png" },
+    { "filename": "ad_right_4.png" }
   ]
 }

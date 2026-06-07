@@ -2,7 +2,7 @@
 
 <img src=".github/meshtastic_logo.png" alt="Meshtastic Logo" width="80"/>
 
-  <h1 align="center"> Meshtastic Documentation
+  <h1 align="center"> 简介
 </h1>
   <p style="font-size:15px;" align="center">Website and documentation source for the Meshtastic project.</p>
 

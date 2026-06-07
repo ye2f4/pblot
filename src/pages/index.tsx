@@ -19,7 +19,7 @@ export default function Home() {
       })}
     >
       <Head>
-        <meta property="og:title" content="Meshtastic" />
+        <meta property="og:title" content="Monoの小窝" />
         <meta
           property="og:image"
           content={useBaseUrl("design/web/social-preview-1200x630.png")}
