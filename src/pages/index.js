@@ -367,14 +367,14 @@ export default function Home() {
                   }}
                 />
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                  {/* 登录按钮 - 跳转到 /login */}
-                  <button className="btn-hover" onClick={() => window.location.href = '/login'} style={{
+                  {/* 登录按钮 - 正确路径 */}
+                  <button className="btn-hover" onClick={() => window.location.href = '/pblot/login'} style={{
                     flex: 1, padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
                     {siteData.texts.buttons.login}
                   </button>
-                  {/* 注册按钮 - 跳转到 /register */}
-                  <button className="btn-hover" onClick={() => window.location.href = '/register'} style={{
+                  {/* 注册按钮 - 正确路径 */}
+                  <button className="btn-hover" onClick={() => window.location.href = '/pblot/register'} style={{
                     flex: 1, padding: '6px 12px', background: '#999', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
                     {siteData.texts.buttons.register}
