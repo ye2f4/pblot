@@ -1,0 +1,30 @@
+---
+title: Minecraft 模组开发入门
+date: 2025-06-04
+slug: minecraft
+tags: [Minecraft, 游戏模组, Java]
+excerpt: 介绍我的世界 Forge 模组开发环境搭建、基础物品注册，适合零基础模组爱好者入门。
+---
+
+# Minecraft 模组开发入门
+
+Minecraft 拥有庞大的模组生态，本文基于 Forge 加载器，讲解模组开发入门流程。
+
+## 一、环境准备
+1. 安装 **Java Development Kit (JDK)**（对应游戏版本要求）
+2. 下载对应游戏版本的 **Forge MDK**（模组开发包）
+3. 使用 IDEA / Eclipse 导入开发工程
+
+## 二、模组主类
+模组入口主类，负责初始化、注册各类游戏内容：
+```java
+import net.minecraftforge.fml.common.Mod;
+
+@Mod("demo_mod")
+public class DemoMod {
+    public static final String MOD_ID = "demo_mod";
+
+    public DemoMod() {
+        // 执行注册、初始化逻辑
+    }
+}

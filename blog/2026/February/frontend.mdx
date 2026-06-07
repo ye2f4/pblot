@@ -1,0 +1,31 @@
+
+---
+
+### 2. frontend.mdx
+```mdx
+---
+title: 前端响应式布局实战指南
+date: 2025-06-07
+slug: frontend
+tags: [CSS, 响应式, 前端开发]
+excerpt: 讲解移动端、PC端适配方案，包含Flex、Grid、媒体查询等常用布局技巧。
+---
+
+# 前端响应式布局实战指南
+
+现在网站需要同时兼容电脑、平板、手机等设备，响应式布局是前端必备技能。
+
+## 一、弹性布局 Flex
+Flex 布局是移动端首选布局方案，简单易用、兼容性优秀：
+```css
+.container {
+  display: flex;
+  /* 自动换行 */
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.item {
+  /* 自适应宽度，最小宽度 240px */
+  flex: 1 1 240px;
+}
