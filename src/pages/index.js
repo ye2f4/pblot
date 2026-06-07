@@ -9,7 +9,6 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-// 🔥 核心修复：禁用SSR，彻底解决React水合错误 #418（必须加！）
 export const metadata = {
   ssr: false,
 };
@@ -25,10 +24,45 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
+  // 🔥 实时用户统计（会员数 + 最新用户）
+  const [userCount, setUserCount] = useState(0);
+  const [latestUser, setLatestUser] = useState("暂无");
+
   // 评论区状态
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+
+  // ==============================================
+  // 🔥 核心：获取 会员总数 + 最新注册用户（实时）
+  // ==============================================
+  const fetchUserStats = async () => {
+    if (!isClient) return;
+    try {
+      // 1. 获取会员总数
+      const { count } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true });
+
+      // 2. 获取最新注册用户
+      const { data: lastUser } = await supabase
+        .from('users')
+        .select('raw_user_meta_data, email')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      setUserCount(count || 0);
+      const name =
+        lastUser?.raw_user_meta_data?.name ||
+        lastUser?.raw_user_meta_data?.preferred_username ||
+        lastUser?.email?.split('@')[0] ||
+        "新用户";
+      setLatestUser(name);
+    } catch (e) {
+      console.log("获取用户统计失败", e);
+    }
+  };
 
   // GitHub 登录
   const handleGitHubLogin = async () => {
@@ -73,7 +107,7 @@ export default function Home() {
     }
   };
 
-  // 🔥 加载评论数据
+  // 加载评论
   const fetchComments = async () => {
     if (!isClient) return;
     const { data } = await supabase
@@ -83,7 +117,7 @@ export default function Home() {
     setComments(data || []);
   };
 
-  // 🔥 发表评论
+  // 发表评论
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!user) return alert(siteData.texts.comments.loginTip);
@@ -107,7 +141,7 @@ export default function Home() {
     }
   };
 
-  // 时钟、滚动监听
+  // 时钟、滚动
   useEffect(() => {
     setIsClient(true);
     const handleScroll = () => setScrollY(window.scrollY);
@@ -120,7 +154,7 @@ export default function Home() {
     };
   }, []);
 
-  // 获取用户登录状态
+  // 获取登录状态
   useEffect(() => {
     if (!isClient) return;
 
@@ -162,12 +196,32 @@ export default function Home() {
     };
   }, [isClient]);
 
-  // 页面加载后获取评论
+  // ==============================================
+  // 🔥 实时刷新：用户注册后自动更新统计
+  // ==============================================
+  useEffect(() => {
+    if (!isClient) return;
+    fetchUserStats();
+
+    // 实时监听新用户注册
+    const channel = supabase.channel('auth-users');
+    channel
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'auth',
+        table: 'users'
+      }, () => fetchUserStats())
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [isClient]);
+
+  // 加载评论
   useEffect(() => {
     if (isClient) fetchComments();
   }, [isClient]);
 
-  // 轮播配置
+  // 轮播
   const carouselSettings = {
     dots: false,
     infinite: true,
@@ -197,14 +251,12 @@ export default function Home() {
     return rect.top < window.innerHeight * 0.8 && rect.bottom > 0;
   };
 
-  // 头像获取
   const getAvatarUrl = () => {
     if (!user) return `${base}avatar.png`;
     const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
     return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.png`;
   };
 
-  // 昵称获取
   const getUserName = () => {
     if (!user) return "用户";
     return (
@@ -216,10 +268,8 @@ export default function Home() {
     );
   };
 
-  // 客户端渲染兜底
   if (!isClient) return null;
 
-  // 页面渲染
   return (
     <Layout title={siteData.siteTitle}>
       <section
@@ -257,40 +307,51 @@ export default function Home() {
               height: '100%'
             }}>
               <div className="stats-container" style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
-                {siteData.stats.map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      textAlign: 'center',
-                      minWidth: 40,
-                      transition: 'all 0.3s ease',
-                      animation: `fadeIn 0.6s ease-out ${0.3 + i * 0.1}s`
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.1)';
-                      e.currentTarget.style.filter = 'brightness(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.filter = 'brightness(1)';
-                    }}
-                  >
-                    <div style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(0,0,0,0.05)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 6px',
-                      transition: 'all 0.3s ease',
-                    }}>
-                      <span style={{ fontSize: 20, fontWeight: 'bold' }}>{item.label}</span>
+                {siteData.stats.map((item, i) => {
+                  // ==============================================
+                  // 🔥 动态替换：会=会员数 / 新=最新用户
+                  // ==============================================
+                  let showValue = item.value;
+                  if (item.label === "会") showValue = `会员:${userCount}`;
+                  if (item.label === "新") showValue = `最新:${latestUser}`;
+
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        textAlign: 'center',
+                        minWidth: 40,
+                        transition: 'all 0.3s ease',
+                        animation: `fadeIn 0.6s ease-out ${0.3 + i * 0.1}s`
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                        e.currentTarget.style.filter = 'brightness(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.filter = 'brightness(1)';
+                      }}
+                    >
+                      <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(0,0,0,0.05)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 6px',
+                        transition: 'all 0.3s ease',
+                      }}>
+                        <span style={{ fontSize: 20, fontWeight: 'bold' }}>{item.label}</span>
+                      </div>
+                      <p style={{ color: item.color, fontSize: 11, margin: 0, textAlign: 'center' }}>
+                        {showValue}
+                      </p>
                     </div>
-                    <p style={{ color: item.color, fontSize: 11, margin: 0, textAlign: 'center' }}>{item.value}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="clock-container" style={{
@@ -363,7 +424,6 @@ export default function Home() {
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
                   {getUserName()}
                 </span>
-                {/* 🔥 蓝色个人中心按钮（与退出等大） */}
                 <button
                   className="btn-hover"
                   onClick={() => window.location.href = '/pblot/profile'}
@@ -380,7 +440,6 @@ export default function Home() {
                 >
                   {siteData.texts.buttons.profile}
                 </button>
-                {/* 退出登录按钮 */}
                 <button
                   className="btn-hover"
                   onClick={handleSignOut}
@@ -429,13 +488,11 @@ export default function Home() {
                   }}
                 />
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                  {/* 登录按钮 - 正确路径 */}
                   <button className="btn-hover" onClick={() => window.location.href = '/pblot/login'} style={{
                     flex: 1, padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
                     {siteData.texts.buttons.login}
                   </button>
-                  {/* 注册按钮 - 正确路径 */}
                   <button className="btn-hover" onClick={() => window.location.href = '/pblot/register'} style={{
                     flex: 1, padding: '6px 12px', background: '#999', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
@@ -473,7 +530,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 页面主体内容 */}
       <div
         ref={mainContentRef}
         className="main-content"
@@ -703,7 +759,6 @@ export default function Home() {
               animation: 'fadeIn 0.8s ease-out 0.7s both'
             }}
           >
-            {/* 🔥 最新主题模块（原有） */}
             <div style={{
               backgroundColor: '#fff',
               padding: 15,
@@ -788,9 +843,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ============================================== */}
-            {/* 🔥🔥🔥 评论区（你指定的位置，完美嵌入） 🔥🔥🔥 */}
-            {/* ============================================== */}
             <div style={{
               backgroundColor: '#fff',
               padding: 15,
@@ -809,7 +861,6 @@ export default function Home() {
                 {siteData.texts.comments.title}
               </h4>
 
-              {/* 发表评论框 */}
               <form onSubmit={handleSubmitComment} style={{ marginBottom: 15 }}>
                 <textarea
                   value={commentContent}
@@ -845,7 +896,6 @@ export default function Home() {
                 </button>
               </form>
 
-              {/* 评论列表 */}
               <div style={{ maxHeight: 300, overflowY: 'auto', gap: 10, display: 'flex', flexDirection: 'column' }}>
                 {comments.length === 0 ? (
                   <p style={{ color: '#999', fontSize: 12, textAlign: 'center', margin: 0 }}>
@@ -882,7 +932,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 🔥 广告模块（原有，评论区之后） */}
             {siteData.ads.map((ad, i) => (
               <div
                 key={i}
