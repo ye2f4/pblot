@@ -1,5 +1,6 @@
 import path from "node:path";
 import remarkDefList from "remark-deflist";
+import webpack from 'webpack';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -9,12 +10,11 @@ const config = {
   baseUrl: "/pblot/",
   trailingSlash: true,
   onBrokenLinks: "warn",
-  onBrokenMarkdownLinks: "warn",
+  // 🔥 移除废弃配置（消除警告）
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "pblot",
 
-  // 官方极速模式 Rspack 保留
   future: {
     faster: {
       rspackBundler: true,
@@ -65,6 +65,15 @@ const config = {
       },
     },
     prism: { additionalLanguages: ["shell-session", "bash"] },
+  },
+
+  // 🔥 新增：修复 process is not defined（兼容 Supabase）
+  configureWebpack: {
+    plugins: [
+      new webpack.DefinePlugin({
+        process: { env: {} },
+      }),
+    ],
   },
 
   plugins: [
