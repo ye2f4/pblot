@@ -1,6 +1,5 @@
 import path from "node:path";
 import remarkDefList from "remark-deflist";
-import webpack from 'webpack';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -10,7 +9,6 @@ const config = {
   baseUrl: "/pblot/",
   trailingSlash: true,
   onBrokenLinks: "warn",
-  // 🔥 移除废弃配置（消除警告）
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "pblot",
@@ -67,15 +65,6 @@ const config = {
     prism: { additionalLanguages: ["shell-session", "bash"] },
   },
 
-  // 🔥 新增：修复 process is not defined（兼容 Supabase）
-  configureWebpack: {
-    plugins: [
-      new webpack.DefinePlugin({
-        process: { env: {} },
-      }),
-    ],
-  },
-
   plugins: [
     () => ({
       name: "docusaurus-tailwindcss",
@@ -114,6 +103,15 @@ const config = {
           blogDescription: "个人随笔、技术分享与生活记录",
         },
         theme: { customCss: require.resolve("./src/css/custom.css") },
+        
+        // 🔥 核心修复：configureWebpack 移动到这里（正确位置）
+        configureWebpack: {
+          plugins: [
+            new (require('webpack')).DefinePlugin({
+              process: { env: {} },
+            }),
+          ],
+        },
       },
     ],
   ],
