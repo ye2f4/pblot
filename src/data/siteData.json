@@ -1,6 +1,7 @@
 {
   "siteTitle": "Monoの小窝",
   "siteUrl": "https://ye2f4.github.io",
+  "basePath": "/pblot/",
   "callbackPath": "/pblot/callback",
   "texts": {
     "announcement": "欢迎来到Mono的小窝！本站为个人技术分享站点~",
