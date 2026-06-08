@@ -1,14 +1,14 @@
 {
   "title": {
-    "message": "Meshtastic Blog",
+    "message": "Monoの小窝 - 技术博客",
     "description": "The title for the blog used in SEO"
   },
   "description": {
-    "message": "Discover in-depth insights from developers and maintainers, including project updates and changes. Hear from the community about their projects and ideas.",
+    "message": "分享ESP32P4智能手表、LVGL开发、Meshtastic网络、开源硬件相关技术心得、项目记录与实战教程。",
     "description": "The description for the blog used in SEO"
   },
   "sidebar.title": {
-    "message": "Recent posts",
+    "message": "Recent Posts",
     "description": "The label for the left sidebar"
   }
 }

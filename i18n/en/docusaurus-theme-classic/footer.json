@@ -1,6 +1,6 @@
 {
   "copyright": {
-    "message": "<a href=\"https://vercel.com/?utm_source=meshtastic&utm_campaign=oss\">Powered by ▲ Vercel</a> | Meshtastic® is a registered trademark of Meshtastic LLC. | <a href=\"/docs/legal\">Legal Information</a>.",
-    "description": "The footer copyright"
+    "message": "Powered by <a href=\"https://docusaurus.io/\" target=\"_blank\">Docusaurus</a> & <a href=\"https://pages.github.com/\" target=\"_blank\">GitHub Pages</a> © 2025 <a href=\"https://ye2f4.github.io/pblot/\" target=\"_blank\">Monoの小窝</a> | <a href=\"https://github.com/ye2f4/pblot\" target=\"_blank\">GitHub</a>",
+    "description": "博客页脚版权信息"
   }
 }
