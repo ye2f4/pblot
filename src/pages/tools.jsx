@@ -1,4 +1,4 @@
-export default function ToolsPage() {
+export default function Tools() {
   return <>
     <h1>Tools</h1>
     <p>Tools content here</p>
