@@ -35,6 +35,23 @@ import '../css/home.css';
 // Supabase客户端实例，用于用户认证、数据库查询、实时订阅等功能
 import { supabase } from '../supabase/supabaseClient';
 
+// index.js 顶部添加节流函数
+const throttle = (fn, delay) => {
+  let lastTime = 0;
+  return (...args) => {
+    const now = Date.now();
+    if (now - lastTime >= delay) {
+      fn.apply(this, args);
+      lastTime = now;
+    }
+  };
+};
+
+const showError = (message) => {
+  alert(message);
+  console.error(message);
+};
+
 // ==============================================
 // 性能优化：组件级代码分割（懒加载）
 // ==============================================
@@ -235,7 +252,7 @@ export default function Home() {
         // 退出成功：清空用户状态
         setUser(null);
         // 清除本地存储的认证token
-        localStorage.removeItem('supabase.auth.token');
+        //localStorage.removeItem('supabase.auth.token');
       }
     } catch (err) {
       // 捕获异常
@@ -275,7 +292,7 @@ export default function Home() {
       alert(siteData.texts.comments.success);
     } catch (err) {
       // 捕获并打印错误
-      console.error(err);
+      showError(err);
     } finally {
       // 关闭加载状态
       setCommentLoading(false);
@@ -316,7 +333,7 @@ export default function Home() {
 
     // 添加滚动事件监听器
     // passive: true - 标记为被动监听器，提升滚动性能
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', throttle(handleScroll, 200), { passive: true });
 
     // 组件卸载时的清理函数
     return () => {
@@ -358,7 +375,7 @@ export default function Home() {
         }
       } catch (err) {
         // 捕获并打印错误
-        console.error('获取用户失败：', err);
+        showError('获取用户失败：', err);
       } finally {
         // 标记会话检查完成，用于显示真实数据而非骨架屏
         if (isMountedRef.current) {
@@ -422,7 +439,7 @@ export default function Home() {
       // 清除定时器
       clearTimeout(timer);
       // 移除实时订阅
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   }, [isClient]); // 依赖isClient，确保只在客户端执行
 

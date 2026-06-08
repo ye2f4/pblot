@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link'; // 导入Link组件
 import { supabase } from '../supabase/supabaseClient';
+// login.js 顶部添加导入
+import siteData from '../data/siteData.json';
 
 export const metadata = {
     ssr: false,
@@ -35,7 +37,9 @@ export default function Login() {
         try {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'github',
-                options: { redirectTo: 'https://ye2f4.github.io/pblot/' }
+                options: {
+                    redirectTo: siteData.siteUrl + siteData.callbackPath
+                }
             });
             if (error) throw error;
         } catch (err) {
