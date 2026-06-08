@@ -1,200 +1,433 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import Layout from '@theme/Layout';
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import styles from './index.module.css';
-import siteData from '../data/siteData.json';
-import { throttle } from '../utils/common';
+import React from 'react';
+import Link from '@docusaurus/Link';
+import styles from '../../pages/index.module.css';
 
-// 自定义钩子
-import { useAuth } from '../hooks/useAuth';
-import { useUserStats } from '../hooks/useUserStats';
-import { useComments } from '../hooks/useComments';
+// 工具函数
+const getAvatarUrl = (user, base) => {
+  if (!user) return `${base}avatar.webp`;
+  const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
+  return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.webp`;
+};
 
-// 导入拆分后的组件
-import TopBanner from '../components/TopBanner';
-import MainContentTop from '../components/MainContentTop';
-import CarouselSection from '../components/CarouselSection';
-import QuickNav from '../components/QuickNav';
-import UpdatesList from '../components/UpdatesList';
-import TagCloud from '../components/TagCloud';
-import FriendsAndAbout from '../components/FriendsAndAbout';
-import RankList from '../components/RankList';
+const getUserName = (user) => {
+  if (!user) return "用户";
+  return (
+    user.user_metadata?.full_name ||
+    user.user_metadata?.preferred_username ||
+    user.raw_user_meta_data?.name ||
+    user.email ||
+    "用户"
+  );
+};
 
-// 懒加载非首屏组件
-const CommentSection = lazy(() => import('../components/CommentSection'));
-const AdSection = lazy(() => import('../components/AdSection'));
+// 统计项配色配置（可自定义）
+const statColors = [
+  { bg: 'linear-gradient(135deg, #4285f4 0%, #1976d2 100%)', text: '#4285f4' }, // 今 - 蓝色
+  { bg: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', text: '#9c27b0' }, // 昨 - 紫色
+  { bg: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)', text: '#4caf50' }, // 总 - 绿色
+  { bg: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', text: '#ff9800' }, // 会 - 橙色
+  { bg: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', text: '#f44336' }, // 新 - 红色
+];
 
-export const metadata = { ssr: false };
-
-export default function Home() {
-  const base = useBaseUrl('');
-  const isMountedRef = useRef(true);
-  const [isClient, setIsClient] = useState(false);
-  const [now, setNow] = useState(new Date());
-  const mainContentRef = useRef(null);
-
-  // 认证状态
-  const { user, loading, isSessionChecked, handleGitHubLogin, handleSignOut } = useAuth();
-  
-  // 用户统计
-  const { userCount, latestUser } = useUserStats(isClient);
-  
-  // 评论逻辑
-  const {
-    comments,
-    commentContent,
-    setCommentContent,
-    commentLoading,
-    commentsLoaded,
-    setCommentsLoaded,
-    fetchComments,
-    handleSubmitComment
-  } = useComments(isClient, user, base);
-
-  // 时钟定时器 + 网络时间同步（保留旧版逻辑）
-  useEffect(() => {
-    isMountedRef.current = true;
-    setIsClient(true);
-
-    // 同步网络时间
-    const fetchOnlineTime = async () => {
-      try {
-        const res = await fetch('https://worldtimeapi.org/api/ip');
-        const data = await res.json();
-        setNow(new Date(data.datetime));
-      } catch (err) {
-        setNow(new Date());
-      }
-    };
-    fetchOnlineTime();
-
-    // 每秒更新时间
-    const timer = setInterval(() => {
-      if (isMountedRef.current) setNow(prev => new Date(prev.getTime() + 1000));
-    }, 1000);
-
-    // 滚动加载评论区
-    const handleScroll = throttle(() => {
-      if (window.scrollY > 600 && !commentsLoaded && isMountedRef.current) {
-        setCommentsLoaded(true);
-        fetchComments();
-      }
-    }, 200);
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      isMountedRef.current = false;
-      clearInterval(timer);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [commentsLoaded]);
-
-  // 判断元素是否进入视口（滚动动画）
-  const isInView = (ref) => {
-    if (!ref.current) return false;
-    const rect = ref.current.getBoundingClientRect();
-    return rect.top < window.innerHeight * 0.8 && rect.bottom > 0;
-  };
-
-  if (!isClient) return null;
+export default function TopBanner({
+  siteData,
+  base,
+  user,
+  loading,
+  isSessionChecked,
+  userCount,
+  latestUser,
+  now,
+  handleGitHubLogin,
+  handleSignOut
+}) {
+  const weekJp = siteData.texts.weekJp[now.getDay()];
+  const weekEn = siteData.texts.weekEn[now.getDay()];
 
   return (
-    <Layout title={siteData.siteTitle}>
-      {/* 加载Google像素字体 */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-
-      {/* 顶部横幅 */}
-      <TopBanner
-        siteData={siteData}
-        base={base}
-        user={user}
-        loading={loading}
-        isSessionChecked={isSessionChecked}
-        userCount={userCount}
-        latestUser={latestUser}
-        now={now}
-        handleGitHubLogin={handleGitHubLogin}
-        handleSignOut={handleSignOut}
-      />
-
-      {/* 主内容区（保留滚动动画） */}
-      <div
-        ref={mainContentRef}
-        className="main-content"
-        style={{
-          maxWidth: 1200,
-          margin: '20px auto',
-          padding: '0 15px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-          width: '100%',
-          // 滚动渐入动画
-          opacity: isInView(mainContentRef) ? 1 : 0,
-          transform: isInView(mainContentRef) ? 'translateY(0)' : 'translateY(30px)',
-          transition: 'opacity 0.8s ease, transform 0.8s ease'
-        }}
-      >
-        {/* 主内容顶部 */}
-        <MainContentTop siteData={siteData} />
-
-        {/* 内容主体 */}
-        <div style={{ display: 'flex', gap: 20, width: '100%' }}>
-          {/* 左侧内容区 */}
-          <div className="left-container" style={{ flex: 7, minWidth: 0 }}>
-            <CarouselSection siteData={siteData} base={base} isClient={isClient} />
-            <QuickNav siteData={siteData} />
-            <UpdatesList siteData={siteData} />
-            <TagCloud siteData={siteData} />
-            <FriendsAndAbout siteData={siteData} />
-          </div>
-
-          {/* 右侧边栏 */}
-          <div className="sidebar-container" style={{ flex: 3, minWidth: 0 }}>
-            <RankList siteData={siteData} />
-            
-            {/* 懒加载评论区 */}
-            <Suspense fallback={
-              <div style={{
-                backgroundColor: '#fff',
-                padding: 15,
-                borderRadius: 8,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                marginBottom: 15,
-                width: '100%',
-                minHeight: '400px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#999',
+    <section
+      className={styles.topBannerWrap}
+      style={{
+        backgroundImage: `url(${base}img/bg_big.webp)`,
+      }}
+    >
+      <div className={styles.topRow}>
+        {/* ========== 左侧：全新欢迎卡片 ========== */}
+        <div className={styles.topCol} style={{ animationDelay: '0.1s' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            height: '100%',
+            padding: '10px 15px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+            borderLeft: '4px solid #4285f4',
+            animation: 'breathe 3s infinite ease-in-out'
+          }}>
+            <span style={{
+              fontSize: 28,
+              animation: 'pixelBounce 2s infinite'
+            }}>🏠</span>
+            <div>
+              <p style={{
+                margin: 0,
+                fontSize: 14,
+                fontWeight: 600,
+                color: '#333',
+                marginBottom: 4
               }}>
-                加载中...
-              </div>
-            }>
-              {commentsLoaded && (
-                <CommentSection
-                  comments={comments}
-                  commentContent={commentContent}
-                  setCommentContent={setCommentContent}
-                  commentLoading={commentLoading}
-                  handleSubmitComment={handleSubmitComment}
-                  user={user}
-                  base={base}
-                  siteData={siteData}
-                />
-              )}
-            </Suspense>
-
-            {/* 懒加载广告区 */}
-            <Suspense fallback={null}>
-              <AdSection ads={siteData.ads} base={base} />
-            </Suspense>
+                {siteData.texts.welcomeTitle || '欢迎来到Monoの小窝'}
+              </p>
+              <p style={{
+                margin: 0,
+                fontSize: 12,
+                color: '#666',
+                lineHeight: 1.4
+              }}>
+                {siteData.texts.announcement}
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* ========== 中间：彩色渐变统计 + 时钟 ========== */}
+        <div className={styles.topCol} style={{ flex: 2, minWidth: 400, animationDelay: '0.2s' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            height: '100%',
+            gap: 20
+          }}>
+            {/* 统计数据（彩色渐变卡片） */}
+            <div style={{
+              display: 'flex',
+              gap: 18,
+              flexWrap: 'wrap',
+              minHeight: '60px',
+              alignItems: 'center',
+            }}>
+              {isSessionChecked ? (
+                siteData.stats.map((item, i) => {
+                  let showValue = item.value;
+                  if (item.label === "会") showValue = `会员:${userCount}`;
+                  if (item.label === "新") showValue = `最新:${latestUser}`;
+                  const color = statColors[i] || statColors[0];
+
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        textAlign: 'center',
+                        minWidth: 48,
+                        transition: 'all 0.3s ease',
+                        animation: `fadeIn 0.6s ease-out ${0.3 + i * 0.1}s`
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                        e.currentTarget.style.filter = 'brightness(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.filter = 'brightness(1)';
+                      }}
+                    >
+                      <div style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        background: color.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 6px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      }}>
+                        <span style={{
+                          fontSize: 20,
+                          fontWeight: 'bold',
+                          color: '#fff'
+                        }}>{item.label}</span>
+                      </div>
+                      <p style={{
+                        color: color.text,
+                        fontSize: 11,
+                        margin: 0,
+                        textAlign: 'center',
+                        fontWeight: 500
+                      }}>
+                        {showValue}
+                      </p>
+                    </div>
+                  );
+                })
+              ) : (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} style={{ textAlign: 'center', minWidth: 48, opacity: 0.5 }}>
+                    <div style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(0,0,0,0.05)',
+                      margin: '0 auto 6px',
+                    }} />
+                    <div style={{
+                      width: 48,
+                      height: 12,
+                      backgroundColor: 'rgba(0,0,0,0.05)',
+                      borderRadius: 4,
+                    }} />
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* 时钟（优化版 + 日历图标） */}
+            <div className={styles.bannerRight} style={{
+              padding: '10px 15px',
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              backdropFilter: 'blur(4px)',
+              borderRadius: '12px',
+              textAlign: 'right',
+              minWidth: 180,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 8,
+                marginBottom: 4
+              }}>
+                <span style={{ fontSize: 20 }}>📅</span>
+                <div className={`pixel-font ${styles.clockText}`} style={{
+                  fontSize: 24,
+                  color: '#333',
+                  textShadow: 'none',
+                  animation: 'digitPulse 1s infinite'
+                }}>
+                  {now.toLocaleTimeString()}
+                </div>
+              </div>
+              <div className={styles.dateText} style={{
+                fontSize: 14,
+                color: '#666',
+                marginBottom: 4,
+              }}>
+                {weekJp}曜日 ({weekEn})
+              </div>
+              <div className={`pixel-font ${styles.dateText}`} style={{
+                fontSize: 16,
+                color: '#333',
+                textShadow: 'none',
+              }}>
+                {now.getFullYear()}-{(now.getMonth() + 1 + '').padStart(2, '0')}-{(now.getDate() + '').padStart(2, '0')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========== 右侧：用户信息（修复头像加载） ========== */}
+        <div className={styles.topCol} style={{ animationDelay: '0.3s' }}>
+          {user ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
+              height: '100%',
+              justifyContent: 'center'
+            }}>
+              <img
+                src={getAvatarUrl(user, base)}
+                alt={getUserName(user)}
+                width="50"
+                height="50"
+                loading="lazy"
+                // 修复头像加载异常：添加onerror=null防止无限循环
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `${base}avatar.webp`;
+                }}
+                style={{
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                  transition: 'all 0.5s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+              />
+              <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
+                {getUserName(user)}
+              </span>
+              <Link
+                to="/pblot/profile"
+                className="btn-hover"
+                aria-label="进入个人中心"
+                style={{
+                  width: '100%',
+                  padding: '6px 12px',
+                  backgroundColor: '#4285f4',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  minWidth: 48,
+                  minHeight: 48,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {siteData.texts.buttons.profile}
+              </Link>
+              <button
+                className="btn-hover"
+                onClick={handleSignOut}
+                aria-label="退出当前账号"
+                style={{
+                  width: '100%',
+                  padding: '6px 12px',
+                  backgroundColor: '#dc3545',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  minWidth: 48,
+                  minHeight: 48,
+                }}
+              >
+                {siteData.texts.buttons.logout}
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
+              height: '100%',
+              justifyContent: 'center'
+            }}>
+              <img
+                src={`${base}avatar.webp`}
+                alt="默认头像"
+                width="50"
+                height="50"
+                loading="lazy"
+                // 修复默认头像加载异常
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `${base}avatar.webp`;
+                }}
+                style={{
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                  transition: 'all 0.5s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }}
+              />
+              <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                <Link
+                  to="/pblot/login"
+                  className="btn-hover"
+                  aria-label="登录账号"
+                  style={{
+                    flex: 1,
+                    padding: '6px 12px',
+                    background: '#4285f4',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    minWidth: 48,
+                    minHeight: 48,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {siteData.texts.buttons.login}
+                </Link>
+                <Link
+                  to="/pblot/register"
+                  className="btn-hover"
+                  aria-label="注册新账号"
+                  style={{
+                    flex: 1,
+                    padding: '6px 12px',
+                    background: '#999',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    minWidth: 48,
+                    minHeight: 48,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {siteData.texts.buttons.register}
+                </Link>
+              </div>
+              <button
+                className="btn-hover"
+                onClick={handleGitHubLogin}
+                disabled={loading}
+                aria-label="使用GitHub账号登录"
+                style={{
+                  width: '100%',
+                  padding: '6px 12px',
+                  backgroundColor: '#333',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontSize: 14,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  opacity: loading ? 0.7 : 1,
+                  minWidth: 48,
+                  minHeight: 48,
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                {loading ? siteData.texts.buttons.logging : siteData.texts.buttons.githubLogin}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </Layout>
+    </section>
   );
 }
