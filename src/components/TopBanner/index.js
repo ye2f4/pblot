@@ -4,9 +4,9 @@ import styles from '../../pages/index.module.css';
 
 // 工具函数
 const getAvatarUrl = (user, base) => {
-    if (!user) return `${base}avatar.png`;
+    if (!user) return `${base}avatar.webp`;
     const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
-    return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.png`;
+    return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.webp`;
 };
 
 const getUserName = (user) => {
@@ -39,7 +39,8 @@ export default function TopBanner({
         <section
             className={styles.topBannerWrap}
             style={{
-                backgroundImage: `url(${base}img/bg_big.png)`,
+                // 修复：硬编码背景图为 webp
+                backgroundImage: `url(${base}img/bg_big.webp)`,
             }}
         >
             <div className={styles.topRow}>
@@ -103,7 +104,7 @@ export default function TopBanner({
                                                 width: 40,
                                                 height: 40,
                                                 borderRadius: '50%',
-                                                backgroundColor: 'rgba(0,0,0,0.05)',
+                                                backgroundColor: 'rgba(0,0,0.05)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
@@ -124,13 +125,13 @@ export default function TopBanner({
                                             width: 40,
                                             height: 40,
                                             borderRadius: '50%',
-                                            backgroundColor: 'rgba(0,0,0,0.05)',
+                                            backgroundColor: 'rgba(0,0,0.05)',
                                             margin: '0 auto 6px',
                                         }} />
                                         <div style={{
                                             width: 40,
                                             height: 12,
-                                            backgroundColor: 'rgba(0,0,0,0.05)',
+                                            backgroundColor: 'rgba(0,0,0.05)',
                                             borderRadius: 4,
                                         }} />
                                     </div>
@@ -189,7 +190,8 @@ export default function TopBanner({
                                 width="50"
                                 height="50"
                                 loading="lazy"
-                                onError={(e) => e.target.src = `${base}avatar.png`}
+                                // 兜底头像已在上方工具函数改为 webp，此处无需重复修改
+                                onError={(e) => e.target.src = `${base}avatar.webp`}
                                 style={{
                                     borderRadius: '50%',
                                     objectFit: 'cover',
@@ -261,8 +263,9 @@ export default function TopBanner({
                             height: '100%',
                             justifyContent: 'center'
                         }}>
+                            {/* 默认头像：改为 webp */}
                             <img
-                                src={`${base}avatar.png`}
+                                src={`${base}avatar.webp`}
                                 alt="默认头像"
                                 width="50"
                                 height="50"

@@ -1,6 +1,4 @@
 import React from 'react';
-// 所有子组件：TopBanner / AdSection / CommentSection / TagCloud 等第一行加这个
-import styles from '../../pages/index.module.css';
 
 export default function CommentSection({
     comments,
@@ -93,7 +91,7 @@ export default function CommentSection({
                                     borderRadius: '50%',
                                     objectFit: 'cover'
                                 }}
-                                onError={(e) => e.target.src = `${base}avatar.png`}
+                                onError={(e) => e.target.src = `${base}avatar.webp`}
                             />
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: 12, fontWeight: 500, color: '#333' }}>
