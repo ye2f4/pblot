@@ -1,3 +1,10 @@
+mono:
+  name: Mono
+  title: "Lead: A cute wolf maid"
+  url: https://github.com/ye2f4
+  image_url: https://github.com/ye2f4.png
+  socials:
+    github: ye2f4
 crichton:
   name: Crichton
   title: "Lead: Community Outreach & Development"
