@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Allow: /
+Allow: /pblot/
+Disallow: /pblot/tags/
+Disallow: /pblot/categories/
+Disallow: /pblot/blog/archive/
+
+Sitemap: https://ye2f4.github.io/pblot/sitemap.xml

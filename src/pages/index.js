@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@theme/Layout';
+import Link from '@docusaurus/Link'; // 新增：导入官方Link组件
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import siteData from '../data/siteData.json';
@@ -24,27 +25,20 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
-  // 🔥 实时用户统计（会员数 + 最新用户）
   const [userCount, setUserCount] = useState(0);
   const [latestUser, setLatestUser] = useState("暂无");
 
-  // 评论区状态
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
 
-  // ==============================================
-  // 🔥 核心：获取 会员总数 + 最新注册用户（实时）
-  // ==============================================
   const fetchUserStats = async () => {
     if (!isClient) return;
     try {
-      // 1. 获取会员总数
       const { count } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true });
 
-      // 2. 获取最新注册用户
       const { data: lastUser } = await supabase
         .from('users')
         .select('raw_user_meta_data, email')
@@ -64,7 +58,6 @@ export default function Home() {
     }
   };
 
-  // GitHub 登录
   const handleGitHubLogin = async () => {
     if (!isClient) return;
     setLoading(true);
@@ -92,7 +85,6 @@ export default function Home() {
     }
   };
 
-  // 退出登录
   const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -107,7 +99,6 @@ export default function Home() {
     }
   };
 
-  // 加载评论
   const fetchComments = async () => {
     if (!isClient) return;
     const { data } = await supabase
@@ -117,7 +108,6 @@ export default function Home() {
     setComments(data || []);
   };
 
-  // 发表评论
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!user) return alert(siteData.texts.comments.loginTip);
@@ -141,7 +131,6 @@ export default function Home() {
     }
   };
 
-  // 时钟、滚动
   useEffect(() => {
     setIsClient(true);
     const handleScroll = () => setScrollY(window.scrollY);
@@ -154,7 +143,6 @@ export default function Home() {
     };
   }, []);
 
-  // 获取登录状态
   useEffect(() => {
     if (!isClient) return;
 
@@ -196,14 +184,10 @@ export default function Home() {
     };
   }, [isClient]);
 
-  // ==============================================
-  // 🔥 实时刷新：用户注册后自动更新统计
-  // ==============================================
   useEffect(() => {
     if (!isClient) return;
     fetchUserStats();
 
-    // 实时监听新用户注册
     const channel = supabase.channel('auth-users');
     channel
       .on('postgres_changes', {
@@ -216,12 +200,11 @@ export default function Home() {
     return () => supabase.removeChannel(channel);
   }, [isClient]);
 
-  // 加载评论
   useEffect(() => {
     if (isClient) fetchComments();
   }, [isClient]);
 
-  // 轮播
+  // 🔥 优化轮播图性能
   const carouselSettings = {
     dots: false,
     infinite: true,
@@ -231,7 +214,7 @@ export default function Home() {
     autoplay: true,
     autoplaySpeed: 4000,
     arrows: true,
-    lazyLoad: 'ondemand',
+    lazyLoad: 'progressive', // 更高效的懒加载
     pauseOnHover: true,
     fade: true,
     cssEase: 'ease-in-out',
@@ -308,9 +291,6 @@ export default function Home() {
             }}>
               <div className="stats-container" style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
                 {siteData.stats.map((item, i) => {
-                  // ==============================================
-                  // 🔥 动态替换：会=会员数 / 新=最新用户
-                  // ==============================================
                   let showValue = item.value;
                   if (item.label === "会") showValue = `会员:${userCount}`;
                   if (item.label === "新") showValue = `最新:${latestUser}`;
@@ -388,7 +368,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 用户区域 */}
           <div className="top-col" style={{ animationDelay: '0.3s' }}>
             {user ? (
               <div style={{
@@ -399,13 +378,15 @@ export default function Home() {
                 height: '100%',
                 justifyContent: 'center'
               }}>
+                {/* 🔥 添加图片宽高和aria-label */}
                 <img
                   src={getAvatarUrl()}
                   alt={getUserName()}
+                  width="50"
+                  height="50"
+                  loading="lazy"
                   onError={(e) => e.target.src = `${base}avatar.png`}
                   style={{
-                    width: 50,
-                    height: 50,
                     borderRadius: '50%',
                     objectFit: 'cover',
                     transition: 'all 0.5s ease',
@@ -427,6 +408,7 @@ export default function Home() {
                 <button
                   className="btn-hover"
                   onClick={() => window.location.href = '/pblot/profile'}
+                  aria-label="个人中心"
                   style={{
                     width: '100%',
                     padding: '6px 12px',
@@ -443,6 +425,7 @@ export default function Home() {
                 <button
                   className="btn-hover"
                   onClick={handleSignOut}
+                  aria-label="退出登录"
                   style={{
                     width: '100%',
                     padding: '6px 12px',
@@ -466,12 +449,14 @@ export default function Home() {
                 height: '100%',
                 justifyContent: 'center'
               }}>
+                {/* 🔥 添加图片宽高和aria-label */}
                 <img
                   src={`${base}avatar.png`}
-                  alt="头像"
+                  alt="默认头像"
+                  width="50"
+                  height="50"
+                  loading="lazy"
                   style={{
-                    width: 50,
-                    height: 50,
                     borderRadius: '50%',
                     objectFit: 'cover',
                     transition: 'all 0.5s ease',
@@ -488,12 +473,12 @@ export default function Home() {
                   }}
                 />
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                  <button className="btn-hover" onClick={() => window.location.href = '/pblot/login'} style={{
+                  <button className="btn-hover" onClick={() => window.location.href = '/pblot/login'} aria-label="登录" style={{
                     flex: 1, padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
                     {siteData.texts.buttons.login}
                   </button>
-                  <button className="btn-hover" onClick={() => window.location.href = '/pblot/register'} style={{
+                  <button className="btn-hover" onClick={() => window.location.href = '/pblot/register'} aria-label="注册" style={{
                     flex: 1, padding: '6px 12px', background: '#999', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
                   }}>
                     {siteData.texts.buttons.register}
@@ -503,6 +488,7 @@ export default function Home() {
                   className="btn-hover"
                   onClick={handleGitHubLogin}
                   disabled={loading}
+                  aria-label="GitHub登录"
                   style={{
                     width: '100%',
                     padding: '6px 12px',
@@ -519,7 +505,7 @@ export default function Home() {
                     opacity: loading ? 0.7 : 1,
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                   </svg>
                   {loading ? siteData.texts.buttons.logging : siteData.texts.buttons.githubLogin}
@@ -561,6 +547,7 @@ export default function Home() {
               <button
                 key={i}
                 className="btn-hover"
+                aria-label={`${tab.name}标签`}
                 style={{
                   padding: '8px 16px',
                   backgroundColor: tab.color,
@@ -604,7 +591,7 @@ export default function Home() {
           </div>
 
           <div className="action-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
-            <button className="btn-hover" style={{
+            <button className="btn-hover" aria-label="签到" style={{
               padding: '8px 16px',
               backgroundColor: '#34a853',
               color: '#fff',
@@ -616,7 +603,7 @@ export default function Home() {
             }}>
               {siteData.texts.buttons.signIn}
             </button>
-            <button className="btn-hover" style={{
+            <button className="btn-hover" aria-label="抽奖" style={{
               padding: '8px 16px',
               backgroundColor: '#ff9800',
               color: '#fff',
@@ -653,11 +640,14 @@ export default function Home() {
                 <Slider {...carouselSettings}>
                   {siteData.carouselImages.map((img, i) => (
                     <div key={i} style={{ textAlign: 'center' }}>
+                      {/* 🔥 添加图片宽高和loading */}
                       <img
                         src={`${base}img/${img.filename}`}
                         alt={img.title}
+                        width="1200"
+                        height="350"
+                        loading="lazy"
                         style={{
-                          width: '100%',
                           borderRadius: 0,
                           maxHeight: 350,
                           objectFit: 'contain',
@@ -679,16 +669,17 @@ export default function Home() {
             <div className="section-card" style={{ animationDelay: '0.8s' }}>
               <h3 className="section-title">{siteData.texts.quickNavTitle}</h3>
               <div className="nav-grid">
+                {/* 🔥 关键修复：把button换成Link，解决链接不可爬取问题 */}
                 {siteData.quickNav.map((item, i) => (
-                  <a
+                  <Link
                     key={i}
-                    href={`${base}${item.link}`}
+                    to={item.link}
                     className="nav-card"
                     style={{ borderLeft: `4px solid ${item.color}` }}
                   >
                     <span className="nav-icon">{item.icon}</span>
                     <span className="nav-name">{item.name}</span>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -709,9 +700,9 @@ export default function Home() {
               <h3 className="section-title">{siteData.texts.tagsTitle}</h3>
               <div className="tag-cloud">
                 {siteData.tags.map((tag, i) => (
-                  <a
+                  <Link
                     key={i}
-                    href={`${base}tags/${tag.name.toLowerCase()}`}
+                    to={`/tags/${tag.name.toLowerCase()}`}
                     className="tag-item"
                     style={{
                       backgroundColor: `${tag.color}20`,
@@ -721,7 +712,7 @@ export default function Home() {
                   >
                     {tag.name}
                     <span className="tag-count">({tag.count})</span>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -820,8 +811,8 @@ export default function Home() {
                         marginRight: 10,
                         ...(i < 3 ? { animation: 'rankFlash 2s infinite' } : {})
                       }}>{i + 1}</span>
-                      <a
-                        href={`${base}${item.link}`}
+                      <Link
+                        to={item.link}
                         style={{
                           flex: 1,
                           fontSize: 14,
@@ -833,7 +824,7 @@ export default function Home() {
                         }}
                       >
                         {item.title}
-                      </a>
+                      </Link>
                       <span style={{ fontSize: 12, color: '#999', whiteSpace: 'nowrap', marginLeft: 8 }}>
                         {item.date}
                       </span>
@@ -881,6 +872,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={commentLoading || !user}
+                  aria-label="发布评论"
                   style={{
                     padding: '6px 12px',
                     backgroundColor: '#4285f4',
@@ -909,10 +901,17 @@ export default function Home() {
                       paddingBottom: 8,
                       borderBottom: '1px solid #f5f5f5'
                     }}>
+                      {/* 🔥 添加图片宽高和loading */}
                       <img
                         src={item.avatar_url}
-                        style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover' }}
-                        alt="avatar"
+                        alt={item.username}
+                        width="30"
+                        height="30"
+                        loading="lazy"
+                        style={{
+                          borderRadius: '50%',
+                          objectFit: 'cover'
+                        }}
                         onError={(e) => e.target.src = `${base}avatar.png`}
                       />
                       <div style={{ flex: 1 }}>
@@ -941,9 +940,13 @@ export default function Home() {
                   animation: `fadeIn 0.6s ease-out ${1.4 + i * 0.1}s both`
                 }}
               >
+                {/* 🔥 添加图片宽高和loading */}
                 <img
                   src={`${base}img/${ad.filename}`}
                   alt={`广告${i + 1}`}
+                  width="300"
+                  height="200"
+                  loading="lazy"
                   style={{
                     width: '100%',
                     borderRadius: 4,

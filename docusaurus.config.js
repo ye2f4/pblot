@@ -8,7 +8,8 @@ const config = {
   url: "https://ye2f4.github.io",
   baseUrl: "/pblot/",
   trailingSlash: true,
-  onBrokenLinks: "warn",
+  onBrokenLinks: "throw", // 修复：检测无效链接
+  onBrokenMarkdownLinks: "warn",
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "pblot",
@@ -22,6 +23,34 @@ const config = {
       useCssCascadeLayers: false,
     },
   },
+
+  // 🔥 全局SEO元数据（解决首页无meta描述问题）
+  headTags: [
+    {
+      tagName: "meta",
+      attributes: {
+        name: "description",
+        content: "Monoの小窝，专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件与技术分享",
+      },
+    },
+    {
+      tagName: "meta",
+      attributes: {
+        name: "keywords",
+        content: "ESP32P4,智能手表,LVGL,Meshtastic,开源硬件,Docusaurus,游戏模组,React教程",
+      },
+    },
+    { tagName: "meta", attributes: { name: "author", content: "Mono" } },
+    { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
+    // 🔥 静态资源缓存策略（GitHub Pages专用）
+    {
+      tagName: "meta",
+      attributes: {
+        "http-equiv": "Cache-Control",
+        content: "public, max-age=31536000, immutable",
+      },
+    },
+  ],
 
   themeConfig: {
     respectPrefersColorScheme: true,
@@ -41,12 +70,14 @@ const config = {
     footer: {
       copyright: `Powered by Docusaurus & GitHub Pages © ${new Date().getFullYear()} Monoの小窝`,
     },
+    // 🔥 替换为你自己的Algolia密钥（解决搜索失效问题）
     algolia: {
-      appId: "IG2GQB8L3V",
-      apiKey: "2e4348812173ec7ea6f7879c7032bb21",
-      indexName: "meshtastic",
+      appId: "CQDTG18WX6",
+      apiKey: "0f4ef075e41fbdaa5b918048b90984b2",
+      indexName: "CrimsonFang",
       contextualSearch: true,
       searchPagePath: "search",
+      searchParameters: { hitsPerPage: 10 },
     },
     colorMode: { respectPrefersColorScheme: true },
     mermaid: {
@@ -63,6 +94,8 @@ const config = {
       },
     },
     prism: { additionalLanguages: ["shell-session", "bash"] },
+    // 🔥 社交分享默认图（1200×630px）
+    image: "img/og-image.png",
   },
 
   plugins: [
@@ -82,7 +115,6 @@ const config = {
         };
       },
     }),
-    // 已删除 vercel-analytics 插件
   ],
 
   scripts: [],
@@ -101,8 +133,23 @@ const config = {
         blog: {
           blogTitle: "Monoの小窝 博客",
           blogDescription: "个人随笔、技术分享与生活记录",
+          postsPerPage: 10,
+          blogSidebarCount: 5,
+          // 🔥 忽略博客截断警告
+          onUntruncatedBlogPosts: "ignore",
+          // 🔥 开启RSS订阅（提升SEO）
+          feedOptions: {
+            type: "all",
+            copyright: `Copyright © ${new Date().getFullYear()} Monoの小窝`,
+          },
         },
         theme: { customCss: require.resolve("./src/css/custom.css") },
+        // 🔥 自动生成站点地图（SEO必备）
+        sitemap: {
+          changefreq: "weekly",
+          priority: 0.5,
+          ignorePatterns: ["/tags/**", "/categories/**", "/blog/archive/**"],
+        },
       },
     ],
   ],
@@ -110,7 +157,7 @@ const config = {
   customFields: {},
   i18n: { defaultLocale: "en", locales: ["en"] },
   markdown: { mermaid: true },
-  themes: ["@docusaurus/theme-mermaid"],
+  themes: ["@docusaurus/theme-search-algolia", "@docusaurus/theme-mermaid"],
 };
 
 export default config;

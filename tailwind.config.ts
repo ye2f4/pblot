@@ -6,8 +6,24 @@ export default {
   corePlugins: {
     preflight: false,
     container: false,
+    // 🔥 禁用未使用的功能，进一步减小CSS体积
+    float: false,
+    clear: false,
+    objectFit: false,
+    objectPosition: false,
+    overflow: false,
+    overscrollBehavior: false,
+    position: false,
+    inset: false,
+    visibility: false,
+    zIndex: false,
   },
-  content: ["./src/**/*.{js,jsx,ts,tsx,md,mdx}", "./docs/**/*.{md,mdx}"],
+  // 🔥 扩展扫描范围到blog目录，确保所有使用的样式都被包含
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx,md,mdx}",
+    "./docs/**/*.{md,mdx}",
+    "./blog/**/*.{md,mdx}",
+  ],
   darkMode: ["class", '[data-theme="dark"]'],
   theme: {
     extend: {
@@ -25,7 +41,6 @@ export default {
         secondaryInv: "var(--secondaryInv)",
         tertiaryInv: "var(--tertiaryInv)",
 
-        // homepage colors
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
