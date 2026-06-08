@@ -6,7 +6,7 @@ export default {
   corePlugins: {
     preflight: false,
     container: false,
-    // 🔥 禁用未使用的功能，进一步减小CSS体积
+    // 🔥 禁用更多未使用的功能
     float: false,
     clear: false,
     objectFit: false,
@@ -17,8 +17,25 @@ export default {
     inset: false,
     visibility: false,
     zIndex: false,
+    backdropBlur: false,
+    backdropBrightness: false,
+    backdropContrast: false,
+    backdropGrayscale: false,
+    backdropHueRotate: false,
+    backdropInvert: false,
+    backdropOpacity: false,
+    backdropSaturate: false,
+    backdropSepia: false,
+    blur: false,
+    brightness: false,
+    contrast: false,
+    dropShadow: false,
+    grayscale: false,
+    hueRotate: false,
+    invert: false,
+    saturate: false,
+    sepia: false,
   },
-  // 🔥 扩展扫描范围到blog目录，确保所有使用的样式都被包含
   content: [
     "./src/**/*.{js,jsx,ts,tsx,md,mdx}",
     "./docs/**/*.{md,mdx}",

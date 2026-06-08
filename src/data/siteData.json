@@ -97,22 +97,22 @@
   "tabs": [
     {
       "name": "最新主题",
-      "link": "blog/latest_post",
+      "link": "/pblot/blog/latest_post",
       "color": "#4285f4"
     },
     {
       "name": "最新回复",
-      "link": "blog/latest_comments",
+      "link": "/pblot/blog/latest_comments",
       "color": "#ea4335"
     },
     {
       "name": "热门主题",
-      "link": "blog/hot",
+      "link": "/pblot/blog/hot",
       "color": "#fbbc05"
     },
     {
       "name": "精华推荐",
-      "link": "blog/good",
+      "link": "/pblot/blog/good",
       "color": "#34a853"
     }
   ],
@@ -135,37 +135,37 @@
       "name": "React教程",
       "icon": "⚛️",
       "color": "#61dafb",
-      "link": "blog/react"
+      "link": "/pblot/blog/react"
     },
     {
       "name": "前端开发",
       "icon": "🎨",
       "color": "#ff6b6b",
-      "link": "blog/frontend"
+      "link": "/pblot/blog/frontend"
     },
     {
       "name": "后端技术",
       "icon": "⚙️",
       "color": "#4ecdc4",
-      "link": "blog/backend"
+      "link": "/pblot/blog/backend"
     },
     {
       "name": "工具资源",
       "icon": "🛠️",
       "color": "#ffe66d",
-      "link": "blog/tools"
+      "link": "/pblot/blog/tools"
     },
     {
       "name": "游戏模组",
       "icon": "🎮",
       "color": "#a78bfa",
-      "link": "blog/minecraft"
+      "link": "/pblot/blog/minecraft"
     },
     {
       "name": "开源项目",
       "icon": "📦",
       "color": "#f472b6",
-      "link": "blog/opensource"
+      "link": "/pblot/blog/opensource"
     }
   ],
   "updates": [
@@ -250,37 +250,37 @@
   "rankList": [
     {
       "title": "React入门到精通",
-      "link": "blog/react-guide",
+      "link": "/pblot/blog/react-guide",
       "date": "2025-06-07"
     },
     {
       "title": "GitHub Pages部署教程",
-      "link": "blog/gh-pages",
+      "link": "/pblot/blog/gh-pages",
       "date": "2025-06-06"
     },
     {
       "title": "Docusaurus静态站点搭建",
-      "link": "blog/docusaurus",
+      "link": "/pblot/blog/docusaurus",
       "date": "2025-06-05"
     },
     {
       "title": "React-Slick轮播使用",
-      "link": "blog/react-slick",
+      "link": "/pblot/blog/react-slick",
       "date": "2025-06-04"
     },
     {
       "title": "CSS模糊效果实现",
-      "link": "blog/css-blur",
+      "link": "/pblot/blog/css-blur",
       "date": "2025-06-03"
     },
     {
       "title": "JavaScript定时器详解",
-      "link": "blog/js-timer",
+      "link": "/pblot/blog/js-timer",
       "date": "2025-06-02"
     },
     {
       "title": "JSON静态数据管理",
-      "link": "blog/json-data",
+      "link": "/pblot/blog/json-data",
       "date": "2025-06-01"
     }
   ],

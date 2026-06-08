@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Layout from '@theme/Layout';
-import Link from '@docusaurus/Link'; // 新增：导入官方Link组件
+import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import siteData from '../data/siteData.json';
 import '../css/home.css';
 import { supabase } from '../supabase/supabaseClient';
-import Slider from 'react-slick';
+
+// 延迟加载轮播图（非关键资源）
+const Slider = lazy(() => import('react-slick'));
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
@@ -204,7 +206,7 @@ export default function Home() {
     if (isClient) fetchComments();
   }, [isClient]);
 
-  // 🔥 优化轮播图性能
+  // 优化轮播图性能 + 添加无障碍箭头
   const carouselSettings = {
     dots: false,
     infinite: true,
@@ -214,12 +216,15 @@ export default function Home() {
     autoplay: true,
     autoplaySpeed: 4000,
     arrows: true,
-    lazyLoad: 'progressive', // 更高效的懒加载
+    lazyLoad: 'progressive',
     pauseOnHover: true,
     fade: true,
     cssEase: 'ease-in-out',
     centerMode: false,
     centerPadding: '0px',
+    // 🔥 添加无障碍箭头
+    prevArrow: <button aria-label="上一张" style={{ left: 10, zIndex: 10, minWidth: 48, minHeight: 48 }}>‹</button>,
+    nextArrow: <button aria-label="下一张" style={{ right: 10, zIndex: 10, minWidth: 48, minHeight: 48 }}>›</button>,
     responsive: [
       { breakpoint: 768, settings: { arrows: false, fade: false } }
     ]
@@ -258,7 +263,7 @@ export default function Home() {
       <section
         className={styles.topBannerWrap}
         style={{
-          backgroundImage: `url(${base}img/bg_big.png)`,
+          backgroundImage: `url(${base}img/bg_big.webp)`, // 替换为WebP格式
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           padding: '20px 15px',
@@ -289,7 +294,13 @@ export default function Home() {
               alignItems: 'center',
               height: '100%'
             }}>
-              <div className="stats-container" style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
+              {/* 🔥 固定统计区域高度，解决CLS */}
+              <div className="stats-container" style={{
+                display: 'flex',
+                gap: 15,
+                flexWrap: 'wrap',
+                minHeight: '60px',
+              }}>
                 {siteData.stats.map((item, i) => {
                   let showValue = item.value;
                   if (item.label === "会") showValue = `会员:${userCount}`;
@@ -378,7 +389,6 @@ export default function Home() {
                 height: '100%',
                 justifyContent: 'center'
               }}>
-                {/* 🔥 添加图片宽高和aria-label */}
                 <img
                   src={getAvatarUrl()}
                   alt={getUserName()}
@@ -418,6 +428,8 @@ export default function Home() {
                     borderRadius: 4,
                     fontSize: 14,
                     cursor: 'pointer',
+                    minWidth: 48,
+                    minHeight: 48,
                   }}
                 >
                   {siteData.texts.buttons.profile}
@@ -435,6 +447,8 @@ export default function Home() {
                     borderRadius: 4,
                     fontSize: 14,
                     cursor: 'pointer',
+                    minWidth: 48,
+                    minHeight: 48,
                   }}
                 >
                   {siteData.texts.buttons.logout}
@@ -449,7 +463,6 @@ export default function Home() {
                 height: '100%',
                 justifyContent: 'center'
               }}>
-                {/* 🔥 添加图片宽高和aria-label */}
                 <img
                   src={`${base}avatar.png`}
                   alt="默认头像"
@@ -475,11 +488,13 @@ export default function Home() {
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
                   <button className="btn-hover" onClick={() => window.location.href = '/pblot/login'} aria-label="登录" style={{
                     flex: 1, padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
+                    minWidth: 48, minHeight: 48,
                   }}>
                     {siteData.texts.buttons.login}
                   </button>
                   <button className="btn-hover" onClick={() => window.location.href = '/pblot/register'} aria-label="注册" style={{
                     flex: 1, padding: '6px 12px', background: '#999', color: '#fff', border: 'none', borderRadius: 4, fontSize: 14, cursor: 'pointer',
+                    minWidth: 48, minHeight: 48,
                   }}>
                     {siteData.texts.buttons.register}
                   </button>
@@ -503,6 +518,8 @@ export default function Home() {
                     justifyContent: 'center',
                     gap: 6,
                     opacity: loading ? 0.7 : 1,
+                    minWidth: 48,
+                    minHeight: 48,
                   }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -542,10 +559,12 @@ export default function Home() {
             animation: 'fadeIn 0.8s ease-out 0.4s both'
           }}
         >
+          {/* 🔥 关键修复：把button改成Link，彻底解决链接不可爬取 */}
           <div className="tab-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
             {siteData.tabs.map((tab, i) => (
-              <button
+              <Link
                 key={i}
+                to={tab.link}
                 className="btn-hover"
                 aria-label={`${tab.name}标签`}
                 style={{
@@ -556,11 +575,17 @@ export default function Home() {
                   borderRadius: 4,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
-                  animation: `fadeIn 0.6s ease-out ${0.5 + i * 0.1}s both`
+                  textDecoration: 'none',
+                  animation: `fadeIn 0.6s ease-out ${0.5 + i * 0.1}s both`,
+                  minWidth: 48,
+                  minHeight: 48,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 {tab.name}
-              </button>
+              </Link>
             ))}
           </div>
 
@@ -582,7 +607,7 @@ export default function Home() {
               style={{
                 whiteSpace: 'nowrap',
                 animation: 'scrollText 18s linear infinite',
-                color: '#1976D2',
+                color: '#0D47A1', // 🔥 提高对比度到4.7:1
                 fontSize: 14
               }}
             >
@@ -590,31 +615,54 @@ export default function Home() {
             </span>
           </div>
 
+          {/* 🔥 操作按钮也改成Link */}
           <div className="action-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
-            <button className="btn-hover" aria-label="签到" style={{
-              padding: '8px 16px',
-              backgroundColor: '#34a853',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 4,
-              fontSize: 14,
-              whiteSpace: 'nowrap',
-              animation: 'fadeIn 0.6s ease-out 0.8s both'
-            }}>
+            <Link
+              to="/pblot/signin"
+              className="btn-hover"
+              aria-label="每日签到"
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#34a853',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 4,
+                fontSize: 14,
+                whiteSpace: 'nowrap',
+                textDecoration: 'none',
+                animation: 'fadeIn 0.6s ease-out 0.8s both',
+                minWidth: 48,
+                minHeight: 48,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               {siteData.texts.buttons.signIn}
-            </button>
-            <button className="btn-hover" aria-label="抽奖" style={{
-              padding: '8px 16px',
-              backgroundColor: '#ff9800',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 4,
-              fontSize: 14,
-              whiteSpace: 'nowrap',
-              animation: 'fadeIn 0.6s ease-out 0.9s both'
-            }}>
+            </Link>
+            <Link
+              to="/pblot/draw"
+              className="btn-hover"
+              aria-label="每日抽奖"
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#ff9800',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 4,
+                fontSize: 14,
+                whiteSpace: 'nowrap',
+                textDecoration: 'none',
+                animation: 'fadeIn 0.6s ease-out 0.9s both',
+                minWidth: 48,
+                minHeight: 48,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               {siteData.texts.buttons.drawPost}
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -627,6 +675,7 @@ export default function Home() {
               animation: 'fadeIn 0.8s ease-out 0.6s both'
             }}
           >
+            {/* 🔥 固定轮播图高度，解决CLS */}
             {isClient && (
               <div style={{
                 backgroundColor: '#fff',
@@ -635,41 +684,42 @@ export default function Home() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 width: '100%',
                 overflow: 'hidden',
-                marginBottom: 20
+                marginBottom: 20,
+                minHeight: '350px', // 固定高度
               }}>
-                <Slider {...carouselSettings}>
-                  {siteData.carouselImages.map((img, i) => (
-                    <div key={i} style={{ textAlign: 'center' }}>
-                      {/* 🔥 添加图片宽高和loading */}
-                      <img
-                        src={`${base}img/${img.filename}`}
-                        alt={img.title}
-                        width="1200"
-                        height="350"
-                        loading="lazy"
-                        style={{
-                          borderRadius: 0,
-                          maxHeight: 350,
-                          objectFit: 'contain',
-                          backgroundColor: '#f5f5f5'
-                        }}
-                      />
-                      <p style={{
-                        marginTop: 8,
-                        marginBottom: 8,
-                        fontSize: 14,
-                        animation: 'breathe 2s infinite ease-in-out'
-                      }}>{img.title}</p>
-                    </div>
-                  ))}
-                </Slider>
+                <Suspense fallback={<div style={{ height: 350, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载中...</div>}>
+                  <Slider {...carouselSettings}>
+                    {siteData.carouselImages.map((img, i) => (
+                      <div key={i} style={{ textAlign: 'center' }}>
+                        <img
+                          src={`${base}img/${img.filename}`}
+                          alt={img.title}
+                          width="1200"
+                          height="350"
+                          loading="lazy"
+                          style={{
+                            borderRadius: 0,
+                            maxHeight: 350,
+                            objectFit: 'contain',
+                            backgroundColor: '#f5f5f5'
+                          }}
+                        />
+                        <p style={{
+                          marginTop: 8,
+                          marginBottom: 8,
+                          fontSize: 14,
+                          animation: 'breathe 2s infinite ease-in-out'
+                        }}>{img.title}</p>
+                      </div>
+                    ))}
+                  </Slider>
+                </Suspense>
               </div>
             )}
 
             <div className="section-card" style={{ animationDelay: '0.8s' }}>
               <h3 className="section-title">{siteData.texts.quickNavTitle}</h3>
               <div className="nav-grid">
-                {/* 🔥 关键修复：把button换成Link，解决链接不可爬取问题 */}
                 {siteData.quickNav.map((item, i) => (
                   <Link
                     key={i}
@@ -702,7 +752,7 @@ export default function Home() {
                 {siteData.tags.map((tag, i) => (
                   <Link
                     key={i}
-                    to={`/tags/${tag.name.toLowerCase()}`}
+                    to={`/pblot/tags/${tag.name.toLowerCase()}`}
                     className="tag-item"
                     style={{
                       backgroundColor: `${tag.color}20`,
@@ -834,13 +884,15 @@ export default function Home() {
               </div>
             </div>
 
+            {/* 🔥 固定评论区高度，解决CLS */}
             <div style={{
               backgroundColor: '#fff',
               padding: 15,
               borderRadius: 8,
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               marginBottom: 15,
-              width: '100%'
+              width: '100%',
+              minHeight: '400px', // 固定高度
             }}>
               <h4 style={{
                 margin: '0 0 15px 0',
@@ -881,7 +933,9 @@ export default function Home() {
                     borderRadius: 4,
                     fontSize: 12,
                     cursor: commentLoading ? 'not-allowed' : 'pointer',
-                    opacity: commentLoading ? 0.7 : 1
+                    opacity: commentLoading ? 0.7 : 1,
+                    minWidth: 48,
+                    minHeight: 48,
                   }}
                 >
                   {commentLoading ? "发布中..." : siteData.texts.comments.submit}
@@ -901,7 +955,6 @@ export default function Home() {
                       paddingBottom: 8,
                       borderBottom: '1px solid #f5f5f5'
                     }}>
-                      {/* 🔥 添加图片宽高和loading */}
                       <img
                         src={item.avatar_url}
                         alt={item.username}
@@ -940,7 +993,6 @@ export default function Home() {
                   animation: `fadeIn 0.6s ease-out ${1.4 + i * 0.1}s both`
                 }}
               >
-                {/* 🔥 添加图片宽高和loading */}
                 <img
                   src={`${base}img/${ad.filename}`}
                   alt={`广告${i + 1}`}
