@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
+import styles from '../../pages/index.module.css';
 
 export default function MainContentTop({ siteData }) {
     return (
@@ -18,7 +19,7 @@ export default function MainContentTop({ siteData }) {
                     <Link
                         key={i}
                         to={tab.link}
-                        className="btn-hover"
+                        className={styles.btnHover}
                         aria-label={`查看${tab.name}内容`}
                         style={{
                             padding: '8px 16px',
@@ -71,7 +72,7 @@ export default function MainContentTop({ siteData }) {
             <div className="action-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
                 <Link
                     to="/pblot/signin"
-                    className="btn-hover"
+                    className={styles.btnHover}
                     aria-label="每日签到领取奖励"
                     style={{
                         padding: '8px 16px',
@@ -93,7 +94,7 @@ export default function MainContentTop({ siteData }) {
                 </Link>
                 <Link
                     to="/pblot/draw"
-                    className="btn-hover"
+                    className={styles.btnHover}
                     aria-label="每日抽奖"
                     style={{
                         padding: '8px 16px',

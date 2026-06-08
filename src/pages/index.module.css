@@ -1,95 +1,215 @@
-/* 顶部全屏横幅 */
+/* ====================== 顶部全屏横幅 ====================== */
 .topBannerWrap {
-  width:100%;
-  max-width:1240px;
-  margin:16px auto;
-  border-radius:8px;
-  height:210px;
-  padding:0 32px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background-size:cover;
-  background-position:center;
+  width: 100%;
+  max-width: 1240px;
+  margin: 16px auto;
+  border-radius: 8px;
+  height: 210px;
+  padding: 0 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
 }
-.bannerLeft{}
+.bannerLeft {}
 .bannerRight {
-  color:#fff;
-  text-shadow:0 1px 4px #666;
-  text-align:right;
+  color: #fff;
+  text-shadow: 0 1px 4px #666;
+  text-align: right;
 }
-.clockText {font-size:52px;letter-spacing:4px;}
-.dateText {font-size:34px;line-height:1.3;}
+.clockText {
+  font-size: 52px;
+  letter-spacing: 4px;
+}
+.dateText {
+  font-size: 34px;
+  line-height: 1.3;
+}
 
-/* 顶部五个圆形统计 */
+/* ====================== 顶部五个圆形统计 ====================== */
 .topStatWrap {
-  display:flex;gap:30px;
+  display: flex;
+  gap: 30px;
 }
 .statCircle {
-  width:82px;height:82px;
-  background:#fff;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:42px;font-weight:bold;
+  width: 82px;
+  height: 82px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  font-weight: bold;
 }
-.statItem {text-align:center;font-size:15px;margin-top:6px;}
+.statItem {
+  text-align: center;
+  font-size: 15px;
+  margin-top: 6px;
+}
 
-/* 页面左右主容器 */
+/* ====================== 页面左右主容器 ====================== */
 .pageWrap {
-  max-width:1240px;margin:0 auto;
-  display:flex;gap:22px;padding:0 16px;
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  gap: 22px;
+  padding: 0 16px;
 }
-.mainLeft {flex:3.1;}
-.sidebarRight {flex:1;min-width:260px;max-width:290px;}
+.mainLeft {
+  flex: 3.1;
+}
+.sidebarRight {
+  flex: 1;
+  min-width: 260px;
+  max-width: 290px;
+}
 
-/* 首页公告横幅 */
-.annBanner img {width:100%;border-radius:6px;margin-bottom:14px;}
+/* ====================== 首页公告横幅 ====================== */
+.annBanner img {
+  width: 100%;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
 
-/* 小喇叭 */
+/* ====================== 小喇叭提示 ====================== */
 .tipWrap {
-  padding:12px 14px;background:#f7f7f7;border-radius:6px;margin-bottom:22px;
+  padding: 12px 14px;
+  background: #f7f7f7;
+  border-radius: 6px;
+  margin-bottom: 22px;
 }
 
-/* 分区板块通用 */
-.blockWrap {margin-bottom:26px;}
+/* ====================== 分区板块通用 ====================== */
+.blockWrap {
+  margin-bottom: 26px;
+}
 .blockTitle {
-  border-left:4px solid var(--ifm-color-primary);
-  padding-left:8px;
-  margin:0 0 12px;
-  font-size:16px;display:flex;align-items:center;
+  border-left: 4px solid var(--ifm-color-primary);
+  padding-left: 8px;
+  margin: 0 0 12px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
 }
-.subAdmin {font-size:12px;color:#777;margin-left:8px;font-weight:normal;}
-.twoColGrid {display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.subAdmin {
+  font-size: 12px;
+  color: #777;
+  margin-left: 8px;
+  font-weight: normal;
+}
+.twoColGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
 .colCard {
-  background:#f9f9f9;padding:14px 16px;border-radius:5px;
-  transition:0.2s;
+  background: #f9f9f9;
+  padding: 14px 16px;
+  border-radius: 5px;
+  transition: 0.2s;
 }
-.colCard:hover {transform:translateY(-3px);box-shadow:0 3px 10px #eee;}
-.colCard h4 {margin:0 0 5px;font-size:14px;}
-.colCard p {margin:0;font-size:12px;color:#555;}
-
-/* 右侧边栏组件 */
-.signBtnBox {display:flex;gap:8px;margin-bottom:14px;}
-.greenBtn {width:50%;background:#28a745;color:#fff;border:none;padding:9px 0;border-radius:4px;}
-.orangeBtn {width:50%;background:#ff7828;color:#fff;border:none;padding:9px 0;border-radius:4px;}
-.adBox {margin-bottom:14px;}
-.adBox img {width:100%;border-radius:4px;}
-
-.tagWrap,.rankWrap,.commentWrap {
-  background:#f9f9f9;padding:14px;border-radius:5px;margin-bottom:14px;
+.colCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 10px #eee;
 }
-.tagList {display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-.tagItem {padding:3px 8px;background:#e9ecef;border-radius:3px;font-size:12px;}
-.rankItem {padding:4px 0;font-size:13px;border-bottom:1px solid #eee;}
+.colCard h4 {
+  margin: 0 0 5px;
+  font-size: 14px;
+}
+.colCard p {
+  margin: 0;
+  font-size: 12px;
+  color: #555;
+}
 
-/* 底部赞助 */
-.sponsorWrap {max-width:1240px;margin:40px auto;padding:0 16px;}
-.logoRow {display:flex;gap:36px;align-items:center;padding:12px 0;}
-.logoRow img {height:32px;}
+/* ====================== 右侧边栏组件 ====================== */
+.signBtnBox {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.greenBtn {
+  width: 50%;
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 9px 0;
+  border-radius: 4px;
+}
+.orangeBtn {
+  width: 50%;
+  background: #ff7828;
+  color: #fff;
+  border: none;
+  padding: 9px 0;
+  border-radius: 4px;
+}
+.adBox {
+  margin-bottom: 14px;
+}
+.adBox img {
+  width: 100%;
+  border-radius: 4px;
+}
 
-/* 移动端自适应 */
-@media(max-width:996px){
-  .pageWrap {flex-direction:column;}
-  .twoColGrid {grid-template-columns:1fr;}
-  .topStatWrap {gap:12px;}
-  .statCircle {width:56px;height:56px;font-size:24px;}
+.tagWrap,
+.rankWrap,
+.commentWrap {
+  background: #f9f9f9;
+  padding: 14px;
+  border-radius: 5px;
+  margin-bottom: 14px;
+}
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.tagItem {
+  padding: 3px 8px;
+  background: #e9ecef;
+  border-radius: 3px;
+  font-size: 12px;
+}
+.rankItem {
+  padding: 4px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+}
+
+/* ====================== 底部赞助 ====================== */
+.sponsorWrap {
+  max-width: 1240px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+.logoRow {
+  display: flex;
+  gap: 36px;
+  align-items: center;
+  padding: 12px 0;
+}
+.logoRow img {
+  height: 32px;
+}
+
+/* ====================== 移动端自适应 ====================== */
+@media (max-width: 996px) {
+  .pageWrap {
+    flex-direction: column;
+  }
+  .twoColGrid {
+    grid-template-columns: 1fr;
+  }
+  .topStatWrap {
+    gap: 12px;
+  }
+  .statCircle {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
 }

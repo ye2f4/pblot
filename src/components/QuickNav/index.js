@@ -1,20 +1,21 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
+import styles from '../../pages/index.module.css';
 
 export default function QuickNav({ siteData }) {
     return (
-        <div className="section-card">
-            <h3 className="section-title">{siteData.texts.quickNavTitle}</h3>
-            <div className="nav-grid">
+        <div className={styles.sectionCard}>
+            <h3 className={styles.sectionTitle}>{siteData.texts.quickNavTitle}</h3>
+            <div className={styles.navGrid}>
                 {siteData.quickNav.map((item, i) => (
                     <Link
                         key={i}
                         to={item.link}
-                        className="nav-card"
+                        className={styles.navCard}
                         style={{ borderLeft: `4px solid ${item.color}` }}
                     >
-                        <span className="nav-icon">{item.icon}</span>
-                        <span className="nav-name">{item.name}</span>
+                        <span className={styles.navIcon}>{item.icon}</span>
+                        <span className={styles.navName}>{item.name}</span>
                     </Link>
                 ))}
             </div>

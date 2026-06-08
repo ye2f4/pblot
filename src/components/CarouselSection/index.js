@@ -2,6 +2,8 @@ import React, { lazy, Suspense } from 'react';
 const Slider = lazy(() => import('react-slick'));
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+// 所有子组件：TopBanner / AdSection / CommentSection / TagCloud 等第一行加这个
+import styles from '../../pages/index.module.css';
 
 export default function CarouselSection({ siteData, base, isClient }) {
     const carouselSettings = {

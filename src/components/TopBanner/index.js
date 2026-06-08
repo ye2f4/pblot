@@ -47,15 +47,11 @@ export default function TopBanner({
                 padding: '25px 15px',
                 width: '100%',
                 overflow: 'hidden',
-                '@media (max-width: 768px)': {
-                    padding: '20px 10px',
-                    backgroundPosition: 'center -5px',
-                },
             }}
         >
-            <div className="top-row" style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div className={styles.topRow} style={{ maxWidth: 1200, margin: '0 auto' }}>
                 {/* 左侧公告 */}
-                <div className="top-col">
+                <div className={styles.topCol}>
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -70,7 +66,7 @@ export default function TopBanner({
                 </div>
 
                 {/* 中间统计+时钟 */}
-                <div className="top-col" style={{ flex: 2, minWidth: 400 }}>
+                <div className={styles.topCol} style={{ flex: 2, minWidth: 400 }}>
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -78,7 +74,7 @@ export default function TopBanner({
                         height: '100%'
                     }}>
                         {/* 统计数据 */}
-                        <div className="stats-container" style={{
+                        <div style={{
                             display: 'flex',
                             gap: 15,
                             flexWrap: 'wrap',
@@ -133,14 +129,14 @@ export default function TopBanner({
                         </div>
 
                         {/* 时钟 */}
-                        <div className="clock-container" style={{
+                        <div className={styles.bannerRight} style={{
                             padding: 0,
                             backgroundColor: 'transparent',
                             backdropFilter: 'none',
                             textAlign: 'right',
                             minWidth: 160
                         }}>
-                            <div className="pixel-font clock-text" style={{
+                            <div className={styles.clockText} style={{
                                 fontSize: 24,
                                 color: '#333',
                                 marginBottom: 4,
@@ -148,14 +144,14 @@ export default function TopBanner({
                             }}>
                                 {now.toLocaleTimeString()}
                             </div>
-                            <div className="date-text" style={{
+                            <div className={styles.dateText} style={{
                                 fontSize: 14,
                                 color: '#666',
                                 marginBottom: 4,
                             }}>
                                 {weekJp}曜日 ({weekEn})
                             </div>
-                            <div className="pixel-font date-text" style={{
+                            <div className={styles.dateText} style={{
                                 fontSize: 16,
                                 color: '#333',
                                 textShadow: 'none',
@@ -167,7 +163,7 @@ export default function TopBanner({
                 </div>
 
                 {/* 右侧登录/用户信息 */}
-                <div className="top-col">
+                <div className={styles.topCol}>
                     {user ? (
                         <div style={{
                             display: 'flex',
@@ -195,7 +191,7 @@ export default function TopBanner({
                             </span>
                             <Link
                                 to="/pblot/profile"
-                                className="btn-hover"
+                                className={styles.btnHover}
                                 aria-label="进入个人中心"
                                 style={{
                                     width: '100%',
@@ -217,7 +213,7 @@ export default function TopBanner({
                                 {siteData.texts.buttons.profile}
                             </Link>
                             <button
-                                className="btn-hover"
+                                className={styles.btnHover}
                                 onClick={handleSignOut}
                                 aria-label="退出当前账号"
                                 style={{
@@ -260,7 +256,7 @@ export default function TopBanner({
                             <div style={{ display: 'flex', gap: 8, width: '100%' }}>
                                 <Link
                                     to="/pblot/login"
-                                    className="btn-hover"
+                                    className={styles.btnHover}
                                     aria-label="登录账号"
                                     style={{
                                         flex: 1,
@@ -283,7 +279,7 @@ export default function TopBanner({
                                 </Link>
                                 <Link
                                     to="/pblot/register"
-                                    className="btn-hover"
+                                    className={styles.btnHover}
                                     aria-label="注册新账号"
                                     style={{
                                         flex: 1,
@@ -306,7 +302,7 @@ export default function TopBanner({
                                 </Link>
                             </div>
                             <button
-                                className="btn-hover"
+                                className={styles.btnHover}
                                 onClick={handleGitHubLogin}
                                 disabled={loading}
                                 aria-label="使用GitHub账号登录"

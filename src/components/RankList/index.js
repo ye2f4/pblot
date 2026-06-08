@@ -1,5 +1,7 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
+// 所有子组件：TopBanner / AdSection / CommentSection / TagCloud 等第一行加这个
+import styles from '../../pages/index.module.css';
 
 export default function RankList({ siteData }) {
     return (
