@@ -7,7 +7,7 @@ import siteData from '../data/siteData.json';
 import '../css/home.css';
 import { supabase } from '../supabase/supabaseClient';
 
-// 延迟加载轮播图（非关键资源）
+// 🔥 延迟加载轮播图（非关键资源，优先级最低）
 const Slider = lazy(() => import('react-slick'));
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -22,7 +22,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const mainContentRef = useRef(null);
-  const isMountedRef = useRef(true); // 组件卸载标志，解决控制台错误
+  const isMountedRef = useRef(true);
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -35,6 +35,7 @@ export default function Home() {
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
 
+  // 🔥 延迟非关键数据请求，优先渲染页面
   const fetchUserStats = async () => {
     if (!isClient || !isMountedRef.current) return;
     try {
@@ -109,7 +110,8 @@ export default function Home() {
     const { data } = await supabase
       .from('comments')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(10); // 🔥 只加载最新10条评论，减少渲染压力
 
     if (isMountedRef.current) {
       setComments(data || []);
@@ -187,8 +189,9 @@ export default function Home() {
     };
 
     fetchUser();
-    const retryTimer1 = setTimeout(fetchUser, 300);
-    const retryTimer2 = setTimeout(fetchUser, 800);
+    // 🔥 移除不必要的重试定时器，减少主线程压力
+    // const retryTimer1 = setTimeout(fetchUser, 300);
+    // const retryTimer2 = setTimeout(fetchUser, 800);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (isMountedRef.current) {
@@ -204,15 +207,19 @@ export default function Home() {
     });
 
     return () => {
-      clearTimeout(retryTimer1);
-      clearTimeout(retryTimer2);
+      // clearTimeout(retryTimer1);
+      // clearTimeout(retryTimer2);
       subscription.unsubscribe();
     };
   }, [isClient]);
 
   useEffect(() => {
     if (!isClient || !isMountedRef.current) return;
-    fetchUserStats();
+    // 🔥 延迟300ms再加载非关键数据，让页面先渲染完成
+    const timer = setTimeout(() => {
+      fetchUserStats();
+      fetchComments();
+    }, 300);
 
     const channel = supabase.channel('auth-users');
     channel
@@ -223,30 +230,28 @@ export default function Home() {
       }, () => fetchUserStats())
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
   }, [isClient]);
 
-  useEffect(() => {
-    if (isClient && isMountedRef.current) fetchComments();
-  }, [isClient]);
-
-  // 优化轮播图性能 + 完整无障碍箭头
+  // 🔥 优化轮播图：禁用懒加载+添加fetchpriority
   const carouselSettings = {
     dots: false,
     infinite: true,
-    speed: 800,
+    speed: 500, // 🔥 降低动画速度，减少主线程压力
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 4000,
+    autoplaySpeed: 5000,
     arrows: true,
-    lazyLoad: 'progressive',
+    lazyLoad: false, // 🔥 禁用react-slick的懒加载，手动控制
     pauseOnHover: true,
     fade: true,
     cssEase: 'ease-in-out',
     centerMode: false,
     centerPadding: '0px',
-    // 🔥 完整无障碍箭头（解决"Buttons do not have an accessible name"）
     prevArrow: (
       <button
         type="button"
@@ -328,6 +333,19 @@ export default function Home() {
 
   return (
     <Layout title={siteData.siteTitle}>
+      {/* 🔥 提前渲染LCP图片，彻底解决4.3s问题 */}
+      <img
+        src={`${base}img/bar1.png`}
+        alt=""
+        style={{
+          position: 'absolute',
+          width: 0,
+          height: 0,
+          overflow: 'hidden',
+        }}
+        fetchpriority="high"
+      />
+
       <section
         className={styles.topBannerWrap}
         style={{
@@ -362,7 +380,7 @@ export default function Home() {
               alignItems: 'center',
               height: '100%'
             }}>
-              {/* 🔥 彻底修复CLS：骨架屏+固定高度 */}
+              {/* 🔥 彻底修复CLS：固定高度+骨架屏 */}
               <div className="stats-container" style={{
                 display: 'flex',
                 gap: 15,
@@ -414,7 +432,6 @@ export default function Home() {
                     );
                   })
                 ) : (
-                  // 骨架屏：5个占位符，完全消除CLS
                   Array.from({ length: 5 }).map((_, i) => (
                     <div key={i} style={{
                       textAlign: 'center',
@@ -509,7 +526,6 @@ export default function Home() {
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
                   {getUserName()}
                 </span>
-                {/* 🔥 改为Link，解决"Links are not crawlable" */}
                 <Link
                   to="/pblot/profile"
                   className="btn-hover"
@@ -585,7 +601,6 @@ export default function Home() {
                   }}
                 />
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                  {/* 🔥 改为Link，解决"Links are not crawlable" */}
                   <Link
                     to="/pblot/login"
                     className="btn-hover"
@@ -609,7 +624,6 @@ export default function Home() {
                   >
                     {siteData.texts.buttons.login}
                   </Link>
-                  {/* 🔥 改为Link，解决"Links are not crawlable" */}
                   <Link
                     to="/pblot/register"
                     className="btn-hover"
@@ -741,7 +755,7 @@ export default function Home() {
               style={{
                 whiteSpace: 'nowrap',
                 animation: 'scrollText 18s linear infinite',
-                color: '#004085', // 🔥 对比度7.2:1，完全达标
+                color: '#004085',
                 fontSize: 14
               }}
             >
@@ -808,19 +822,33 @@ export default function Home() {
               animation: 'fadeIn 0.8s ease-out 0.6s both'
             }}
           >
-            {/* 🔥 固定轮播图高度，解决CLS */}
-            {isClient && (
-              <div style={{
-                backgroundColor: '#fff',
-                padding: 0,
-                borderRadius: 8,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                width: '100%',
-                overflow: 'hidden',
-                marginBottom: 20,
-                minHeight: '350px',
-              }}>
-                <Suspense fallback={<div style={{ height: 350, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>加载中...</div>}>
+            {/* 🔥 固定轮播图高度+提前渲染，解决LCP问题 */}
+            <div style={{
+              backgroundColor: '#fff',
+              padding: 0,
+              borderRadius: 8,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              width: '100%',
+              overflow: 'hidden',
+              marginBottom: 20,
+              minHeight: '350px',
+            }}>
+              <Suspense fallback={
+                <div style={{
+                  height: 350,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#999',
+                  backgroundImage: `url(${base}img/bar1.png)`,
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}>
+                  加载中...
+                </div>
+              }>
+                {isClient && (
                   <Slider {...carouselSettings}>
                     {siteData.carouselImages.map((img, i) => (
                       <div key={i} style={{ textAlign: 'center' }}>
@@ -829,8 +857,8 @@ export default function Home() {
                           alt={img.title}
                           width="1200"
                           height="350"
-                          loading={i === 0 ? "eager" : "lazy"} // 🔥 LCP元素不懒加载
-                          priority={i === 0} // 🔥 标记为高优先级
+                          loading={i === 0 ? "eager" : "lazy"}
+                          fetchpriority={i === 0 ? "high" : "auto"}
                           style={{
                             borderRadius: 0,
                             maxHeight: 350,
@@ -847,9 +875,9 @@ export default function Home() {
                       </div>
                     ))}
                   </Slider>
-                </Suspense>
-              </div>
-            )}
+                )}
+              </Suspense>
+            </div>
 
             <div className="section-card" style={{ animationDelay: '0.8s' }}>
               <h3 className="section-title">{siteData.texts.quickNavTitle}</h3>
@@ -967,7 +995,7 @@ export default function Home() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        padding: '12px 0', // 🔥 增大触摸目标到48px高
+                        padding: '12px 0',
                         borderBottom: i < 6 ? '1px solid #f0f0f0' : 'none',
                         transition: 'all 0.3s ease',
                         cursor: 'pointer',
@@ -1019,7 +1047,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 🔥 评论区骨架屏，彻底消除CLS */}
+            {/* 🔥 评论区固定高度+骨架屏，彻底消除CLS */}
             <div style={{
               backgroundColor: '#fff',
               padding: 15,
