@@ -15,13 +15,21 @@ const config = {
 
   future: {
     faster: {
-      rspackBundler: true,
-      rspackPersistentCache: true,
-      // 🔥 关键性能优化：内联关键CSS
-      experimentalInlineCriticalCss: true,
+      // ✅ 启用所有官方推荐的Docusaurus Faster优化
+      swcJsLoader: true, // 用SWC替代Babel转译JS
+      swcJsMinimizer: true, // 用SWC替代Terser压缩JS
+      swcHtmlMinimizer: true, // 用SWC替代html-minifier压缩HTML
+      lightningCssMinimizer: true, // 用Lightning CSS替代cssnano压缩CSS
+      rspackBundler: true, // 用Rspack替代Webpack打包
+      rspackPersistentCache: true, // 启用Rspack持久化缓存，二次构建提速10倍
+      mdxCrossCompilerCache: true, // MDX文件只编译一次（浏览器+Node.js共享）
+      ssgWorkerThreads: true, // 多线程执行静态站点生成
+      gitEagerVcs: true, // 一次性读取整个Git仓库，加速文件信息获取
     },
     v4: {
       useCssCascadeLayers: false,
+      // ✅ 必须开启才能使用ssgWorkerThreads
+      removeLegacyPostBuildHeadAttribute: true,
     },
   },
 
