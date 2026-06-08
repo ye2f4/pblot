@@ -12,6 +12,23 @@
   background-size: cover;
   background-position: center;
 }
+.topRow {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+}
+.topCol {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.topCol:nth-child(2) {
+  flex: 2;
+  min-width: 400px;
+}
 .bannerLeft {}
 .bannerRight {
   color: #fff;
@@ -25,6 +42,21 @@
 .dateText {
   font-size: 34px;
   line-height: 1.3;
+}
+
+/* ====================== 全局滚动动画（通知栏必加） ====================== */
+:global(@keyframes scrollText) {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+:global(.scroll-text) {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scrollText 18s linear infinite;
+  will-change: transform;
+}
+:global(.scroll-text:hover) {
+  animation-play-state: paused;
 }
 
 /* ====================== 顶部五个圆形统计 ====================== */
@@ -82,10 +114,13 @@
 }
 
 /* ====================== 分区板块通用 ====================== */
-.blockWrap {
+.sectionCard {
+  background: #f9f9f9;
+  padding: 14px 16px;
+  border-radius: 5px;
   margin-bottom: 26px;
 }
-.blockTitle {
+.sectionTitle {
   border-left: 4px solid var(--ifm-color-primary);
   padding-left: 8px;
   margin: 0 0 12px;
@@ -122,6 +157,86 @@
   margin: 0;
   font-size: 12px;
   color: #555;
+}
+
+/* ====================== 快速导航 ====================== */
+.navGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+.navCard {
+  padding: 12px;
+  background: #fafafa;
+  border-left: 4px solid transparent;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #333;
+  transition: 0.2s;
+}
+.navCard:hover {
+  background: #f0f0f0;
+}
+.navIcon {
+  font-size: 22px;
+}
+.navName {
+  font-size: 14px;
+}
+
+/* ====================== 更新列表 ====================== */
+.updateList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.updateItem {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.updateDate {
+  color: #888;
+  min-width: 110px;
+}
+
+/* ====================== 标签云 ====================== */
+.tagCloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tagItem {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  text-decoration: none;
+}
+.tagCount {
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* ====================== 友情链接 & 关于 ====================== */
+.friendList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.friendLink {
+  font-size: 14px;
+  color: #0066cc;
+}
+.aboutText {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* ====================== 右侧边栏组件 ====================== */
@@ -180,6 +295,11 @@
   border-bottom: 1px solid #eee;
 }
 
+/* ====================== 按钮hover全局 ====================== */
+.btnHover:hover {
+  filter: brightness(0.95);
+}
+
 /* ====================== 底部赞助 ====================== */
 .sponsorWrap {
   max-width: 1240px;
@@ -211,5 +331,17 @@
     width: 56px;
     height: 56px;
     font-size: 24px;
+  }
+  .topBannerWrap {
+    height: auto;
+    padding: 16px;
+  }
+  .topRow {
+    flex-direction: column;
+    gap: 20px;
+    height: auto;
+  }
+  .topCol {
+    width: 100%;
   }
 }

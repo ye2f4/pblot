@@ -4,17 +4,15 @@ import styles from '../../pages/index.module.css';
 
 export default function MainContentTop({ siteData }) {
     return (
-        <div
-            className="main-content-top"
-            style={{
-                display: 'flex',
-                gap: 15,
-                alignItems: 'center',
-                width: '100%',
-            }}
-        >
+        <div style={{
+            display: 'flex',
+            gap: 15,
+            alignItems: 'center',
+            width: '100%',
+            flexWrap: 'wrap'
+        }}>
             {/* 标签按钮组 */}
-            <div className="tab-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
                 {siteData.tabs.map((tab, i) => (
                     <Link
                         key={i}
@@ -42,24 +40,21 @@ export default function MainContentTop({ siteData }) {
                 ))}
             </div>
 
-            {/* 滚动通知栏 */}
-            <div
-                className="notification-bar"
-                style={{
-                    height: 40,
-                    backgroundColor: '#E3F2FD',
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    overflow: 'hidden',
-                    flex: 1,
-                    padding: '0 12px',
-                }}
-            >
+            {/* 滚动通知栏 修复滚动 */}
+            <div style={{
+                height: 40,
+                backgroundColor: '#E3F2FD',
+                borderRadius: 8,
+                display: flex,
+                alignItems: 'center',
+                overflow: 'hidden',
+                flex: 1,
+                padding: '0 12px',
+                minWidth: 250
+            }}>
                 <span
+                    className="scroll-text"
                     style={{
-                        whiteSpace: 'nowrap',
-                        animation: 'scrollText 18s linear infinite',
                         color: '#004085',
                         fontSize: 14
                     }}
@@ -69,11 +64,10 @@ export default function MainContentTop({ siteData }) {
             </div>
 
             {/* 操作按钮组 */}
-            <div className="action-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
                 <Link
                     to="/pblot/signin"
                     className={styles.btnHover}
-                    aria-label="每日签到领取奖励"
                     style={{
                         padding: '8px 16px',
                         backgroundColor: '#34a853',
@@ -95,7 +89,6 @@ export default function MainContentTop({ siteData }) {
                 <Link
                     to="/pblot/draw"
                     className={styles.btnHover}
-                    aria-label="每日抽奖"
                     style={{
                         padding: '8px 16px',
                         backgroundColor: '#ff9800',
