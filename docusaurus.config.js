@@ -113,6 +113,13 @@ const config = {
         content: "public, max-age=31536000, immutable",
       },
     },
+    {
+      tagName: "meta",
+      attributes: {
+        name: "algolia-site-verification",
+        content: "5CB8AFBEBF426B824"
+      }
+    },
   ],
 
   // ============================================
