@@ -118,15 +118,15 @@
   ],
   "carouselImages": [
     {
-      "filename": "bar1.png",
+      "filename": "bar1.webp",
       "title": "AsteorBar 简洁状态栏"
     },
     {
-      "filename": "bar2.png",
+      "filename": "bar2.webp",
       "title": "Inventorio"
     },
     {
-      "filename": "bar3.png",
+      "filename": "bar3.webp",
       "title": "超级修改器Super Editor"
     }
   ],
@@ -286,16 +286,16 @@
   ],
   "ads": [
     {
-      "filename": "ad_right_1.png"
+      "filename": "ad_right_1.webp"
     },
     {
-      "filename": "ad_right_2.png"
+      "filename": "ad_right_2.webp"
     },
     {
-      "filename": "ad_right_3.png"
+      "filename": "ad_right_3.webp"
     },
     {
-      "filename": "ad_right_4.png"
+      "filename": "ad_right_4.webp"
     }
   ]
 }

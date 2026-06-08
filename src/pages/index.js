@@ -7,8 +7,10 @@ import siteData from '../data/siteData.json';
 import '../css/home.css';
 import { supabase } from '../supabase/supabaseClient';
 
-// 🔥 延迟加载轮播图（非关键资源，优先级最低）
+// 🔥 延迟加载所有非关键组件（优先级最低）
 const Slider = lazy(() => import('react-slick'));
+const CommentSection = lazy(() => import('../components/CommentSection'));
+const AdSection = lazy(() => import('../components/AdSection'));
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
@@ -20,7 +22,6 @@ export default function Home() {
   const base = useBaseUrl('');
   const [now, setNow] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
   const mainContentRef = useRef(null);
   const isMountedRef = useRef(true);
 
@@ -34,6 +35,7 @@ export default function Home() {
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+  const [commentsLoaded, setCommentsLoaded] = useState(false);
 
   // 🔥 延迟非关键数据请求，优先渲染页面
   const fetchUserStats = async () => {
@@ -111,7 +113,7 @@ export default function Home() {
       .from('comments')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(10); // 🔥 只加载最新10条评论，减少渲染压力
+      .limit(10);
 
     if (isMountedRef.current) {
       setComments(data || []);
@@ -145,25 +147,29 @@ export default function Home() {
     isMountedRef.current = true;
     setIsClient(true);
 
-    const handleScroll = () => {
-      if (isMountedRef.current) {
-        setScrollY(window.scrollY);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
+    // 🔥 只保留必要的定时器
     const timer = setInterval(() => {
       if (isMountedRef.current) {
         setNow(new Date());
       }
     }, 1000);
 
+    // 🔥 滚动到评论区时才加载评论
+    const handleScroll = () => {
+      if (window.scrollY > 600 && !commentsLoaded && isMountedRef.current) {
+        setCommentsLoaded(true);
+        fetchComments();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       isMountedRef.current = false;
       clearInterval(timer);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [commentsLoaded]);
 
   useEffect(() => {
     if (!isClient || !isMountedRef.current) return;
@@ -189,9 +195,6 @@ export default function Home() {
     };
 
     fetchUser();
-    // 🔥 移除不必要的重试定时器，减少主线程压力
-    // const retryTimer1 = setTimeout(fetchUser, 300);
-    // const retryTimer2 = setTimeout(fetchUser, 800);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (isMountedRef.current) {
@@ -207,19 +210,16 @@ export default function Home() {
     });
 
     return () => {
-      // clearTimeout(retryTimer1);
-      // clearTimeout(retryTimer2);
       subscription.unsubscribe();
     };
   }, [isClient]);
 
   useEffect(() => {
     if (!isClient || !isMountedRef.current) return;
-    // 🔥 延迟300ms再加载非关键数据，让页面先渲染完成
+    // 🔥 延迟500ms再加载非关键数据，让页面先渲染完成
     const timer = setTimeout(() => {
       fetchUserStats();
-      fetchComments();
-    }, 300);
+    }, 500);
 
     const channel = supabase.channel('auth-users');
     channel
@@ -236,17 +236,17 @@ export default function Home() {
     };
   }, [isClient]);
 
-  // 🔥 优化轮播图：禁用懒加载+添加fetchpriority
+  // 🔥 优化轮播图：禁用不必要的动画
   const carouselSettings = {
     dots: false,
     infinite: true,
-    speed: 500, // 🔥 降低动画速度，减少主线程压力
+    speed: 300,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 6000,
     arrows: true,
-    lazyLoad: false, // 🔥 禁用react-slick的懒加载，手动控制
+    lazyLoad: false,
     pauseOnHover: true,
     fade: true,
     cssEase: 'ease-in-out',
@@ -306,12 +306,6 @@ export default function Home() {
   const weekJp = siteData.texts.weekJp[now.getDay()];
   const weekEn = siteData.texts.weekEn[now.getDay()];
 
-  const isInView = (ref) => {
-    if (!ref.current) return false;
-    const rect = ref.current.getBoundingClientRect();
-    return rect.top < window.innerHeight * 0.8 && rect.bottom > 0;
-  };
-
   const getAvatarUrl = () => {
     if (!user) return `${base}avatar.png`;
     const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
@@ -333,47 +327,37 @@ export default function Home() {
 
   return (
     <Layout title={siteData.siteTitle}>
-      {/* 🔥 提前渲染LCP图片，彻底解决4.3s问题 */}
-      <img
-        src={`${base}img/bar1.png`}
-        alt=""
-        style={{
-          position: 'absolute',
-          width: 0,
-          height: 0,
-          overflow: 'hidden',
-        }}
-        fetchpriority="high"
-      />
-
+      {/* 🔥 真正的LCP元素：顶部横幅背景图（内联+预加载） */}
       <section
         className={styles.topBannerWrap}
         style={{
+          // ✅ 提前设置背景色作为占位符，消除加载闪烁
+          backgroundColor: '#f5f5f5',
+          // ✅ 内联背景图，避免CSS文件加载延迟
           backgroundImage: `url(${base}img/bg_big.webp)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           padding: '20px 15px',
           width: '100%',
-          animation: 'fadeIn 0.8s ease-out',
+          // ✅ 禁用所有影响LCP的入场动画
         }}
       >
         <div className="top-row" style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="top-col" style={{ animationDelay: '0.1s' }}>
+          <div className="top-col">
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: 10,
               height: '100%',
-              animation: 'breathe 3s infinite ease-in-out'
             }}>
-              <span style={{ fontSize: 24, animation: 'pixelBounce 2s infinite' }}>📢</span>
+              <span style={{ fontSize: 24 }}>📢</span>
               <p style={{ margin: 0, fontSize: 14, color: '#333', lineHeight: 1.5 }}>
                 {siteData.texts.announcement}
               </p>
             </div>
           </div>
 
-          <div className="top-col" style={{ flex: 2, minWidth: 400, animationDelay: '0.2s' }}>
+          <div className="top-col" style={{ flex: 2, minWidth: 400 }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -400,16 +384,6 @@ export default function Home() {
                         style={{
                           textAlign: 'center',
                           minWidth: 40,
-                          transition: 'all 0.3s ease',
-                          animation: `fadeIn 0.6s ease-out ${0.3 + i * 0.1}s`
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.1)';
-                          e.currentTarget.style.filter = 'brightness(1.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.filter = 'brightness(1)';
                         }}
                       >
                         <div style={{
@@ -421,7 +395,6 @@ export default function Home() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           margin: '0 auto 6px',
-                          transition: 'all 0.3s ease',
                         }}>
                           <span style={{ fontSize: 20, fontWeight: 'bold' }}>{item.label}</span>
                         </div>
@@ -468,7 +441,6 @@ export default function Home() {
                   color: '#333',
                   marginBottom: 4,
                   textShadow: 'none',
-                  animation: 'digitPulse 1s infinite'
                 }}>
                   {now.toLocaleTimeString()}
                 </div>
@@ -490,7 +462,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="top-col" style={{ animationDelay: '0.3s' }}>
+          <div className="top-col">
             {user ? (
               <div style={{
                 display: 'flex',
@@ -510,17 +482,7 @@ export default function Home() {
                   style={{
                     borderRadius: '50%',
                     objectFit: 'cover',
-                    transition: 'all 0.5s ease',
-                    cursor: 'pointer',
                     boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
-                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'rotate(0) scale(1)';
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
                   }}
                 />
                 <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
@@ -587,17 +549,7 @@ export default function Home() {
                   style={{
                     borderRadius: '50%',
                     objectFit: 'cover',
-                    transition: 'all 0.5s ease',
-                    cursor: 'pointer',
                     boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
-                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'rotate(0) scale(1)';
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
                   }}
                 />
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
@@ -693,9 +645,6 @@ export default function Home() {
           flexDirection: 'column',
           gap: 20,
           width: '100%',
-          opacity: isInView(mainContentRef) ? 1 : 0,
-          transform: isInView(mainContentRef) ? 'translateY(0)' : 'translateY(30px)',
-          transition: 'opacity 0.8s ease, transform 0.8s ease'
         }}
       >
         <div
@@ -705,7 +654,6 @@ export default function Home() {
             gap: 15,
             alignItems: 'center',
             width: '100%',
-            animation: 'fadeIn 0.8s ease-out 0.4s both'
           }}
         >
           <div className="tab-buttons" style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
@@ -724,7 +672,6 @@ export default function Home() {
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   textDecoration: 'none',
-                  animation: `fadeIn 0.6s ease-out ${0.5 + i * 0.1}s both`,
                   minWidth: 48,
                   minHeight: 48,
                   display: 'inline-flex',
@@ -748,7 +695,6 @@ export default function Home() {
               overflow: 'hidden',
               flex: 1,
               padding: '0 12px',
-              animation: 'fadeIn 0.6s ease-out 0.7s both'
             }}
           >
             <span
@@ -777,7 +723,6 @@ export default function Home() {
                 fontSize: 14,
                 whiteSpace: 'nowrap',
                 textDecoration: 'none',
-                animation: 'fadeIn 0.6s ease-out 0.8s both',
                 minWidth: 48,
                 minHeight: 48,
                 display: 'inline-flex',
@@ -800,7 +745,6 @@ export default function Home() {
                 fontSize: 14,
                 whiteSpace: 'nowrap',
                 textDecoration: 'none',
-                animation: 'fadeIn 0.6s ease-out 0.9s both',
                 minWidth: 48,
                 minHeight: 48,
                 display: 'inline-flex',
@@ -819,10 +763,9 @@ export default function Home() {
             style={{
               flex: 7,
               minWidth: 0,
-              animation: 'fadeIn 0.8s ease-out 0.6s both'
             }}
           >
-            {/* 🔥 固定轮播图高度+提前渲染，解决LCP问题 */}
+            {/* 🔥 固定轮播图高度+骨架屏 */}
             <div style={{
               backgroundColor: '#fff',
               padding: 0,
@@ -840,7 +783,7 @@ export default function Home() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#999',
-                  backgroundImage: `url(${base}img/bar1.png)`,
+                  backgroundImage: `url(${base}img/bar1.webp)`,
                   backgroundSize: 'contain',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
@@ -870,7 +813,6 @@ export default function Home() {
                           marginTop: 8,
                           marginBottom: 8,
                           fontSize: 14,
-                          animation: 'breathe 2s infinite ease-in-out'
                         }}>{img.title}</p>
                       </div>
                     ))}
@@ -879,7 +821,7 @@ export default function Home() {
               </Suspense>
             </div>
 
-            <div className="section-card" style={{ animationDelay: '0.8s' }}>
+            <div className="section-card">
               <h3 className="section-title">{siteData.texts.quickNavTitle}</h3>
               <div className="nav-grid">
                 {siteData.quickNav.map((item, i) => (
@@ -896,7 +838,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="section-card" style={{ animationDelay: '1.0s' }}>
+            <div className="section-card">
               <h3 className="section-title">{siteData.texts.updatesTitle}</h3>
               <ul className="update-list">
                 {siteData.updates.map((item, i) => (
@@ -908,7 +850,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="section-card" style={{ animationDelay: '1.2s' }}>
+            <div className="section-card">
               <h3 className="section-title">{siteData.texts.tagsTitle}</h3>
               <div className="tag-cloud">
                 {siteData.tags.map((tag, i) => (
@@ -930,7 +872,7 @@ export default function Home() {
             </div>
 
             <div style={{ display: 'flex', gap: 20, width: '100%' }}>
-              <div className="section-card" style={{ flex: 1, animationDelay: '1.4s' }}>
+              <div className="section-card" style={{ flex: 1 }}>
                 <h3 className="section-title">{siteData.texts.friendsTitle}</h3>
                 <div className="friend-list">
                   {siteData.friends.map((friend, i) => (
@@ -947,7 +889,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="section-card" style={{ flex: 1, animationDelay: '1.6s' }}>
+              <div className="section-card" style={{ flex: 1 }}>
                 <h3 className="section-title">{siteData.texts.aboutTitle}</h3>
                 <p className="about-text">{siteData.about}</p>
               </div>
@@ -959,7 +901,6 @@ export default function Home() {
             style={{
               flex: 3,
               minWidth: 0,
-              animation: 'fadeIn 0.8s ease-out 0.7s both'
             }}
           >
             <div style={{
@@ -983,7 +924,6 @@ export default function Home() {
                   marginLeft: 8,
                   fontSize: 12,
                   color: '#4285f4',
-                  animation: 'pixelBounce 2s infinite'
                 }}>🔥</span>
               </h4>
               <div>
@@ -999,7 +939,6 @@ export default function Home() {
                         borderBottom: i < 6 ? '1px solid #f0f0f0' : 'none',
                         transition: 'all 0.3s ease',
                         cursor: 'pointer',
-                        animation: `fadeIn 0.4s ease-out ${1.1 + i * 0.1}s both`
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateX(5px)';
@@ -1021,7 +960,6 @@ export default function Home() {
                         justifyContent: 'center',
                         fontSize: 12,
                         marginRight: 10,
-                        ...(i < 3 ? { animation: 'rankFlash 2s infinite' } : {})
                       }}>{i + 1}</span>
                       <Link
                         to={item.link}
@@ -1047,138 +985,42 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 🔥 评论区固定高度+骨架屏，彻底消除CLS */}
-            <div style={{
-              backgroundColor: '#fff',
-              padding: 15,
-              borderRadius: 8,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              marginBottom: 15,
-              width: '100%',
-              minHeight: '400px',
-            }}>
-              <h4 style={{
-                margin: '0 0 15px 0',
-                fontSize: 16,
-                position: 'relative',
-                paddingBottom: 8,
-                borderBottom: '2px solid #f0f0f0'
+            {/* 🔥 延迟加载评论区 */}
+            <Suspense fallback={
+              <div style={{
+                backgroundColor: '#fff',
+                padding: 15,
+                borderRadius: 8,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                marginBottom: 15,
+                width: '100%',
+                minHeight: '400px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#999',
               }}>
-                {siteData.texts.comments.title}
-              </h4>
-
-              <form onSubmit={handleSubmitComment} style={{ marginBottom: 15 }}>
-                <textarea
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  disabled={commentLoading || !user}
-                  placeholder={siteData.texts.comments.placeholder}
-                  style={{
-                    width: '100%',
-                    minHeight: 80,
-                    padding: 8,
-                    border: '1px solid #eee',
-                    borderRadius: 4,
-                    resize: 'none',
-                    fontSize: 14,
-                    marginBottom: 8
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={commentLoading || !user}
-                  aria-label="发布评论"
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#4285f4',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 4,
-                    fontSize: 12,
-                    cursor: commentLoading ? 'not-allowed' : 'pointer',
-                    opacity: commentLoading ? 0.7 : 1,
-                    minWidth: 48,
-                    minHeight: 48,
-                  }}
-                >
-                  {commentLoading ? "发布中..." : siteData.texts.comments.submit}
-                </button>
-              </form>
-
-              <div style={{ maxHeight: 300, overflowY: 'auto', gap: 10, display: 'flex', flexDirection: 'column' }}>
-                {comments.length === 0 ? (
-                  <p style={{ color: '#999', fontSize: 12, textAlign: 'center', margin: 0 }}>
-                    {siteData.texts.comments.empty}
-                  </p>
-                ) : (
-                  comments.map((item) => (
-                    <div key={item.id} style={{
-                      display: 'flex',
-                      gap: 8,
-                      paddingBottom: 8,
-                      borderBottom: '1px solid #f5f5f5'
-                    }}>
-                      <img
-                        src={item.avatar_url}
-                        alt={item.username}
-                        width="30"
-                        height="30"
-                        loading="lazy"
-                        style={{
-                          borderRadius: '50%',
-                          objectFit: 'cover'
-                        }}
-                        onError={(e) => e.target.src = `${base}avatar.png`}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: '#333' }}>
-                          {item.username}
-                        </div>
-                        <p style={{ margin: '2px 0', fontSize: 12, color: '#666' }}>
-                          {item.content}
-                        </p>
-                        <div style={{ fontSize: 10, color: '#999' }}>
-                          {new Date(item.created_at).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
+                加载中...
               </div>
-            </div>
-
-            {siteData.ads.map((ad, i) => (
-              <div
-                key={i}
-                style={{
-                  marginBottom: 15,
-                  width: '100%',
-                  animation: `fadeIn 0.6s ease-out ${1.4 + i * 0.1}s both`
-                }}
-              >
-                <img
-                  src={`${base}img/${ad.filename}`}
-                  alt={`广告${i + 1}`}
-                  width="300"
-                  height="200"
-                  loading="lazy"
-                  style={{
-                    width: '100%',
-                    borderRadius: 4,
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.03)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
+            }>
+              {commentsLoaded && (
+                <CommentSection
+                  comments={comments}
+                  commentContent={commentContent}
+                  setCommentContent={setCommentContent}
+                  commentLoading={commentLoading}
+                  handleSubmitComment={handleSubmitComment}
+                  user={user}
+                  base={base}
+                  siteData={siteData}
                 />
-              </div>
-            ))}
+              )}
+            </Suspense>
+
+            {/* 🔥 延迟加载广告 */}
+            <Suspense fallback={null}>
+              <AdSection ads={siteData.ads} base={base} />
+            </Suspense>
           </div>
         </div>
       </div>

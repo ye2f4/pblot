@@ -22,8 +22,6 @@ const config = {
       rspackBundler: true,
       rspackPersistentCache: true,
       mdxCrossCompilerCache: true,
-      // 🔥 暂时禁用多线程，避免主线程阻塞
-      // ssgWorkerThreads: true,
       gitEagerVcs: true,
     },
     v4: {
@@ -34,6 +32,51 @@ const config = {
 
   // 全局SEO元数据
   headTags: [
+    // ✅ 预加载真正的LCP背景图
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preload',
+        href: '/pblot/img/bg_big.webp',
+        as: 'image',
+        type: 'image/webp',
+        fetchpriority: 'high',
+      },
+    },
+    // ✅ 预连接Supabase
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://xwhwcmorcmgpfpocmgez.supabase.co',
+        crossorigin: 'anonymous',
+      },
+    },
+    // ✅ 异步加载Google Fonts
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossorigin: 'anonymous',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap',
+        media: 'print',
+        onload: "this.media='all'",
+      },
+    },
     {
       tagName: "meta",
       attributes: {
@@ -50,17 +93,6 @@ const config = {
     },
     { tagName: "meta", attributes: { name: "author", content: "Mono" } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
-    // 🔥 预加载LCP图片（性能提升350ms）
-    {
-      tagName: 'link',
-      attributes: {
-        rel: 'preload',
-        href: '/pblot/img/bar1.png',
-        as: 'image',
-        type: 'image/png',
-        fetchpriority: 'high',
-      },
-    },
     // 静态资源缓存策略
     {
       tagName: "meta",
@@ -131,7 +163,6 @@ const config = {
       configureWebpack() {
         return {
           resolve: { alias: { "@": path.resolve(__dirname, "src") } },
-          // 🔥 启用source maps，解决"Missing source maps"
           devtool: 'source-map',
         };
       },
@@ -156,16 +187,13 @@ const config = {
           blogDescription: "个人随笔、技术分享与生活记录",
           postsPerPage: 10,
           blogSidebarCount: 5,
-          // 忽略博客截断警告
           onUntruncatedBlogPosts: "ignore",
-          // 开启RSS订阅
           feedOptions: {
             type: "all",
             copyright: `Copyright © ${new Date().getFullYear()} Monoの小窝`,
           },
         },
         theme: { customCss: require.resolve("./src/css/custom.css") },
-        // 自动生成站点地图
         sitemap: {
           changefreq: "weekly",
           priority: 0.5,
