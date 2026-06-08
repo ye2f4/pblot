@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from '@docusaurus/Link';
 import styles from '../../pages/index.module.css';
 
-// 工具函数（保留不变）
+// 工具函数（头像改回PNG）
 const getAvatarUrl = (user = null, base = '') => {
-    if (!user) return `${base}avatar.webp`;
+    if (!user) return `${base}avatar.png`;
     const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
-    return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.webp`;
+    return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.png`;
 };
 
 const getUserName = (user = null) => {
@@ -20,16 +20,19 @@ const getUserName = (user = null) => {
     );
 };
 
-// 统计项专属渐变配色（视觉分层）
+// 统计项配色（保留你的原有颜色）
 const statColors = [
-    { bg: 'linear-gradient(135deg, #4285f4 0%, #1976d2 100%)', shadow: 'rgba(66, 133, 244, 0.3)' }, // 今日-蓝
-    { bg: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', shadow: 'rgba(156, 39, 176, 0.3)' }, // 昨日-紫
-    { bg: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)', shadow: 'rgba(76, 175, 80, 0.3)' }, // 总访问-绿
-    { bg: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', shadow: 'rgba(255, 152, 0, 0.3)' }, // 会员-橙
-    { bg: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', shadow: 'rgba(244, 67, 54, 0.3)' }, // 最新-红
+    { bg: 'linear-gradient(135deg, #4285f4 0%, #1976d2 100%)', shadow: 'rgba(66, 133, 244, 0.3)' }, // 今-蓝
+    { bg: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', shadow: 'rgba(156, 39, 176, 0.3)' }, // 昨-紫
+    { bg: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)', shadow: 'rgba(76, 175, 80, 0.3)' }, // 总-绿
+    { bg: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', shadow: 'rgba(255, 152, 0, 0.3)' }, // 会-橙
+    { bg: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', shadow: 'rgba(244, 67, 54, 0.3)' }, // 新-红
 ];
 
-// 核心参数默认值（构建兼容）
+// 日历工具函数
+const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
 export default function TopBanner({
     siteData = {},
     base = '',
@@ -45,16 +48,62 @@ export default function TopBanner({
     const weekJp = siteData?.texts?.weekJp?.[now.getDay()] || '火';
     const weekEn = siteData?.texts?.weekEn?.[now.getDay()] || 'Tuesday';
 
+    // 日历状态
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [calendarDate, setCalendarDate] = useState(new Date());
+    const calendarYear = calendarDate.getFullYear();
+    const calendarMonth = calendarDate.getMonth();
+
+    // 生成日历格子
+    const renderCalendar = () => {
+        const daysInMonth = getDaysInMonth(calendarYear, calendarMonth);
+        const firstDay = getFirstDayOfMonth(calendarYear, calendarMonth);
+        const days = [];
+
+        // 填充上月空白
+        for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} style={{ opacity: 0.3 }}></div>);
+        }
+
+        // 填充当月日期
+        for (let day = 1; day <= daysInMonth; day++) {
+            const isToday = day === now.getDate() && calendarMonth === now.getMonth() && calendarYear === now.getFullYear();
+            days.push(
+                <div
+                    key={day}
+                    style={{
+                        width: 28,
+                        height: 28,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        backgroundColor: isToday ? '#4285f4' : 'transparent',
+                        color: isToday ? '#fff' : '#333',
+                        fontWeight: isToday ? 600 : 400
+                    }}
+                >
+                    {day}
+                </div>
+            );
+        }
+
+        return days;
+    };
+
     return (
         <section
             className={styles.topBannerWrap}
             style={{
                 backgroundImage: `url(${base}img/bg_big.webp)`,
-                height: '240px', // 整体高度微调，适配新布局
+                height: '240px',
+                position: 'relative'
             }}
+            onClick={() => showCalendar && setShowCalendar(false)}
         >
             <div className={styles.topRow}>
-                {/* ========== 左侧：全新公告卡片（升级为双行+渐变背景） ========== */}
+                {/* ========== 左侧公告（保持不变） ========== */}
                 <div className={styles.topCol} style={{ flex: 1.2, animationDelay: '0.1s' }}>
                     <div style={{
                         height: '100%',
@@ -75,32 +124,18 @@ export default function TopBanner({
                             gap: 12,
                             marginBottom: 8
                         }}>
-                            <span style={{
-                                fontSize: 32,
-                                animation: 'pixelBounce 2s infinite'
-                            }}>📢</span>
-                            <h3 style={{
-                                margin: 0,
-                                fontSize: 16,
-                                fontWeight: 700,
-                                color: '#1a1a1a'
-                            }}>
+                            <span style={{ fontSize: 32, animation: 'pixelBounce 2s infinite' }}>📢</span>
+                            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1a1a1a' }}>
                                 {siteData?.texts?.welcomeTitle || '欢迎来到Monoの小窝'}
                             </h3>
                         </div>
-                        <p style={{
-                            margin: 0,
-                            fontSize: 13,
-                            color: '#666',
-                            lineHeight: 1.6,
-                            paddingLeft: 44
-                        }}>
+                        <p style={{ margin: 0, fontSize: 13, color: '#666', lineHeight: 1.6, paddingLeft: 44 }}>
                             {siteData?.texts?.announcement || '本站持续更新技术教程和资源分享，记得常来看看哦~'}
                         </p>
                     </div>
                 </div>
 
-                {/* ========== 中间：统计+时钟黄金比例布局（3:2分割） ========== */}
+                {/* ========== 中间：奥运五环式统计 + 可点击日历时钟 ========== */}
                 <div className={styles.topCol} style={{ flex: 2.6, minWidth: 500, animationDelay: '0.2s' }}>
                     <div style={{
                         display: 'flex',
@@ -109,14 +144,16 @@ export default function TopBanner({
                         height: '100%',
                         gap: 24
                     }}>
-                        {/* 统计数据区（放大+渐变阴影+悬浮特效） */}
+                        {/* ✅ 奥运五环式统计排列（上3下2，居中交错） */}
                         <div style={{
                             display: 'flex',
-                            gap: 20,
+                            gap: '16px 24px',
                             flexWrap: 'wrap',
                             minHeight: '80px',
                             alignItems: 'center',
-                            flex: 3
+                            justifyContent: 'center',
+                            flex: 3,
+                            maxWidth: 300
                         }}>
                             {isSessionChecked ? (
                                 (siteData?.stats || []).map((item, i) => {
@@ -151,32 +188,17 @@ export default function TopBanner({
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                margin: '0 auto 8px',
+                                                margin: '0 auto 6px',
                                                 boxShadow: `0 4px 12px ${color.shadow}`
                                             }}>
-                                                <span style={{
-                                                    fontSize: 22,
-                                                    fontWeight: 'bold',
-                                                    color: '#fff',
-                                                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                                                }}>{item.label}</span>
+                                                <span style={{ fontSize: 22, fontWeight: 'bold', color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+                                                    {item.label}
+                                                </span>
                                             </div>
-                                            <p style={{
-                                                fontSize: 12,
-                                                margin: 0,
-                                                textAlign: 'center',
-                                                fontWeight: 600,
-                                                color: '#333'
-                                            }}>
+                                            <p style={{ fontSize: 12, margin: 0, textAlign: 'center', fontWeight: 600, color: '#333' }}>
                                                 {item.label === "会" ? '会员' : item.label === "新" ? '最新' : item.label}
                                             </p>
-                                            <p style={{
-                                                fontSize: 14,
-                                                margin: '2px 0 0 0',
-                                                textAlign: 'center',
-                                                fontWeight: 700,
-                                                color: color.bg.includes('f44336') ? '#f44336' : '#4285f4'
-                                            }}>
+                                            <p style={{ fontSize: 14, margin: '2px 0 0 0', textAlign: 'center', fontWeight: 700, color: color.bg.includes('f44336') ? '#f44336' : '#4285f4' }}>
                                                 {showValue}
                                             </p>
                                         </div>
@@ -185,90 +207,159 @@ export default function TopBanner({
                             ) : (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <div key={i} style={{ textAlign: 'center', minWidth: 56, opacity: 0.5 }}>
-                                        <div style={{
-                                            width: 56,
-                                            height: 56,
-                                            borderRadius: '50%',
-                                            backgroundColor: 'rgba(0,0,0,0.05)',
-                                            margin: '0 auto 8px',
-                                        }} />
-                                        <div style={{
-                                            width: 40,
-                                            height: 12,
-                                            backgroundColor: 'rgba(0,0,0,0.05)',
-                                            borderRadius: 4,
-                                            margin: '0 auto 4px'
-                                        }} />
-                                        <div style={{
-                                            width: 32,
-                                            height: 14,
-                                            backgroundColor: 'rgba(0,0,0,0.05)',
-                                            borderRadius: 4,
-                                            margin: '0 auto'
-                                        }} />
+                                        <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.05)', margin: '0 auto 6px' }} />
+                                        <div style={{ width: 40, height: 12, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 4, margin: '0 auto 4px' }} />
+                                        <div style={{ width: 32, height: 14, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 4, margin: '0 auto' }} />
                                     </div>
                                 ))
                             )}
                         </div>
 
-                        {/* 时钟区（毛玻璃卡片+日历图标+排版优化） */}
+                        {/* ✅ 缩小字体 + 可点击日历按钮 + 弹窗 */}
                         <div style={{
-                            padding: '16px 24px',
+                            padding: '16px 20px',
                             background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%)',
                             backdropFilter: 'blur(10px)',
                             borderRadius: '16px',
                             textAlign: 'center',
-                            minWidth: 200,
+                            minWidth: 180,
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                            flex: 2
+                            flex: 2,
+                            position: 'relative'
                         }}>
                             <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: 10,
+                                gap: 8,
                                 marginBottom: 8
                             }}>
-                                <span style={{ fontSize: 24 }}>⏰</span>
+                                <span style={{ fontSize: 20 }}>⏰</span>
+                                {/* 缩小字体防止溢出 */}
                                 <div className={`pixel-font ${styles.clockText}`} style={{
-                                    fontSize: 28,
+                                    fontSize: 22,
                                     color: '#1a1a1a',
-                                    letterSpacing: 6,
+                                    letterSpacing: 4,
                                     textShadow: '0 1px 2px rgba(0,0,0,0.1)',
                                     animation: 'digitPulse 1s infinite'
                                 }}>
                                     {now.toLocaleTimeString()}
                                 </div>
                             </div>
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 8,
-                                marginBottom: 4
-                            }}>
-                                <span style={{ fontSize: 16 }}>📅</span>
-                                <span style={{
-                                    fontSize: 14,
-                                    color: '#666',
+
+                            {/* ✅ 日期行做成可点击按钮 */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowCalendar(!showCalendar);
+                                }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 6,
+                                    marginBottom: 6,
+                                    padding: '4px 12px',
+                                    backgroundColor: 'rgba(66, 133, 244, 0.1)',
+                                    border: 'none',
+                                    borderRadius: 20,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    fontSize: 13,
+                                    color: '#4285f4',
                                     fontWeight: 500
-                                }}>
-                                    {weekJp}曜日 · {weekEn}
-                                </span>
-                            </div>
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(66, 133, 244, 0.2)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(66, 133, 244, 0.1)'}
+                            >
+                                <span style={{ fontSize: 14 }}>📅</span>
+                                <span>{weekJp}曜日 · {weekEn}</span>
+                            </button>
+
                             <div className={`pixel-font ${styles.dateText}`} style={{
-                                fontSize: 18,
+                                fontSize: 16,
                                 color: '#333',
                                 fontWeight: 600,
                                 letterSpacing: 2
                             }}>
                                 {now.getFullYear()}-{(now.getMonth() + 1 + '').padStart(2, '0')}-{(now.getDate() + '').padStart(2, '0')}
                             </div>
+
+                            {/* ✅ 日历弹窗 */}
+                            {showCalendar && (
+                                <div
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '110%',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        backgroundColor: '#fff',
+                                        borderRadius: 12,
+                                        padding: 16,
+                                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                                        zIndex: 1000,
+                                        minWidth: 240
+                                    }}
+                                >
+                                    {/* 日历头部 */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: 12
+                                    }}>
+                                        <button
+                                            onClick={() => setCalendarDate(new Date(calendarYear, calendarMonth - 1, 1))}
+                                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}
+                                        >
+                                            ◀
+                                        </button>
+                                        <span style={{ fontWeight: 600, fontSize: 14 }}>
+                                            {calendarYear}年{calendarMonth + 1}月
+                                        </span>
+                                        <button
+                                            onClick={() => setCalendarDate(new Date(calendarYear, calendarMonth + 1, 1))}
+                                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16 }}
+                                        >
+                                            ▶
+                                        </button>
+                                    </div>
+
+                                    {/* 星期表头 */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(7, 1fr)',
+                                        gap: 2,
+                                        marginBottom: 8
+                                    }}>
+                                        {['日', '一', '二', '三', '四', '五', '六'].map((day, i) => (
+                                            <div key={i} style={{
+                                                textAlign: 'center',
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                                color: '#666'
+                                            }}>
+                                                {day}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* 日期格子 */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(7, 1fr)',
+                                        gap: 2
+                                    }}>
+                                        {renderCalendar()}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* ========== 右侧用户栏（比例微调，保持不变） ========== */}
+                {/* ========== 右侧用户栏（头像改回PNG） ========== */}
                 <div className={styles.topCol} style={{ flex: 1.2, animationDelay: '0.3s' }}>
                     {user ? (
                         <div style={{
@@ -285,9 +376,10 @@ export default function TopBanner({
                                 width="56"
                                 height="56"
                                 loading="lazy"
+                                {/* 头像改回PNG */}
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
-                                    e.currentTarget.src = `${base}avatar.webp`;
+                                    e.currentTarget.src = `${base}avatar.png`;
                                 }}
                                 style={{
                                     borderRadius: '50%',
@@ -359,14 +451,15 @@ export default function TopBanner({
                             justifyContent: 'center'
                         }}>
                             <img
-                                src={`${base}avatar.webp`}
+                                src={`${base}avatar.png`}
                                 alt="默认头像"
                                 width="56"
                                 height="56"
                                 loading="lazy"
+                                {/* 头像改回PNG */}
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
-                                    e.currentTarget.src = `${base}avatar.webp`;
+                                    e.currentTarget.src = `${base}avatar.png`;
                                 }}
                                 style={{
                                     borderRadius: '50%',
