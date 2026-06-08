@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Link from '@docusaurus/Link';
-import styles from '../../pages/index.module.css';
+import styles from './index.module.css';
 
 // 工具函数（头像改回PNG）
 const getAvatarUrl = (user = null, base = '') => {
