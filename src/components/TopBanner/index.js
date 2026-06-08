@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import Link from '@docusaurus/Link';
-import styles from './index.module.css';
+import styles from '../../pages/index.module.css';
 
-// 工具函数（头像改回PNG）
 const getAvatarUrl = (user = null, base = '') => {
     if (!user) return `${base}avatar.png`;
     const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
@@ -20,16 +19,14 @@ const getUserName = (user = null) => {
     );
 };
 
-// 统计项配色（保留你的原有颜色）
 const statColors = [
-    { bg: 'linear-gradient(135deg, #4285f4 0%, #1976d2 100%)', shadow: 'rgba(66, 133, 244, 0.3)' }, // 今-蓝
-    { bg: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', shadow: 'rgba(156, 39, 176, 0.3)' }, // 昨-紫
-    { bg: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)', shadow: 'rgba(76, 175, 80, 0.3)' }, // 总-绿
-    { bg: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', shadow: 'rgba(255, 152, 0, 0.3)' }, // 会-橙
-    { bg: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', shadow: 'rgba(244, 67, 54, 0.3)' }, // 新-红
+    { bg: 'linear-gradient(135deg, #4285f4 0%, #1976d2 100%)', shadow: 'rgba(66, 133, 244, 0.3)' },
+    { bg: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', shadow: 'rgba(156, 39, 176, 0.3)' },
+    { bg: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)', shadow: 'rgba(76, 175, 80, 0.3)' },
+    { bg: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', shadow: 'rgba(255, 152, 0, 0.3)' },
+    { bg: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', shadow: 'rgba(244, 67, 54, 0.3)' },
 ];
 
-// 日历工具函数
 const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
 const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
@@ -48,24 +45,20 @@ export default function TopBanner({
     const weekJp = siteData?.texts?.weekJp?.[now.getDay()] || '火';
     const weekEn = siteData?.texts?.weekEn?.[now.getDay()] || 'Tuesday';
 
-    // 日历状态
     const [showCalendar, setShowCalendar] = useState(false);
     const [calendarDate, setCalendarDate] = useState(new Date());
     const calendarYear = calendarDate.getFullYear();
     const calendarMonth = calendarDate.getMonth();
 
-    // 生成日历格子
     const renderCalendar = () => {
         const daysInMonth = getDaysInMonth(calendarYear, calendarMonth);
         const firstDay = getFirstDayOfMonth(calendarYear, calendarMonth);
         const days = [];
 
-        // 填充上月空白
         for (let i = 0; i < firstDay; i++) {
             days.push(<div key={`empty-${i}`} style={{ opacity: 0.3 }}></div>);
         }
 
-        // 填充当月日期
         for (let day = 1; day <= daysInMonth; day++) {
             const isToday = day === now.getDate() && calendarMonth === now.getMonth() && calendarYear === now.getFullYear();
             days.push(
@@ -103,7 +96,6 @@ export default function TopBanner({
             onClick={() => showCalendar && setShowCalendar(false)}
         >
             <div className={styles.topRow}>
-                {/* ========== 左侧公告（保持不变） ========== */}
                 <div className={styles.topCol} style={{ flex: 1.2, animationDelay: '0.1s' }}>
                     <div style={{
                         height: '100%',
@@ -135,7 +127,6 @@ export default function TopBanner({
                     </div>
                 </div>
 
-                {/* ========== 中间：奥运五环式统计 + 可点击日历时钟 ========== */}
                 <div className={styles.topCol} style={{ flex: 2.6, minWidth: 500, animationDelay: '0.2s' }}>
                     <div style={{
                         display: 'flex',
@@ -144,7 +135,6 @@ export default function TopBanner({
                         height: '100%',
                         gap: 24
                     }}>
-                        {/* ✅ 奥运五环式统计排列（上3下2，居中交错） */}
                         <div style={{
                             display: 'flex',
                             gap: '16px 24px',
@@ -215,7 +205,6 @@ export default function TopBanner({
                             )}
                         </div>
 
-                        {/* ✅ 缩小字体 + 可点击日历按钮 + 弹窗 */}
                         <div style={{
                             padding: '16px 20px',
                             background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%)',
@@ -235,7 +224,6 @@ export default function TopBanner({
                                 marginBottom: 8
                             }}>
                                 <span style={{ fontSize: 20 }}>⏰</span>
-                                {/* 缩小字体防止溢出 */}
                                 <div className={`pixel-font ${styles.clockText}`} style={{
                                     fontSize: 22,
                                     color: '#1a1a1a',
@@ -247,7 +235,6 @@ export default function TopBanner({
                                 </div>
                             </div>
 
-                            {/* ✅ 日期行做成可点击按钮 */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -285,7 +272,6 @@ export default function TopBanner({
                                 {now.getFullYear()}-{(now.getMonth() + 1 + '').padStart(2, '0')}-{(now.getDate() + '').padStart(2, '0')}
                             </div>
 
-                            {/* ✅ 日历弹窗 */}
                             {showCalendar && (
                                 <div
                                     onClick={(e) => e.stopPropagation()}
@@ -302,7 +288,6 @@ export default function TopBanner({
                                         minWidth: 240
                                     }}
                                 >
-                                    {/* 日历头部 */}
                                     <div style={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
@@ -326,7 +311,6 @@ export default function TopBanner({
                                         </button>
                                     </div>
 
-                                    {/* 星期表头 */}
                                     <div style={{
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(7, 1fr)',
@@ -345,7 +329,6 @@ export default function TopBanner({
                                         ))}
                                     </div>
 
-                                    {/* 日期格子 */}
                                     <div style={{
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(7, 1fr)',
@@ -359,7 +342,6 @@ export default function TopBanner({
                     </div>
                 </div>
 
-                {/* ========== 右侧用户栏（头像改回PNG） ========== */}
                 <div className={styles.topCol} style={{ flex: 1.2, animationDelay: '0.3s' }}>
                     {user ? (
                         <div style={{
@@ -376,7 +358,6 @@ export default function TopBanner({
                                 width="56"
                                 height="56"
                                 loading="lazy"
-                                {/* 头像改回PNG */}
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
                                     e.currentTarget.src = `${base}avatar.png`;
@@ -456,7 +437,6 @@ export default function TopBanner({
                                 width="56"
                                 height="56"
                                 loading="lazy"
-                                {/* 头像改回PNG */}
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
                                     e.currentTarget.src = `${base}avatar.png`;
