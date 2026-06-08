@@ -85,12 +85,12 @@
     },
     {
       "label": "会",
-      "value": "会员:1250",
+      "value": "你掉线了，确认1",
       "color": "#999"
     },
     {
       "label": "新",
-      "value": "最新:小明",
+      "value": "你掉线了，确认2",
       "color": "#999"
     }
   ],
@@ -150,10 +150,10 @@
       "link": "/pblot/blog/backend"
     },
     {
-      "name": "工具资源",
+      "name": "开发工具",
       "icon": "🛠️",
       "color": "#ffe66d",
-      "link": "/pblot/blog/tools"
+      "link": "/pblot/tools"
     },
     {
       "name": "游戏模组",
@@ -165,7 +165,7 @@
       "name": "开源项目",
       "icon": "📦",
       "color": "#f472b6",
-      "link": "/pblot/blog/opensource"
+      "link": "/pblot/projects"
     }
   ],
   "updates": [

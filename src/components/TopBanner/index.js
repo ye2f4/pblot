@@ -1,11 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from '@docusaurus/Link';
 import styles from '../../pages/index.module.css';
+// 🔥 修复：正确的 Supabase 导入路径
+import { supabase } from '../../supabase/supabaseClient';
 
-const getAvatarUrl = (user = null, base = '') => {
-    if (!user) return `${base}avatar.png`;
-    const avatar = user.user_metadata?.avatar_url || user.raw_user_meta_data?.avatar_url;
-    return avatar && avatar.startsWith('http') ? avatar : `${base}avatar.png`;
+const statColors = [
+    { bg: 'linear-gradient(135deg, #4285f4 0%, #1976d2 100%)', shadow: 'rgba(66, 133, 244, 0.3)' },
+    { bg: 'linear-gradient(135deg, #433b3b 0%, #433b3b 100%)', shadow: 'rgba(156, 39, 176, 0.3)' },
+    { bg: 'linear-gradient(135deg, #58ac5b 0%, #58ac5b 100%)', shadow: 'rgba(76, 175, 80, 0.3)' },
+    { bg: 'linear-gradient(135deg, #fbd900 0%, #fbd900 100%)', shadow: 'rgba(255, 152, 0, 0.3)' },
+    { bg: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', shadow: 'rgba(244, 67, 54, 0.3)' },
+];
+
+const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
+const SCROLL_MODE = false;
+
+const CARD_CONFIGS = {
+    left: {
+        flex: 1.2,
+        width: 'auto',
+        height: '100px',
+        minWidth: '200px',
+        minHeight: 'unset',
+        borderRadius: '18px'
+    },
+    middle: {
+        flex: 2.6,
+        width: 'auto',
+        height: '100px',
+        minWidth: '200px',
+        minHeight: 'unset',
+        borderRadius: '18px'
+    },
+    right: {
+        flex: 1.2,
+        width: 'auto',
+        height: '100px',
+        minWidth: '200px',
+        minHeight: 'unset',
+        borderRadius: '18px'
+    }
 };
 
 const getUserName = (user = null) => {
@@ -19,21 +55,10 @@ const getUserName = (user = null) => {
     );
 };
 
-const statColors = [
-    { bg: 'linear-gradient(135deg, #4285f4 0%, #1976d2 100%)', shadow: 'rgba(66, 133, 244, 0.3)' },
-    { bg: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', shadow: 'rgba(156, 39, 176, 0.3)' },
-    { bg: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)', shadow: 'rgba(76, 175, 80, 0.3)' },
-    { bg: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)', shadow: 'rgba(255, 152, 0, 0.3)' },
-    { bg: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)', shadow: 'rgba(244, 67, 54, 0.3)' },
-];
-
-const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
-
 export default function TopBanner({
     siteData = {},
     base = '',
-    user = null,
+    user: propUser = null, // 重命名接收父组件user
     loading = false,
     isSessionChecked = false,
     userCount = 0,
@@ -49,6 +74,74 @@ export default function TopBanner({
     const [calendarDate, setCalendarDate] = useState(new Date());
     const calendarYear = calendarDate.getFullYear();
     const calendarMonth = calendarDate.getMonth();
+
+    const noticeRef = useRef(null);
+    const [isScrolling, setIsScrolling] = useState(false);
+    const announcement = siteData?.texts?.announcement || '本站持续更新技术教程和资源分享，记得常来看看哦~ 这是一条很长的公告，用于测试滚动效果';
+
+    // 存储用户Emoji头像
+    const [avatarEmoji, setAvatarEmoji] = useState('');
+    // 🔥 仅新增：本地维护用户状态，同步GitHub登录
+    const [user, setUser] = useState(propUser);
+
+    // 🔥 仅新增：GitHub登录回调后自动同步登录状态（核心修复）
+    useEffect(() => {
+        // 监听 Supabase 认证状态变化
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+            setUser(session?.user || null);
+        });
+        return () => subscription.unsubscribe();
+    }, []);
+
+    // 核心：从Supabase读取用户Emoji头像
+    useEffect(() => {
+        const fetchUserAvatar = async () => {
+            if (!user) {
+                setAvatarEmoji('');
+                return;
+            }
+
+            try {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('avatar_url')
+                    .eq('id', user.id)
+                    .single();
+
+                if (data?.avatar_url) {
+                    setAvatarEmoji(data.avatar_url);
+                } else {
+                    setAvatarEmoji('');
+                }
+            } catch (err) {
+                setAvatarEmoji('');
+                console.log('获取头像失败:', err);
+            }
+        };
+
+        fetchUserAvatar();
+    }, [user]);
+
+    // 自动滚动逻辑
+    useEffect(() => {
+        if (!SCROLL_MODE || !noticeRef.current) return;
+
+        const noticeElement = noticeRef.current;
+        const containerWidth = noticeElement.offsetWidth;
+        const contentWidth = noticeElement.scrollWidth;
+
+        if (contentWidth > containerWidth) {
+            setIsScrolling(true);
+            const duration = contentWidth * 0.03;
+
+            noticeElement.style.animation = 'none';
+            void noticeElement.offsetWidth;
+
+            noticeElement.style.animation = `marquee ${duration}s linear infinite`;
+        } else {
+            setIsScrolling(false);
+        }
+    }, [SCROLL_MODE, announcement]);
 
     const renderCalendar = () => {
         const daysInMonth = getDaysInMonth(calendarYear, calendarMonth);
@@ -72,7 +165,7 @@ export default function TopBanner({
                         justifyContent: 'center',
                         borderRadius: 4,
                         fontSize: 12,
-                        backgroundColor: isToday ? '#4285f4' : 'transparent',
+                        backgroundColor: isToday ? '#3ff3a5' : 'transparent',
                         color: isToday ? '#fff' : '#333',
                         fontWeight: isToday ? 600 : 400
                     }}
@@ -90,20 +183,37 @@ export default function TopBanner({
             className={styles.topBannerWrap}
             style={{
                 backgroundImage: `url(${base}img/bg_big.webp)`,
-                height: '240px',
-                position: 'relative'
+                height: '280px',
+                position: 'relative',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center top',
+                backgroundRepeat: 'no-repeat'
             }}
             onClick={() => showCalendar && setShowCalendar(false)}
         >
-            <div className={styles.topRow}>
-                <div className={styles.topCol} style={{ flex: 1.2, animationDelay: '0.1s' }}>
+            <style jsx global>{`
+                @keyframes marquee {
+                    0% { transform: translateX(100%); }
+                    100% { transform: translateX(-100%); }
+                }
+            `}</style>
+
+            <div className={styles.topRow} style={{ display: 'flex', gap: '20px', height: '100%' }}>
+                <div className={styles.topCol} style={{
+                    flex: CARD_CONFIGS.left.flex,
+                    width: CARD_CONFIGS.left.width,
+                    minWidth: CARD_CONFIGS.left.minWidth,
+                    minHeight: CARD_CONFIGS.left.minHeight,
+                    borderRadius: CARD_CONFIGS.left.borderRadius,
+                    animationDelay: '0.1s'
+                }}>
                     <div style={{
                         height: '100%',
-                        padding: '16px 20px',
-                        borderRadius: '16px',
+                        padding: '18px 22px',
+                        borderRadius: CARD_CONFIGS.left.borderRadius,
                         background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%)',
                         backdropFilter: 'blur(8px)',
-                        borderLeft: '5px solid #4285f4',
+                        borderLeft: '5px solid #f4bc42',
                         boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                         display: 'flex',
                         flexDirection: 'column',
@@ -121,13 +231,60 @@ export default function TopBanner({
                                 {siteData?.texts?.welcomeTitle || '欢迎来到Monoの小窝'}
                             </h3>
                         </div>
-                        <p style={{ margin: 0, fontSize: 13, color: '#666', lineHeight: 1.6, paddingLeft: 44 }}>
-                            {siteData?.texts?.announcement || '本站持续更新技术教程和资源分享，记得常来看看哦~'}
-                        </p>
+
+                        {SCROLL_MODE ? (
+                            <div style={{
+                                paddingLeft: 44,
+                                overflow: 'hidden',
+                                position: 'relative',
+                                height: 40,
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}>
+                                <p
+                                    ref={noticeRef}
+                                    style={{
+                                        margin: 0,
+                                        fontSize: 13,
+                                        color: '#666',
+                                        lineHeight: 1.6,
+                                        whiteSpace: 'nowrap',
+                                        position: 'absolute',
+                                        animation: isScrolling ? 'marquee linear infinite' : 'none'
+                                    }}
+                                >
+                                    {announcement}
+                                </p>
+                            </div>
+                        ) : (
+                            <div style={{
+                                paddingLeft: 44,
+                                overflowY: 'auto',
+                                maxHeight: 60,
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#4285f4 rgba(0,0,0,0.05)'
+                            }}>
+                                <p style={{
+                                    margin: 0,
+                                    fontSize: 13,
+                                    color: '#666',
+                                    lineHeight: 1.6
+                                }}>
+                                    {announcement}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <div className={styles.topCol} style={{ flex: 2.6, minWidth: 500, animationDelay: '0.2s' }}>
+                <div className={styles.topCol} style={{
+                    flex: CARD_CONFIGS.middle.flex,
+                    width: CARD_CONFIGS.middle.width,
+                    minWidth: CARD_CONFIGS.middle.minWidth,
+                    minHeight: CARD_CONFIGS.middle.minHeight,
+                    borderRadius: CARD_CONFIGS.middle.borderRadius,
+                    animationDelay: '0.2s'
+                }}>
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -206,16 +363,17 @@ export default function TopBanner({
                         </div>
 
                         <div style={{
-                            padding: '16px 20px',
-                            background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%)',
-                            backdropFilter: 'blur(10px)',
-                            borderRadius: '16px',
-                            textAlign: 'center',
-                            minWidth: 180,
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                            flex: 2,
-                            position: 'relative'
+                            width: "250px",
+                            height: "200px",
+                            padding: "16px 20px",
+                            background: "rgba(75, 157, 205, 0.9)",
+                            borderRadius: "16px",
+                            textAlign: "center",
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                            position: "relative"
                         }}>
+                            <p style={{ margin: '0 0 6px 0', fontSize: 18, color: '#1ce306', fontWeight: 500 }}>标准北京时间</p>
+
                             <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -245,7 +403,7 @@ export default function TopBanner({
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: 6,
-                                    marginBottom: 6,
+                                    margin: '0 auto 6px auto',
                                     padding: '4px 12px',
                                     backgroundColor: 'rgba(66, 133, 244, 0.1)',
                                     border: 'none',
@@ -253,7 +411,7 @@ export default function TopBanner({
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
                                     fontSize: 13,
-                                    color: '#4285f4',
+                                    color: '#0060fc',
                                     fontWeight: 500
                                 }}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(66, 133, 244, 0.2)'}
@@ -284,7 +442,7 @@ export default function TopBanner({
                                         borderRadius: 12,
                                         padding: 16,
                                         boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                                        zIndex: 1000,
+                                        zIndex: 9999,
                                         minWidth: 240
                                     }}
                                 >
@@ -342,7 +500,14 @@ export default function TopBanner({
                     </div>
                 </div>
 
-                <div className={styles.topCol} style={{ flex: 1.2, animationDelay: '0.3s' }}>
+                <div className={styles.topCol} style={{
+                    flex: CARD_CONFIGS.right.flex,
+                    width: CARD_CONFIGS.right.width,
+                    minWidth: CARD_CONFIGS.right.minWidth,
+                    minHeight: CARD_CONFIGS.right.minHeight,
+                    borderRadius: CARD_CONFIGS.right.borderRadius,
+                    animationDelay: '0.3s'
+                }}>
                     {user ? (
                         <div style={{
                             display: 'flex',
@@ -352,32 +517,62 @@ export default function TopBanner({
                             height: '100%',
                             justifyContent: 'center'
                         }}>
-                            <img
-                                src={getAvatarUrl(user, base)}
-                                alt={getUserName(user)}
-                                width="56"
-                                height="56"
-                                loading="lazy"
-                                onError={(e) => {
-                                    e.currentTarget.onerror = null;
-                                    e.currentTarget.src = `${base}avatar.png`;
-                                }}
-                                style={{
-                                    borderRadius: '50%',
-                                    objectFit: 'cover',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                    transition: 'all 0.5s ease',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'rotate(360deg) scale(1.15)';
-                                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'rotate(0) scale(1)';
-                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                                }}
-                            />
+                            {/* 优先显示Emoji，否则显示默认头像 */}
+                            {avatarEmoji ? (
+                                <div
+                                    style={{
+                                        width: '56px',
+                                        height: '56px',
+                                        borderRadius: '50%',
+                                        background: '#f0f7ff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '32px',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                        transition: 'all 0.5s ease',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'rotate(360deg) scale(1.15)';
+                                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                                    }}
+                                >
+                                    {avatarEmoji}
+                                </div>
+                            ) : (
+                                <img
+                                    src={`${base}avatar.png`}
+                                    alt="默认头像"
+                                    width="56"
+                                    height="56"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        e.currentTarget.onerror = null;
+                                        e.currentTarget.src = `${base}avatar.png`;
+                                    }}
+                                    style={{
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                        transition: 'all 0.5s ease',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'rotate(360deg) scale(1.15)';
+                                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                                    }}
+                                />
+                            )}
+
                             <span style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
                                 {getUserName(user)}
                             </span>

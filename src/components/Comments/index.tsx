@@ -8,7 +8,6 @@ export default function Comments(): JSX.Element {
   const { colorMode } = useColorMode();
   const baseUrl = useBaseUrl("");
 
-  // 仅在客户端渲染评论组件，解决 window is not defined 错误
   return (
     <BrowserOnly fallback={<div style={{ margin: "2rem 0", padding: "1rem" }}>加载评论中...</div>}>
       {() => <CommentsClient colorMode={colorMode} baseUrl={baseUrl} />}
@@ -16,15 +15,13 @@ export default function Comments(): JSX.Element {
   );
 }
 
-// 客户端-only 评论组件
 function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: string }) {
   const [user, setUser] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // 安全获取页面路径（客户端执行）
   const postId = window.location.pathname;
+  const defaultAvatar = `${baseUrl}img/avatar.png`;
 
   // 获取评论
   const fetchComments = async () => {
@@ -36,26 +33,37 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
     setComments(data || []);
   };
 
-  // 发布评论
+  // 修复报错：trim undefined 问题
   const submitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       alert("请先登录！");
       return;
     }
-    if (!content.trim()) return;
+    const trimContent = content?.trim() || "";
+    if (!trimContent) return;
 
     setLoading(true);
     try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single();
+
+      const userAvatar = profile?.avatar_url || defaultAvatar;
+      const userName = user.user_metadata?.full_name || user.email || "用户";
+
       await supabase.from("comments").insert([
         {
           user_id: user.id,
-          username: user.user_metadata?.full_name || user.email,
-          avatar_url: user.user_metadata?.avatar_url || `${baseUrl}img/avatar.png`,
-          content: content.trim(),
+          username: userName,
+          avatar_url: userAvatar,
+          content: trimContent,
           post_id: postId,
         },
       ]);
+
       setContent("");
       fetchComments();
     } catch (err) {
@@ -78,7 +86,6 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // 加载评论
   useEffect(() => {
     fetchComments();
   }, [postId]);
@@ -96,6 +103,7 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
       <form onSubmit={submitComment} style={{ marginBottom: "1rem" }}>
         <textarea
           value={content}
+          // 修复：e.target.value
           onChange={(e) => setContent(e.target.value)}
           disabled={loading || !user}
           placeholder="发表你的评论..."
@@ -135,11 +143,31 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
               display: "flex",
               gap: "0.8rem",
             }}>
-              <img
-                src={item.avatar_url}
-                style={{ width: "32px", height: "32px", borderRadius: "50%" }}
-                alt="avatar"
-              />
+              {item.avatar_url && !item.avatar_url.startsWith('http') ? (
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: '#f0f7ff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 18
+                }}>
+                  {item.avatar_url}
+                </div>
+              ) : (
+                <img
+                  src={item.avatar_url || defaultAvatar}
+                  style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }}
+                  alt="avatar"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = defaultAvatar;
+                  }}
+                />
+              )}
+
               <div>
                 <div style={{ fontWeight: "bold", fontSize: "14px" }}>{item.username}</div>
                 <p style={{ margin: "0.2rem 0", fontSize: "14px" }}>{item.content}</p>
