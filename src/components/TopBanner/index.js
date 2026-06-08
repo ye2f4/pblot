@@ -39,26 +39,20 @@ export default function TopBanner({
         <section
             className={styles.topBannerWrap}
             style={{
-                backgroundColor: '#f8f9fa',
-                backgroundImage: `url(${base}img/bg_big.webp)`,
-                backgroundSize: '100% auto',
-                backgroundPosition: 'center top',
-                backgroundRepeat: 'no-repeat',
-                padding: '25px 15px',
-                width: '100%',
-                overflow: 'hidden',
+                backgroundImage: `url(${base}img/bg_big.png)`,
             }}
         >
-            <div className={styles.topRow} style={{ maxWidth: 1200, margin: '0 auto' }}>
-                {/* 左侧公告 */}
-                <div className={styles.topCol}>
+            <div className={styles.topRow}>
+                {/* 左侧公告（呼吸动画） */}
+                <div className={styles.topCol} style={{ animationDelay: '0.1s' }}>
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: 10,
                         height: '100%',
+                        animation: 'breathe 3s infinite ease-in-out'
                     }}>
-                        <span style={{ fontSize: 24 }}>📢</span>
+                        <span style={{ fontSize: 24, animation: 'pixelBounce 2s infinite' }}>📢</span>
                         <p style={{ margin: 0, fontSize: 14, color: '#333', lineHeight: 1.5 }}>
                             {siteData.texts.announcement}
                         </p>
@@ -66,14 +60,14 @@ export default function TopBanner({
                 </div>
 
                 {/* 中间统计+时钟 */}
-                <div className={styles.topCol} style={{ flex: 2, minWidth: 400 }}>
+                <div className={styles.topCol} style={{ flex: 2, minWidth: 400, animationDelay: '0.2s' }}>
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         height: '100%'
                     }}>
-                        {/* 统计数据 */}
+                        {/* 统计数据（悬浮缩放） */}
                         <div style={{
                             display: 'flex',
                             gap: 15,
@@ -88,7 +82,23 @@ export default function TopBanner({
                                     if (item.label === "新") showValue = `最新:${latestUser}`;
 
                                     return (
-                                        <div key={i} style={{ textAlign: 'center', minWidth: 40 }}>
+                                        <div
+                                            key={i}
+                                            style={{
+                                                textAlign: 'center',
+                                                minWidth: 40,
+                                                transition: 'all 0.3s ease',
+                                                animation: `fadeIn 0.6s ease-out ${0.3 + i * 0.1}s`
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = 'scale(1.1)';
+                                                e.currentTarget.style.filter = 'brightness(1.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'scale(1)';
+                                                e.currentTarget.style.filter = 'brightness(1)';
+                                            }}
+                                        >
                                             <div style={{
                                                 width: 40,
                                                 height: 40,
@@ -128,7 +138,7 @@ export default function TopBanner({
                             )}
                         </div>
 
-                        {/* 时钟 */}
+                        {/* 时钟（数字跳动动画） */}
                         <div className={styles.bannerRight} style={{
                             padding: 0,
                             backgroundColor: 'transparent',
@@ -136,7 +146,7 @@ export default function TopBanner({
                             textAlign: 'right',
                             minWidth: 160
                         }}>
-                            <div className={styles.clockText} style={{
+                            <div className={`pixel-font ${styles.clockText}`} style={{
                                 fontSize: 24,
                                 color: '#333',
                                 marginBottom: 4,
@@ -151,7 +161,7 @@ export default function TopBanner({
                             }}>
                                 {weekJp}曜日 ({weekEn})
                             </div>
-                            <div className={styles.dateText} style={{
+                            <div className={`pixel-font ${styles.dateText}`} style={{
                                 fontSize: 16,
                                 color: '#333',
                                 textShadow: 'none',
@@ -162,8 +172,8 @@ export default function TopBanner({
                     </div>
                 </div>
 
-                {/* 右侧登录/用户信息 */}
-                <div className={styles.topCol}>
+                {/* 右侧登录/用户信息（头像旋转动画） */}
+                <div className={styles.topCol} style={{ animationDelay: '0.3s' }}>
                     {user ? (
                         <div style={{
                             display: 'flex',
@@ -183,7 +193,17 @@ export default function TopBanner({
                                 style={{
                                     borderRadius: '50%',
                                     objectFit: 'cover',
-                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                    transition: 'all 0.5s ease',
+                                    cursor: 'pointer'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
+                                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
                                 }}
                             />
                             <span style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>
@@ -191,7 +211,7 @@ export default function TopBanner({
                             </span>
                             <Link
                                 to="/pblot/profile"
-                                className={styles.btnHover}
+                                className="btn-hover"
                                 aria-label="进入个人中心"
                                 style={{
                                     width: '100%',
@@ -213,7 +233,7 @@ export default function TopBanner({
                                 {siteData.texts.buttons.profile}
                             </Link>
                             <button
-                                className={styles.btnHover}
+                                className="btn-hover"
                                 onClick={handleSignOut}
                                 aria-label="退出当前账号"
                                 style={{
@@ -250,13 +270,23 @@ export default function TopBanner({
                                 style={{
                                     borderRadius: '50%',
                                     objectFit: 'cover',
-                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                                    transition: 'all 0.5s ease',
+                                    cursor: 'pointer'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'rotate(360deg) scale(1.1)';
+                                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'rotate(0) scale(1)';
+                                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
                                 }}
                             />
                             <div style={{ display: 'flex', gap: 8, width: '100%' }}>
                                 <Link
                                     to="/pblot/login"
-                                    className={styles.btnHover}
+                                    className="btn-hover"
                                     aria-label="登录账号"
                                     style={{
                                         flex: 1,
@@ -279,7 +309,7 @@ export default function TopBanner({
                                 </Link>
                                 <Link
                                     to="/pblot/register"
-                                    className={styles.btnHover}
+                                    className="btn-hover"
                                     aria-label="注册新账号"
                                     style={{
                                         flex: 1,
@@ -302,7 +332,7 @@ export default function TopBanner({
                                 </Link>
                             </div>
                             <button
-                                className={styles.btnHover}
+                                className="btn-hover"
                                 onClick={handleGitHubLogin}
                                 disabled={loading}
                                 aria-label="使用GitHub账号登录"

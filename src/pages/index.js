@@ -3,7 +3,6 @@ import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import siteData from '../data/siteData.json';
-import { supabase } from '../supabase/supabaseClient';
 import { throttle } from '../utils/common';
 
 // 自定义钩子
@@ -36,10 +35,10 @@ export default function Home() {
 
   // 认证状态
   const { user, loading, isSessionChecked, handleGitHubLogin, handleSignOut } = useAuth();
-
+  
   // 用户统计
   const { userCount, latestUser } = useUserStats(isClient);
-
+  
   // 评论逻辑
   const {
     comments,
@@ -52,13 +51,26 @@ export default function Home() {
     handleSubmitComment
   } = useComments(isClient, user, base);
 
-  // 时钟定时器
+  // 时钟定时器 + 网络时间同步（保留旧版逻辑）
   useEffect(() => {
     isMountedRef.current = true;
     setIsClient(true);
 
+    // 同步网络时间
+    const fetchOnlineTime = async () => {
+      try {
+        const res = await fetch('https://worldtimeapi.org/api/ip');
+        const data = await res.json();
+        setNow(new Date(data.datetime));
+      } catch (err) {
+        setNow(new Date());
+      }
+    };
+    fetchOnlineTime();
+
+    // 每秒更新时间
     const timer = setInterval(() => {
-      if (isMountedRef.current) setNow(new Date());
+      if (isMountedRef.current) setNow(prev => new Date(prev.getTime() + 1000));
     }, 1000);
 
     // 滚动加载评论区
@@ -78,10 +90,22 @@ export default function Home() {
     };
   }, [commentsLoaded]);
 
+  // 判断元素是否进入视口（滚动动画）
+  const isInView = (ref) => {
+    if (!ref.current) return false;
+    const rect = ref.current.getBoundingClientRect();
+    return rect.top < window.innerHeight * 0.8 && rect.bottom > 0;
+  };
+
   if (!isClient) return null;
 
   return (
     <Layout title={siteData.siteTitle}>
+      {/* 加载Google像素字体 */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
       {/* 顶部横幅 */}
       <TopBanner
         siteData={siteData}
@@ -96,7 +120,7 @@ export default function Home() {
         handleSignOut={handleSignOut}
       />
 
-      {/* 主内容区 */}
+      {/* 主内容区（保留滚动动画） */}
       <div
         ref={mainContentRef}
         className="main-content"
@@ -108,6 +132,10 @@ export default function Home() {
           flexDirection: 'column',
           gap: 20,
           width: '100%',
+          // 滚动渐入动画
+          opacity: isInView(mainContentRef) ? 1 : 0,
+          transform: isInView(mainContentRef) ? 'translateY(0)' : 'translateY(30px)',
+          transition: 'opacity 0.8s ease, transform 0.8s ease'
         }}
       >
         {/* 主内容顶部 */}
@@ -127,7 +155,7 @@ export default function Home() {
           {/* 右侧边栏 */}
           <div className="sidebar-container" style={{ flex: 3, minWidth: 0 }}>
             <RankList siteData={siteData} />
-
+            
             {/* 懒加载评论区 */}
             <Suspense fallback={
               <div style={{
