@@ -331,15 +331,19 @@ export default function Home() {
       <section
         className={styles.topBannerWrap}
         style={{
-          // ✅ 提前设置背景色作为占位符，消除加载闪烁
-          backgroundColor: '#f5f5f5',
-          // ✅ 内联背景图，避免CSS文件加载延迟
+          backgroundColor: '#f8f9fa',
           backgroundImage: `url(${base}img/bg_big.webp)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          padding: '20px 15px',
+          backgroundSize: '100% auto',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          padding: '25px 15px',
           width: '100%',
-          // ✅ 禁用所有影响LCP的入场动画
+          overflow: 'hidden',
+          // ✅ 移动端调整
+          '@media (max-width: 768px)': {
+            padding: '20px 10px',
+            backgroundPosition: 'center -5px',
+          },
         }}
       >
         <div className="top-row" style={{ maxWidth: 1200, margin: '0 auto' }}>
