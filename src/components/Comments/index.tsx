@@ -1,18 +1,29 @@
 import { useColorMode } from "@docusaurus/theme-common";
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/supabase/supabaseClient";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 
-// 替换为你的评论组件，替代原 Giscus
 export default function Comments(): JSX.Element {
   const { colorMode } = useColorMode();
   const baseUrl = useBaseUrl("");
+
+  // 仅在客户端渲染评论组件，解决 window is not defined 错误
+  return (
+    <BrowserOnly fallback={<div style={{ margin: "2rem 0", padding: "1rem" }}>加载评论中...</div>}>
+      {() => <CommentsClient colorMode={colorMode} baseUrl={baseUrl} />}
+    </BrowserOnly>
+  );
+}
+
+// 客户端-only 评论组件
+function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: string }) {
   const [user, setUser] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 获取当前页面路径作为唯一ID
+  // 安全获取页面路径（客户端执行）
   const postId = window.location.pathname;
 
   // 获取评论
@@ -82,7 +93,6 @@ export default function Comments(): JSX.Element {
     }}>
       <h3 style={{ marginBottom: "1rem" }}>评论区</h3>
 
-      {/* 发布评论 */}
       <form onSubmit={submitComment} style={{ marginBottom: "1rem" }}>
         <textarea
           value={content}
@@ -114,7 +124,6 @@ export default function Comments(): JSX.Element {
         </button>
       </form>
 
-      {/* 评论列表 */}
       <div>
         {comments.length === 0 ? (
           <p style={{ color: "#999" }}>暂无评论，快来发表第一条评论吧！</p>
