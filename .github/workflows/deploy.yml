@@ -1,4 +1,4 @@
-name: 自动部署到GitHub Pages
+name: 自动部署到 GitHub Pages
 on:
   push:
     branches: [master]
@@ -25,15 +25,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
 
       - name: 安装依赖
-        run: pnpm install --ignore-scripts --prefer-offline
+        run: pnpm install --prefer-offline
 
-      - name: 构建网站
+      - name: 清理缓存 & 构建网站（自动生成 sitemap.xml）
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: pnpm build
+        run: |
+          rm -rf .docusaurus build
+          pnpm build
+
+      - name: 检查是否生成 sitemap
+        run: ls -la build/
 
       - name: 发布到 GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

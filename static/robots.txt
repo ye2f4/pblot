@@ -6,3 +6,5 @@ Disallow: /pblot/categories/
 Disallow: /pblot/blog/archive/
 
 Sitemap: https://ye2f4.github.io/pblot/sitemap.xml
+
+# Algolia-Crawler-Verif: 832988C393904F32
