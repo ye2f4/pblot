@@ -8,8 +8,8 @@ const config = {
   url: "https://ye2f4.github.io",
   baseUrl: "/pblot/",
   trailingSlash: true,
-  onBrokenLinks: "throw", // 修复：检测无效链接
-  onBrokenMarkdownLinks: "warn",
+  onBrokenLinks: "throw",
+  // ✅ 删除了这里的 onBrokenMarkdownLinks（已迁移）
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "pblot",
@@ -24,7 +24,7 @@ const config = {
     },
   },
 
-  // 🔥 全局SEO元数据（解决首页无meta描述问题）
+  // 全局SEO元数据
   headTags: [
     {
       tagName: "meta",
@@ -42,7 +42,7 @@ const config = {
     },
     { tagName: "meta", attributes: { name: "author", content: "Mono" } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
-    // 🔥 静态资源缓存策略（GitHub Pages专用）
+    // 静态资源缓存策略
     {
       tagName: "meta",
       attributes: {
@@ -70,7 +70,7 @@ const config = {
     footer: {
       copyright: `Powered by Docusaurus & GitHub Pages © ${new Date().getFullYear()} Monoの小窝`,
     },
-    // 🔥 替换为你自己的Algolia密钥（解决搜索失效问题）
+    // 你的专属Algolia密钥（正确）
     algolia: {
       appId: "CQDTG18WX6",
       apiKey: "0f4ef075e41fbdaa5b918048b90984b2",
@@ -94,7 +94,7 @@ const config = {
       },
     },
     prism: { additionalLanguages: ["shell-session", "bash"] },
-    // 🔥 社交分享默认图（1200×630px）
+    // 社交分享默认图
     image: "img/og-image.png",
   },
 
@@ -135,16 +135,16 @@ const config = {
           blogDescription: "个人随笔、技术分享与生活记录",
           postsPerPage: 10,
           blogSidebarCount: 5,
-          // 🔥 忽略博客截断警告
+          // 忽略博客截断警告
           onUntruncatedBlogPosts: "ignore",
-          // 🔥 开启RSS订阅（提升SEO）
+          // 开启RSS订阅
           feedOptions: {
             type: "all",
             copyright: `Copyright © ${new Date().getFullYear()} Monoの小窝`,
           },
         },
         theme: { customCss: require.resolve("./src/css/custom.css") },
-        // 🔥 自动生成站点地图（SEO必备）
+        // 自动生成站点地图
         sitemap: {
           changefreq: "weekly",
           priority: 0.5,
@@ -156,8 +156,14 @@ const config = {
 
   customFields: {},
   i18n: { defaultLocale: "en", locales: ["en"] },
-  markdown: { mermaid: true },
-  themes: ["@docusaurus/theme-search-algolia", "@docusaurus/theme-mermaid"],
+  markdown: {
+    mermaid: true,
+    // ✅ 迁移后的onBrokenMarkdownLinks配置
+    hooks: {
+      onBrokenMarkdownLinks: "warn"
+    }
+  },
+  // ✅ 删除了重复的 themes 数组（preset-classic已经自带Algolia搜索）
 };
 
 export default config;
