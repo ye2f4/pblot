@@ -40,12 +40,12 @@ export default function MainContentTop({ siteData }) {
                 ))}
             </div>
 
-            {/* 滚动通知栏 修复滚动 */}
+            {/* 滚动通知栏 - 修复完成 */}
             <div style={{
                 height: 40,
                 backgroundColor: '#E3F2FD',
                 borderRadius: 8,
-                display: flex,
+                display: 'flex', // ✅ 修复：加引号
                 alignItems: 'center',
                 overflow: 'hidden',
                 flex: 1,
