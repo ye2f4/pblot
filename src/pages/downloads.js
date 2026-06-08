@@ -17,7 +17,7 @@ const downloadList = [
         desc: "HTML/CSS/JS 零基础全套学习文档，附带示例代码",
         size: "12.8 MB",
         date: "2026-06-09",
-        url: "/files/tutorial/frontend-beginner.pdf",
+        url: "",
         type: "tutorial"
     },
     {
@@ -25,7 +25,7 @@ const downloadList = [
         desc: "本站同款博客搭建全流程、配置详解、踩坑记录",
         size: "4.2 MB",
         date: "2026-06-08",
-        url: "/files/tutorial/docusaurus-guide.pdf",
+        url: "",
         type: "tutorial"
     },
     // 工具类
@@ -34,7 +34,7 @@ const downloadList = [
         desc: "开发辅助软件、插件、绿色工具包",
         size: "86.5 MB",
         date: "2026-06-05",
-        url: "https://pan.baidu.com/s/xxxxxxx", // 外部网盘链接示例
+        url: "", // 外部网盘链接示例
         type: "tool"
     },
     {
@@ -42,7 +42,7 @@ const downloadList = [
         desc: "作者",
         size: "2 MB",
         date: "2026-06-05",
-        url: "/static/avatar.png", // 外部网盘链接示例
+        url: "", // 外部网盘链接示例
         type: "tool"
     },
     // 源码类
@@ -51,7 +51,7 @@ const downloadList = [
         desc: "TopBanner 公告+统计+时钟组件全套源码",
         size: "0.3 MB",
         date: "2026-06-09",
-        url: "/files/source/topbanner-code.zip",
+        url: "",
         type: "source"
     },
     // 素材类
@@ -60,7 +60,7 @@ const downloadList = [
         desc: "站点使用的背景图、图标、装饰资源",
         size: "24.6 MB",
         date: "2026-06-01",
-        url: "/files/asset/site-material.zip",
+        url: "",
         type: "asset"
     }
 ];
