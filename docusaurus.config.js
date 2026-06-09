@@ -162,11 +162,13 @@ const config = {
       appId: "ROGAN8VK8F",
       apiKey: "fe400fed06536292c70c9f6ef42f24f9",
       indexName: "ye2f4_github_io_rogan8vk8f_pages",
-      contextualSearch: false, // 关闭自动追加语言、文档版本过滤
+      contextualSearch: false,
       searchPagePath: false,
+      // 强制清空所有自动追加参数
       searchParameters: {
         hitsPerPage: 10,
-        facetFilters: [], // 手动清空所有筛选条件
+        facetFilters: [],
+        attributesToSearchOn: ["title", "description", "content", "keywords"]
       },
     },
     colorMode: { respectPrefersColorScheme: true },

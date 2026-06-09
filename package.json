@@ -29,6 +29,8 @@
   "dependencies": {
     "@algolia/client-search": "^5.52.1",
     "@crowdin/cli": "^4.14.2",
+    "@docsearch/css": "^4.6.3",
+    "@docsearch/react": "^4.6.3",
     "@docusaurus/core": "3.10.1",
     "@docusaurus/faster": "^3.10.1",
     "@docusaurus/plugin-content-blog": "^3.10.1",
