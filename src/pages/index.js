@@ -239,11 +239,7 @@ export default function Home() {
             </Suspense>
 
             {/* 右下角统计组件 */}
-            <div style={{ marginTop: 15, fontSize: 12, lineHeight: 1.6, color: '#666' }}>
-              <SiteTimer />
-              <VisitorTimer />
-              <VisitorCount />
-            </div>
+            
           </div>
         </div>
       </div>
