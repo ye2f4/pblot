@@ -159,7 +159,7 @@ const config = {
       copyright: `Powered by Docusaurus & GitHub Pages © ${new Date().getFullYear()} Monoの小窝`,
     },
     algolia: {
-      appId: "ROGAN8VK8F",
+      appId: "R0GAN8VK8F",
       apiKey: "fe400fed06536292c70c9f6ef42f24f9",
       indexName: "ye2f4_github_io_rogan8vk8f_pages",
       contextualSearch: false,

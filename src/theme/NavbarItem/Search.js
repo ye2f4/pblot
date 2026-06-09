@@ -5,7 +5,7 @@ import '@docsearch/css';
 export default function Search() {
     return (
         <DocSearch
-            appId="ROGAN8VK8F"
+            appId="R0GAN8VK8F"
             apiKey="fe400fed06536292c70c9f6ef42f24f9"
             indexName="ye2f4_github_io_rogan8vk8f_pages"
             // 强制限定只检索真实存在的4个字段，完全抛弃hierarchy
