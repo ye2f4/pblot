@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from 'react';
 const Slider = lazy(() => import('react-slick'));
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-// 所有子组件：TopBanner / AdSection / CommentSection / TagCloud 等第一行加这个
 import styles from '../../pages/index.module.css';
 
 export default function CarouselSection({ siteData, base, isClient }) {
@@ -24,8 +23,9 @@ export default function CarouselSection({ siteData, base, isClient }) {
         prevArrow: (
             <button
                 type="button"
-                aria-label="查看上一张轮播图"
+                aria-label="上一张"
                 style={{
+                    position: 'absolute',
                     left: 15,
                     zIndex: 20,
                     minWidth: 48,
@@ -47,8 +47,9 @@ export default function CarouselSection({ siteData, base, isClient }) {
         nextArrow: (
             <button
                 type="button"
-                aria-label="查看下一张轮播图"
+                aria-label="下一张"
                 style={{
+                    position: 'absolute',
                     right: 15,
                     zIndex: 20,
                     minWidth: 48,
@@ -108,7 +109,7 @@ export default function CarouselSection({ siteData, base, isClient }) {
                                     width="1200"
                                     height="350"
                                     loading={i === 0 ? "eager" : "lazy"}
-                                    fetchpriority={i === 0 ? "high" : "auto"}
+                                    fetchPriority={i === 0 ? "high" : "auto"}
                                     style={{
                                         borderRadius: 0,
                                         maxHeight: 350,

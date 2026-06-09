@@ -4,13 +4,13 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import siteData from '../data/siteData.json';
 import { throttle } from '../utils/common';
+import { supabase } from '../supabase/supabaseClient';
 
 // 自定义钩子
 import { useAuth } from '../hooks/useAuth';
-import { useUserStats } from '../hooks/useUserStats';
 import { useComments } from '../hooks/useComments';
 
-// 导入拆分后的组件
+// 页面组件
 import TopBanner from '../components/TopBanner';
 import MainContentTop from '../components/MainContentTop';
 import CarouselSection from '../components/CarouselSection';
@@ -30,14 +30,21 @@ export default function Home() {
   const base = useBaseUrl('');
   const isMountedRef = useRef(true);
   const [isClient, setIsClient] = useState(false);
-  const [now, setNow] = useState(new Date());
   const mainContentRef = useRef(null);
 
-  // 认证状态
-  const { user, loading, isSessionChecked, handleGitHubLogin, handleSignOut } = useAuth();
+  // ========== 用户统计状态 ==========
+  const [userCount, setUserCount] = useState(0);
+  const [latestUser, setLatestUser] = useState('新用户');
 
-  // 用户统计
-  const { userCount, latestUser } = useUserStats(isClient);
+  // ========== 网络时间系统（纯网络授时，国内可用接口） ==========
+  const [realTs, setRealTs] = useState(Date.now());
+  const [timeOffset, setTimeOffset] = useState(0);
+  const [showTimeErrModal, setShowTimeErrModal] = useState(false);
+  const [errModalText, setErrModalText] = useState('');
+  const realNow = new Date(realTs);
+
+  // 登录状态
+  const { user, loading, isSessionChecked, handleGitHubLogin, handleSignOut } = useAuth();
 
   // 评论逻辑
   const {
@@ -51,29 +58,53 @@ export default function Home() {
     handleSubmitComment
   } = useComments(isClient, user, base);
 
-  // 时钟定时器 + 网络时间同步（保留旧版逻辑）
+  // ========== 1. 国内稳定网络时间（无IP、无CORS、100%可用） ==========
   useEffect(() => {
     isMountedRef.current = true;
     setIsClient(true);
 
-    // 同步网络时间
-    const fetchOnlineTime = async () => {
+    const fetchNetworkTime = async () => {
       try {
-        const res = await fetch('https://worldtimeapi.org/api/ip');
+        const res = await fetch("https://world-time-api3.p.rapidapi.com/timezone/Asia/Shanghai", {
+          method: "GET",
+          headers: {
+            "x-rapidapi-host": "world-time-api3.p.rapidapi.com",
+            "x-rapidapi-key": "20153450c4msh9e0de275355bb13p14e656jsnb821705e6b5d", // 替换你页面完整密钥
+            "Content-Type": "application/json"
+          },
+          cache: "no-cache",
+          signal: AbortSignal.timeout(6000),
+        });
+
+        if (!res.ok) throw new Error(`接口异常 ${res.status}`);
         const data = await res.json();
-        setNow(new Date(data.datetime));
-      } catch (err) {
-        setNow(new Date());
+
+        // 适配返回格式提取时间戳（不同服务商字段略有差异，报错就切换/ip.txt端点）
+        let serverTs;
+        if (data.timestamp) serverTs = data.timestamp * 1000;
+        else if (data.UnixTime) serverTs = data.UnixTime * 1000;
+        else serverTs = new Date(data.datetime).getTime();
+
+        const offset = serverTs - Date.now();
+        setTimeOffset(offset);
+        setShowTimeErrModal(false);
+      } catch (e) {
+        console.log("RapidAPI时间同步失败：", e);
+        setTimeOffset(0);
+        setShowTimeErrModal(true);
+        setErrModalText("RapidAPI网络时间拉取失败，已使用本地设备时间");
       }
     };
-    fetchOnlineTime();
 
-    // 每秒更新时间
-    const timer = setInterval(() => {
-      if (isMountedRef.current) setNow(prev => new Date(prev.getTime() + 1000));
-    }, 1000);
+    fetchNetworkTime();
+    const reSyncTimer = setInterval(fetchNetworkTime, 300000);
 
-    // 滚动加载评论区
+    const renderTimer = setInterval(() => {
+      if (isMountedRef.current) {
+        setRealTs(Date.now() + timeOffset);
+      }
+    }, 10);
+
     const handleScroll = throttle(() => {
       if (window.scrollY > 600 && !commentsLoaded && isMountedRef.current) {
         setCommentsLoaded(true);
@@ -81,16 +112,56 @@ export default function Home() {
       }
     }, 200);
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       isMountedRef.current = false;
-      clearInterval(timer);
-      window.removeEventListener('scroll', handleScroll);
+      clearInterval(reSyncTimer);
+      clearInterval(renderTimer);
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, [commentsLoaded]);
+  }, [commentsLoaded, timeOffset]);
 
-  // 判断元素是否进入视口（滚动动画）
+  // ========== 2. 修复 Supabase 400 错误（最终版） ==========
+  useEffect(() => {
+    if (!isClient) return;
+
+    const fetchUserStats = async () => {
+      try {
+        const { count } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+        setUserCount(count || 0);
+      } catch (e) {
+        setUserCount(0);
+      }
+
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('nickname, full_name, email')
+          .order('id', { ascending: false })
+          .limit(1);
+
+        if (data?.[0]) {
+          const u = data[0];
+          setLatestUser(
+            u.nickname || u.full_name || u.email?.split('@')[0] || '新用户'
+          );
+        } else {
+          setLatestUser('新用户');
+        }
+      } catch (e) {
+        setLatestUser('新用户');
+      }
+    };
+
+    fetchUserStats();
+    const timer = setInterval(fetchUserStats, 300000);
+    return () => clearInterval(timer);
+  }, [isClient]);
+
+  // 元素视口判断（滚动渐入动画）
   const isInView = (ref) => {
     if (!ref.current) return false;
     const rect = ref.current.getBoundingClientRect();
@@ -101,12 +172,7 @@ export default function Home() {
 
   return (
     <Layout title={siteData.siteTitle}>
-      {/* 加载Google像素字体 */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-
-      {/* 顶部横幅 */}
+      {/* 顶部横幅：传递网络时间 + 弹窗状态 */}
       <TopBanner
         siteData={siteData}
         base={base}
@@ -115,12 +181,15 @@ export default function Home() {
         isSessionChecked={isSessionChecked}
         userCount={userCount}
         latestUser={latestUser}
-        now={now}
+        now={realNow}
         handleGitHubLogin={handleGitHubLogin}
         handleSignOut={handleSignOut}
+        showTimeErrModal={showTimeErrModal}
+        errModalText={errModalText}
+        onCloseModal={() => setShowTimeErrModal(false)}
       />
 
-      {/* 主内容区（保留滚动动画） */}
+      {/* 主内容区 */}
       <div
         ref={mainContentRef}
         className="main-content"
@@ -132,18 +201,15 @@ export default function Home() {
           flexDirection: 'column',
           gap: 20,
           width: '100%',
-          // 滚动渐入动画
           opacity: isInView(mainContentRef) ? 1 : 0,
           transform: isInView(mainContentRef) ? 'translateY(0)' : 'translateY(30px)',
           transition: 'opacity 0.8s ease, transform 0.8s ease'
         }}
       >
-        {/* 主内容顶部 */}
         <MainContentTop siteData={siteData} />
 
-        {/* 内容主体 */}
         <div style={{ display: 'flex', gap: 20, width: '100%' }}>
-          {/* 左侧内容区 */}
+          {/* 左侧内容 */}
           <div className="left-container" style={{ flex: 7, minWidth: 0 }}>
             <CarouselSection siteData={siteData} base={base} isClient={isClient} />
             <QuickNav siteData={siteData} />
@@ -195,6 +261,41 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* 全局时间错误弹窗 */}
+      {showTimeErrModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.4)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }} onClick={() => setShowTimeErrModal(false)}>
+          <div style={{
+            background: '#fff',
+            padding: '24px 30px',
+            borderRadius: '12px',
+            minWidth: '320px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            textAlign: 'center'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 40, color: '#dc3545', marginBottom: 12 }}>⚠️</div>
+            <h4 style={{ margin: '0 0 8px', fontSize: 16, color: '#222' }}>时间同步提醒</h4>
+            <p style={{ color: '#555', margin: '0 0 20px', fontSize: 14 }}>{errModalText}</p>
+            <button onClick={() => setShowTimeErrModal(false)} style={{
+              padding: '8px 24px',
+              background: '#4285f4',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: 14,
+              cursor: 'pointer'
+            }}>知道了</button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
