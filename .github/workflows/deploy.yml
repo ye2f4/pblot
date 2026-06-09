@@ -1,36 +1,60 @@
 name: 自动部署到 GitHub Pages
+# 并发锁精准匹配分支，多提交自动作废旧任务，彻底解决排队堆积
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+# 权限最小化规范，只开放必需权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 触发条件：仅master分支推送触发
 on:
   push:
     branches: [master]
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # 最大超时时间，卡死任务自动终止释放资源
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      # 拉取代码
+      - name: 检出仓库代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 完整拉取历史，避免gh-pages提交异常
 
-      - name: 安装 PNPM
-        run: npm install -g pnpm@11.5.2
+      # 缓存pnpm全局存储+项目依赖，大幅减少install耗时
+      - name: 缓存 PNPM 依赖
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm/store
+            node_modules
+          key: ${{ runner.os }}-pnpm-v11-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-v11-
 
-      - name: 设置 Node.js 22
+      # 锁定pnpm精确版本，全局安装更稳定
+      - name: 安装固定版本 PNPM 11.5.2
+        run: corepack enable pnpm && corepack prepare pnpm@11.5.2 --activate
+
+      # 配置Node22，内置pnpm缓存关联
+      - name: 配置 Node.js 22 LTS
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
+          cache: 'pnpm'
 
-      - name: 安装依赖
-        run: pnpm install --prefer-offline
+      # 依赖安装：离线优先，严格锁版本
+      - name: 安装项目依赖
+        run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: 清理缓存 & 构建网站（自动生成 sitemap.xml）
+      # 构建前清理旧产物，注入环境变量（Supabase密钥）
+      - name: 构建Docusaurus静态站点
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -38,13 +62,24 @@ jobs:
           rm -rf .docusaurus build
           pnpm build
 
-      - name: 检查是否生成 sitemap
-        run: ls -la build/
+      # 校验构建产物，失败直接终止流水线
+      - name: 校验构建输出目录
+        run: |
+          if [ ! -d "build" ]; then
+            echo "❌ 构建失败，build文件夹不存在"
+            exit 1
+          fi
+          echo "✅ 构建成功，产物目录文件列表："
+          ls -la build/
 
-      - name: 发布到 GitHub Pages
+      # 发布到gh-pages分支，参数标准化
+      - name: 部署静态文件至GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
-          force_orphan: true
-          enable_jekyll: false
+          force_orphan: true # 纯净gh-pages分支，不保留历史冗余
+          enable_jekyll: false # 关闭jekyll解析，支持下划线文件夹/静态资源
+          commit_message: "自动部署: ${{ github.sha }} ${{ github.event.head_commit.message }}"
+          user_name: ${{ github.actor }}
+          user_email: ${{ github.actor }}@users.noreply.github.com
