@@ -5,3 +5,28 @@
 @import "./base.css";
 @import "./navbar.css";
 @import "./components.css";
+
+/* 导航栏绿色聊天按钮 */
+.navbar-chat-btn {
+    background-color: #22c55e !important;
+    color: white !important;
+    border-radius: 6px;
+    padding: 4px 12px;
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+.navbar-chat-btn:hover {
+    background-color: #16a34a !important;
+    color: white !important;
+}
+
+/* GitHub 按钮统一风格 */
+.navbar-github-btn {
+    background-color: #22c55e !important;
+    color: white !important;
+    border-radius: 6px;
+    padding: 4px 12px;
+    margin-left: 8px;
+    font-weight: 500;
+}

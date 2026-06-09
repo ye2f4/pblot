@@ -1,52 +1,26 @@
 // ==============================================
 // 导入依赖模块
 // ==============================================
-// Node.js内置路径模块，用于处理文件和目录路径
 import path from "node:path";
-// Markdown扩展插件：支持定义列表语法（术语: 解释）
 import remarkDefList from "remark-deflist";
 
 /**
  * @type {import('@docusaurus/types').Config}
- * TypeScript类型声明，提供代码提示和类型检查
  */
 const config = {
-  // ============================================
-  // 站点基础信息配置（决定网站的核心身份）
-  // ============================================
   title: "Monoの小窝",
-  tagline: "一半白发藏温柔，一半黑鬓载星网。",
+  tagline: "一半白发藏温柔，一半白发载星网。",
   url: "https://ye2f4.github.io",
   baseUrl: "/pblot/",
-  trailingSlash: false, // 🔥 修复死链
-  onBrokenLinks: "warn", // 🔥 不阻断打包
+  trailingSlash: false,
+  onBrokenLinks: "warn",
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "pblot",
 
-  // ============================================
-  // 未来特性与性能优化配置
-  // ============================================
-  //future: {
-  //  faster: {
-  //    swcJsLoader: true,
-  //    swcJsMinimizer: true,
-  //    swcHtmlMinimizer: true,
-  //    lightningCssMinimizer: true,
-  //    rspackBundler: true,
-  //    rspackPersistentCache: true,
-  //    mdxCrossCompilerCache: true,
-  //    gitEagerVcs: true,
-  //  },
-  //  v4: {
-  //    useCssCascadeLayers: false,
-  //    removeLegacyPostBuildHeadAttribute: true,
-  //  },
-  //},
+  // 已彻底关闭实验模式，无崩溃
+  future: {},
 
-  // ============================================
-  // 全局HTML头部标签配置
-  // ============================================
   headTags: [
     {
       tagName: 'link',
@@ -94,7 +68,7 @@ const config = {
       tagName: "meta",
       attributes: {
         name: "description",
-        content: "Monoの小窝，专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件与技术分享",
+        content: "Monoの小窝，专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享",
       },
     },
     {
@@ -106,25 +80,8 @@ const config = {
     },
     { tagName: "meta", attributes: { name: "author", content: "Mono" } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
-    //{
-    //tagName: "meta",
-    //attributes: {
-    //"http-equiv": "Cache-Control",
-    // content: "public, max-age=31536000, immutable",
-    //},
-    //},
-    {
-      tagName: "meta",
-      attributes: {
-        name: "algolia-site-verification",
-        content: "5CB8AFBEBF426B824"
-      }
-    },
   ],
 
-  // ============================================
-  // 主题配置
-  // ============================================
   themeConfig: {
     respectPrefersColorScheme: true,
     docs: { sidebar: { autoCollapseCategories: true } },
@@ -134,7 +91,7 @@ const config = {
       logo: {
         alt: "Mono Logo",
         src: "img/logo.svg",
-        srcDark: "img/logo.svg"
+        srcDark: "img/logo.svg",
       },
       items: [
         { label: "首页", to: "/", position: "left" },
@@ -151,20 +108,27 @@ const config = {
           ],
         },
         { label: "关于", to: "/about/", position: "left" },
-        { type: "search", position: "right" },
-        { label: "GitHub", href: "https://github.com/ye2f4", position: "right" },
+
+        // ✅ 绿色聊天按钮（自动适配样式）
+        {
+          label: "聊天",
+          to: "/chat/",
+          position: "right",
+          className: "navbar-chat-btn",
+        },
+        // ✅ GitHub 统一风格按钮
+        {
+          label: "GitHub",
+          href: "https://github.com/ye2f4",
+          position: "right",
+          className: "navbar-github-btn",
+        },
       ],
     },
     footer: {
       copyright: `Powered by Docusaurus & GitHub Pages © ${new Date().getFullYear()} Monoの小窝`,
     },
-    algolia: {
-      appId: "R0GAN8VK8F",
-      apiKey: "fe400fed06536292c70c9f6ef42f24f9",
-      indexName: "ye2f4_github_io_r0gan8vk8f_pages",
-      contextualSearch: false,
-      searchPagePath: false,
-    },
+    // ✅ 已彻底删除所有 algolia 配置（崩溃根源）
     colorMode: { respectPrefersColorScheme: true },
     mermaid: {
       theme: { light: "base", dark: "base" },
@@ -175,7 +139,7 @@ const config = {
           primaryBorderColor: "#4D4D4D",
           lineColor: "#EAD67E",
           secondaryColor: "#EA67BD",
-          tertiaryColor: "#677CEA",
+          tertiaryColor: "#67CEA9",
         },
       },
     },
@@ -185,10 +149,13 @@ const config = {
     image: "img/og-image.png",
   },
 
-  // ============================================
-  // 插件配置
-  // ============================================
+  // ✅ 正确的本地搜索插件（无崩溃、支持中文）
   plugins: [
+    [require.resolve("@easyops-cn/docusaurus-search-local"), {
+      hashed: true,
+      language: ["zh", "en"],
+      highlightSearchTermsOnTargetPage: true,
+    }],
     () => ({
       name: "docusaurus-tailwindcss",
       configurePostCss(postcssOptions) {
@@ -210,11 +177,6 @@ const config = {
     }),
   ],
 
-  scripts: [],
-
-  // ============================================
-  // 预设配置
-  // ============================================
   presets: [
     [
       "@docusaurus/preset-classic",
@@ -227,42 +189,26 @@ const config = {
           remarkPlugins: [remarkDefList],
         },
         blog: {
-          blogTitle: "Monoの小窝 博客",
-          blogDescription: "个人随笔、技术分享与生活记录",
+          blogTitle: "Monoの小窝",
+          blogDescription: "个人随笔、技术分享、开源教程",
           postsPerPage: 10,
           blogSidebarCount: 5,
           onUntruncatedBlogPosts: "ignore",
-          feedOptions: {
-            type: "all",
-            copyright: `Copyright © ${new Date().getFullYear()} Monoの小窝`,
-          },
         },
         theme: {
-          customCss: require.resolve("./src/css/custom.css")
+          customCss: require.resolve("./src/css/custom.css"),
         },
         sitemap: {
           changefreq: "weekly",
           priority: 0.7,
-          lastmod: "date", // 🔥 自动更新时间，SEO 暴增
-          ignorePatterns: ["/tags/**", "/categories/**", "/blog/archive/**"],
+          lastmod: "date",
         },
       },
     ],
   ],
 
-  customFields: {},
-
-  i18n: {
-    defaultLocale: "en",
-    locales: ["en"]
-  },
-
-  markdown: {
-    mermaid: true,
-    hooks: {
-      onBrokenMarkdownLinks: "warn"
-    }
-  },
+  i18n: { defaultLocale: "en", locales: ["en"] },
+  markdown: { mermaid: true },
 };
 
 export default config;
