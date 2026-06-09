@@ -164,15 +164,6 @@ const config = {
       indexName: "ye2f4_github_io_rogan8vk8f_pages",
       contextualSearch: false,
       searchPagePath: false,
-      searchParameters: {
-        hitsPerPage: 10,
-        facetFilters: [],
-        attributesToSearchOn: ["title", "description", "content", "keywords"],
-        // 强制只取回真实存在的字段，抛弃所有hierarchy
-        attributesToRetrieve: ["title", "description", "content", "keywords", "url", "type"],
-        // 禁用层级摘要，只对正文做片段截取
-        attributesToSnippet: ["content:10"],
-      },
     },
     colorMode: { respectPrefersColorScheme: true },
     mermaid: {
