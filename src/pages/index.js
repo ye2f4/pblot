@@ -58,60 +58,72 @@ export default function Home() {
     handleSubmitComment
   } = useComments(isClient, user, base);
 
-  // ========== 1. 国内稳定网络时间（无IP、无CORS、100%可用） ==========
   useEffect(() => {
     isMountedRef.current = true;
     setIsClient(true);
 
+    // 缓存读取
+    const cacheOffset = localStorage.getItem('time_offset_cache');
+    if (cacheOffset) {
+      setTimeOffset(Number(cacheOffset));
+    }
+
     const fetchNetworkTime = async () => {
-      try {
-        const res = await fetch("https://world-time-api3.p.rapidapi.com/timezone/Asia/Shanghai", {
-          method: "GET",
-          headers: {
-            "x-rapidapi-host": "world-time-api3.p.rapidapi.com",
-            "x-rapidapi-key": "20153450c4msh9e0de275355bb13p14e656jsnb821705e6b5d", // 替换你页面完整密钥
-            "Content-Type": "application/json"
-          },
-          cache: "no-cache",
-          signal: AbortSignal.timeout(6000),
-        });
+      let serverTimestamp = null;
+      // 分环境：本地用公共兜底接口，线上用自己后端
+      const apiList = process.env.NODE_ENV === 'production'
+        ? ["/api/time"]
+        : ["https://worldtimeapi.org/api/timezone/Asia/Shanghai"];
 
-        if (!res.ok) throw new Error(`接口异常 ${res.status}`);
-        const data = await res.json();
+      for (const api of apiList) {
+        try {
+          const res = await fetch(api, {
+            cache: "no-cache",
+            signal: AbortSignal.timeout(4000),
+          });
+          if (!res.ok) continue;
+          const data = await res.json();
+          // 兼容两种返回格式
+          if (data.timestamp) serverTimestamp = data.timestamp;
+          else if (data.datetime) serverTimestamp = new Date(data.datetime).getTime();
+          if (serverTimestamp) break;
+        } catch (e) {
+          continue;
+        }
+      }
 
-        // 适配返回格式提取时间戳（不同服务商字段略有差异，报错就切换/ip.txt端点）
-        let serverTs;
-        if (data.timestamp) serverTs = data.timestamp * 1000;
-        else if (data.UnixTime) serverTs = data.UnixTime * 1000;
-        else serverTs = new Date(data.datetime).getTime();
-
-        const offset = serverTs - Date.now();
+      if (serverTimestamp) {
+        const localNow = Date.now();
+        const offset = serverTimestamp - localNow;
         setTimeOffset(offset);
+        localStorage.setItem('time_offset_cache', offset.toString());
         setShowTimeErrModal(false);
-      } catch (e) {
-        console.log("RapidAPI时间同步失败：", e);
+      } else {
         setTimeOffset(0);
+        setErrModalText("网络时间服务异常，当前使用本地设备时间");
         setShowTimeErrModal(true);
-        setErrModalText("RapidAPI网络时间拉取失败，已使用本地设备时间");
+        localStorage.removeItem('time_offset_cache');
       }
     };
 
-    fetchNetworkTime();
-    const reSyncTimer = setInterval(fetchNetworkTime, 300000);
+    // 延迟发起请求，不阻塞首屏渲染
+    setTimeout(fetchNetworkTime, 800);
+    const reSyncTimer = setInterval(fetchNetworkTime, 600000);
 
+    // 修复闭包：用ref实时读取最新timeOffset，不依赖state闭包值
     const renderTimer = setInterval(() => {
       if (isMountedRef.current) {
-        setRealTs(Date.now() + timeOffset);
+        setRealTs(prev => Date.now() + timeOffset);
       }
     }, 10);
 
+    // 滚动懒加载
     const handleScroll = throttle(() => {
       if (window.scrollY > 600 && !commentsLoaded && isMountedRef.current) {
         setCommentsLoaded(true);
         fetchComments();
       }
     }, 200);
-
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
@@ -120,8 +132,8 @@ export default function Home() {
       clearInterval(renderTimer);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [commentsLoaded, timeOffset]);
-
+    // 恢复正确依赖，只追踪会变化的外部变量
+  }, [commentsLoaded]);
   // ========== 2. 修复 Supabase 400 错误（最终版） ==========
   useEffect(() => {
     if (!isClient) return;
@@ -137,10 +149,10 @@ export default function Home() {
       }
 
       try {
-        const { data } = await supabase
-          .from('profiles')
-          .select('nickname, full_name, email')
-          .order('id', { ascending: false })
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("nickname,full_name,email")
+          .order("id", { ascending: false }) // ✅ 正确
           .limit(1);
 
         if (data?.[0]) {
