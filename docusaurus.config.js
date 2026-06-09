@@ -106,13 +106,13 @@ const config = {
     },
     { tagName: "meta", attributes: { name: "author", content: "Mono" } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
-    {
-      tagName: "meta",
-      attributes: {
-        "http-equiv": "Cache-Control",
-        content: "public, max-age=31536000, immutable",
-      },
-    },
+    //{
+    //tagName: "meta",
+    //attributes: {
+    //"http-equiv": "Cache-Control",
+    // content: "public, max-age=31536000, immutable",
+    //},
+    //},
     {
       tagName: "meta",
       attributes: {
