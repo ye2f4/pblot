@@ -27,22 +27,22 @@ const config = {
   // ============================================
   // 未来特性与性能优化配置
   // ============================================
-  future: {
-    faster: {
-      swcJsLoader: true,
-      swcJsMinimizer: true,
-      swcHtmlMinimizer: true,
-      lightningCssMinimizer: true,
-      rspackBundler: true,
-      rspackPersistentCache: true,
-      mdxCrossCompilerCache: true,
-      gitEagerVcs: true,
-    },
-    v4: {
-      useCssCascadeLayers: false,
-      removeLegacyPostBuildHeadAttribute: true,
-    },
-  },
+  //future: {
+  //  faster: {
+  //    swcJsLoader: true,
+  //    swcJsMinimizer: true,
+  //    swcHtmlMinimizer: true,
+  //    lightningCssMinimizer: true,
+  //    rspackBundler: true,
+  //    rspackPersistentCache: true,
+  //    mdxCrossCompilerCache: true,
+  //    gitEagerVcs: true,
+  //  },
+  //  v4: {
+  //    useCssCascadeLayers: false,
+  //    removeLegacyPostBuildHeadAttribute: true,
+  //  },
+  //},
 
   // ============================================
   // 全局HTML头部标签配置
