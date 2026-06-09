@@ -302,16 +302,20 @@
   ],
   "ads": [
     {
-      "filename": "ad_right_1.webp"
+      "filename": "ad_right_1.webp",
+      "link": "https://klpbbs.com/t/ad/xl_pc.html"
     },
     {
-      "filename": "ad_right_2.webp"
+      "filename": "ad_right_2.webp",
+      "link": "https://klpbbs.com/t/ad/yxy_pc.html"
     },
     {
-      "filename": "ad_right_3.webp"
+      "filename": "ad_right_3.webp",
+      "link": "https://xz.klpz.net/123/"
     },
     {
-      "filename": "ad_right_4.webp"
+      "filename": "ad_right_4.webp",
+      "link": "https://mcbebbs.cn/"
     }
   ]
 }

@@ -6,7 +6,8 @@
 :global(body) {
   margin: 0;
   padding: 0;
-  background-color: #FFF9E6 !important; /* 护眼淡黄色背景 */
+  background-color: #FFF9E6 !important;
+  /* 护眼淡黄色背景 */
 }
 
 /* 像素风字体 */
@@ -17,33 +18,75 @@
 
 /* ====================== 全局动画定义 ====================== */
 :global(@keyframes fadeIn) {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 :global(@keyframes pixelBounce) {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 :global(@keyframes breathe) {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.02); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
 }
 
 :global(@keyframes digitPulse) {
-  0%, 100% { text-shadow: 0 0 2px #333; }
-  50% { text-shadow: 0 0 8px #4285f4; }
+
+  0%,
+  100% {
+    text-shadow: 0 0 2px #333;
+  }
+
+  50% {
+    text-shadow: 0 0 8px #4285f4;
+  }
 }
 
 :global(@keyframes rankFlash) {
-  0%, 100% { box-shadow: 0 0 0 rgba(0,0,0,0.1); }
-  50% { box-shadow: 0 0 8px rgba(234, 67, 53, 0.4); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 8px rgba(234, 67, 53, 0.4);
+  }
 }
 
 :global(@keyframes scrollText) {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 :global(.scroll-text) {
@@ -71,7 +114,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: left 0.6s ease;
 }
 
@@ -81,7 +124,7 @@
 
 :global(.btn-hover:hover) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 /* ====================== 轮播图修复样式 ====================== */
@@ -107,11 +150,12 @@
   display: block;
 }
 
-:global(.slick-prev), :global(.slick-next) {
+:global(.slick-prev),
+:global(.slick-next) {
   z-index: 100 !important;
   width: 40px !important;
   height: 40px !important;
-  background-color: rgba(0,0,0,0.6) !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
@@ -119,15 +163,22 @@
   transition: all 0.3s ease !important;
 }
 
-:global(.slick-prev:hover), :global(.slick-next:hover) {
-  background-color: rgba(0,0,0,0.8) !important;
+:global(.slick-prev:hover),
+:global(.slick-next:hover) {
+  background-color: rgba(0, 0, 0, 0.8) !important;
   transform: scale(1.1) !important;
 }
 
-:global(.slick-prev) { left: 15px !important; }
-:global(.slick-next) { right: 15px !important; }
+:global(.slick-prev) {
+  left: 15px !important;
+}
 
-:global(.slick-prev::before), :global(.slick-next::before) {
+:global(.slick-next) {
+  right: 15px !important;
+}
+
+:global(.slick-prev::before),
+:global(.slick-next::before) {
   font-size: 20px !important;
   color: #fff !important;
   opacity: 1 !important;
@@ -166,7 +217,7 @@
   background: #fff;
   border-radius: 12px;
   padding: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   animation: fadeIn 0.6s ease-out;
 }
 
@@ -261,7 +312,7 @@
   background: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   animation: fadeIn 0.8s ease-out both;
 }
@@ -333,7 +384,7 @@
 
 .navCard:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .navIcon {
@@ -367,7 +418,7 @@
 
 .updateItem:hover {
   transform: translateX(5px);
-  background-color: rgba(0,0,0,0.02);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .updateDate {
@@ -401,7 +452,7 @@
 
 .tagItem:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .tagCount {
@@ -476,7 +527,7 @@
 
 .adBox img:hover {
   transform: scale(1.03);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .tagWrap,
@@ -531,43 +582,80 @@
   .pageWrap {
     flex-direction: column;
   }
+
   .twoColGrid {
     grid-template-columns: 1fr;
   }
+
   .topStatWrap {
     gap: 12px;
   }
+
   .statCircle {
     width: 56px;
     height: 56px;
     font-size: 24px;
   }
+
   .topBannerWrap {
     height: auto;
     padding: 16px;
   }
+
   .topRow {
     flex-direction: column;
     gap: 10px;
     height: auto;
   }
+
   .topCol {
     width: 100%;
   }
-  .stats-container { gap: 15px !important; justify-content: center !important; }
-  .clock-container { padding: 10px !important; text-align: center !important; }
-  .clock-text { font-size: 24px !important; }
-  .date-text { font-size: 16px !important; }
-  .main-content { flex-direction: column; gap: 15px !important; }
-  .carousel-container, .sidebar-container { flex: 1 1 100% !important; }
-  .tab-buttons { flex-wrap: wrap; justify-content: center !important; }
-  .action-buttons { flex-direction: column; justify-content: center !important; }
-  
+
+  .stats-container {
+    gap: 15px !important;
+    justify-content: center !important;
+  }
+
+  .clock-container {
+    padding: 10px !important;
+    text-align: center !important;
+  }
+
+  .clock-text {
+    font-size: 24px !important;
+  }
+
+  .date-text {
+    font-size: 16px !important;
+  }
+
+  .main-content {
+    flex-direction: column;
+    gap: 15px !important;
+  }
+
+  .carousel-container,
+  .sidebar-container {
+    flex: 1 1 100% !important;
+  }
+
+  .tab-buttons {
+    flex-wrap: wrap;
+    justify-content: center !important;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    justify-content: center !important;
+  }
+
   /* 移动端隐藏轮播箭头 */
-  .slick-prev, .slick-next {
+  .slick-prev,
+  .slick-next {
     display: none !important;
   }
-  
+
   /* 移动端下方板块响应式 */
   .navGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -575,12 +663,48 @@
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-  .stats-container { gap: 20px !important; }
-  .clock-text { font-size: 32px !important; }
-  .carousel-container { flex: 6 !important; }
-  .sidebar-container { flex: 4 !important; }
-  
+  .stats-container {
+    gap: 20px !important;
+  }
+
+  .clock-text {
+    font-size: 32px !important;
+  }
+
+  .carousel-container {
+    flex: 6 !important;
+  }
+
+  .sidebar-container {
+    flex: 4 !important;
+  }
+
   .navGrid {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+/* 硬件加速 */
+.main-content,
+.navbar,
+.sidebar-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 滚动平滑 */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 60px;
+}
+
+/* 禁止点击高亮 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 图片禁止拖动导致卡顿 */
+img {
+  user-select: none;
+  -webkit-user-drag: none;
 }
