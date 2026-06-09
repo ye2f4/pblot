@@ -1,22 +1,34 @@
 <div align="center" markdown="1">
 
-<img src=".github/meshtastic_logo.png" alt="Meshtastic Logo" width="80"/>
+<!-- 替换为你自己的网站 Logo 地址（本地图片/CDN 均可） -->
+<img src=".github/pblot_logo.png" alt="PBLOT Logo" width="80"/>
 
-  <h1 align="center"> 简介
-</h1>
-  <p style="font-size:15px;" align="center">Website and documentation source for the Meshtastic project.</p>
+  <h1 align="center">PBLOT 社区平台</h1>
+  <p style="font-size:15px;" align="center">
+    基于 Docusaurus + Supabase 搭建的社区、个人中心与实时聊天系统
+  </p>
 
-[![CI](https://img.shields.io/github/actions/workflow/status/meshtastic/meshtastic/ci.yml?branch=master&label=actions&logo=github&color=yellow)](https://github.com/meshtastic/meshtastic/actions/workflows/ci.yml)
-[![CLA assistant](https://cla-assistant.io/readme/badge/meshtastic/meshtastic)](https://cla-assistant.io/meshtastic/repo)
-[![Fiscal Contributors](https://opencollective.com/meshtastic/tiers/badge.svg?label=Fiscal%20Contributors&color=deeppink)](https://opencollective.com/meshtastic/)
-[![Vercel](https://img.shields.io/static/v1?label=Powered%20by&message=Vercel&style=flat&logo=vercel&color=000000)](https://vercel.com?utm_source=meshtastic&utm_campaign=oss)
+<!-- 项目徽章：根据你的实际仓库/部署环境选用，已适配国内常用场景 -->
+[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/ci.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
+[![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus)](https://docusaurus.io/)
+[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase)](https://supabase.com/)
+[![Vercel](https://img.shields.io/static/v1?label=Deploy&message=Vercel&style=flat&logo=vercel&color=000000)](https://vercel.com)
 
 </div>
 
-## Development & Building
+## 🛠️ 本地开发 & 项目构建
 
-For complete instructions on setting up your development environment and for building and running the docs project locally, please refer to our [Local Development Guide](https://meshtastic.org/docs/development/documentation/local-dev/).
+本项目基于 **Docusaurus** 开发，包含前端页面、用户系统、实时聊天、个人资料模块。
+如需本地运行、调试或打包部署，请参考下方快速指南：
 
-## Stats
+### 前置依赖
+- Node.js 18+
+- 包管理器：`pnpm`（项目默认使用）
 
-![Alt](https://repobeats.axiom.co/api/embed/9ef7282debe009789c697432a86499ac2b058a86.svg "Repobeats analytics image")
+### 本地启动（开发模式）
+```bash
+# 安装依赖
+pnpm install
+
+# 本地热启动（访问：http://localhost:3000/pblot）
+pnpm start

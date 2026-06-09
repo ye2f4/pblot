@@ -31,12 +31,12 @@
       "error": "修改失败: "
     },
     "comments": {
-      "title": "💬 评论区",
+      "title": "💬 留言区",
       "placeholder": "分享你的想法...",
-      "loginTip": "请登录后发表评论",
-      "submit": "发表评论",
-      "empty": "暂无评论，快来发言吧",
-      "success": "评论发表成功！"
+      "loginTip": "请登录后发表留言",
+      "submit": "发表留言",
+      "empty": "暂无留言，快来发言吧",
+      "success": "留言发表成功！"
     },
     "callback": {
       "title": "登录中...",
