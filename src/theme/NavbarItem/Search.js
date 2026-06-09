@@ -7,7 +7,7 @@ export default function Search() {
         <DocSearch
             appId="R0GAN8VK8F"
             apiKey="fe400fed06536292c70c9f6ef42f24f9"
-            indexName="ye2f4_github_io_rogan8vk8f_pages"
+            indexName="ye2f4_github_io_r0gan8vk8f_pages"
             // 强制限定只检索真实存在的4个字段，完全抛弃hierarchy
             searchParameters={{
                 attributesToSearchOn: ["title", "description", "content", "keywords"],
