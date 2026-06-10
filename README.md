@@ -1,34 +1,110 @@
 <div align="center" markdown="1">
 
-<!-- 替换为你自己的网站 Logo 地址（本地图片/CDN 均可） -->
-<img src=".github/pblot_logo.png" alt="PBLOT Logo" width="80"/>
+<!-- 项目 Logo 区域 -->
+<img src=".github/pblot_logo.png" alt="PBLOT Logo" width="90" style="margin-bottom: 12px;"/>
 
-  <h1 align="center">PBLOT 社区平台</h1>
-  <p style="font-size:15px;" align="center">
-    基于 Docusaurus + Supabase 搭建的社区、个人中心与实时聊天系统
-  </p>
+# 🧩 PBLOT 社区平台
+### 基于 Docusaurus + Supabase 构建的现代化社区 | 个人中心 | 实时聊天系统
 
-<!-- 项目徽章：根据你的实际仓库/部署环境选用，已适配国内常用场景 -->
-[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/deploy.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
-[![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus)](https://docusaurus.io/)
-[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase)](https://supabase.com/)
-[![Vercel](https://img.shields.io/static/v1?label=Deploy&message=Vercel&style=flat&logo=vercel&color=000000)](https://vercel.com)
+> 轻量化、易部署、全开源的一体化社区解决方案，集成文档、用户体系、即时通讯与后台数据管理
+
+<br>
+
+<!-- 状态徽章组（分两行排版，避免拥挤，新增常用徽章 + 国内镜像兼容） -->
+<!-- 第一行：构建 & 技术栈 徽章 -->
+[![GitHub CI](https://shields.vercel.app/github/actions/workflow/status/ye2f4/pblot/deploy.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
+[![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
+[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vercel](https://img.shields.io/static/v1?label=Deploy&message=Vercel&style=flat&logo=vercel&color=000000&logoColor=white)](https://vercel.com)
+
+<br>
+
+<!-- 第二行：开源 & 统计 & 协议 徽章 -->
+[![GitHub Stars](https://shields.vercel.app/github/stars/ye2f4/pblot?logo=github&color=blue)](https://github.com/ye2f4/pblot/stargazers)
+[![GitHub Forks](https://shields.vercel.app/github/forks/ye2f4/pblot?logo=git&color=lightblue)](https://github.com/ye2f4/pblot/fork)
+[![GitHub Issues](https://shields.vercel.app/github/issues/ye2f4/pblot?logo=github&color=red)](https://github.com/ye2f4/pblot/issues)
+[![License](https://shields.vercel.app/github/license/ye2f4/pblot?color=green)](LICENSE)
+[![Node Version](https://shields.vercel.app/node/v18?logo=node.js&color=339933)](https://nodejs.org/)
 
 </div>
 
-## 🛠️ 本地开发 & 项目构建
+---
 
-本项目基于 **Docusaurus** 开发，包含前端页面、用户系统、实时聊天、个人资料模块。
-如需本地运行、调试或打包部署，请参考下方快速指南：
+## 📖 项目简介
+**PBLOT** 是一款融合「静态文档站点 + 动态社区 + 实时聊天」的全栈开源平台。
+依托 **Docusaurus** 搭建前端界面与文档系统，搭配 **Supabase（PostgreSQL + 实时订阅）** 提供完整后端能力，无需独立搭建服务器、数据库与接口服务，开箱即用、部署简单。
 
-### 前置依赖
-- Node.js 18+
-- 包管理器：`pnpm`（项目默认使用）
+### 设计理念
+- ✅ **低门槛**：基于主流技术栈，新手也能快速上手二次开发
+- ✅ **全功能**：文档展示 + 用户登录/个人中心 + 即时聊天三位一体
+- ✅ **易部署**：支持 Vercel、GitHub Pages、自有服务器 多种部署方案
+- ✅ **高扩展**：基于 Supabase 原生能力，支持数据存储、权限控制、实时推送
 
-### 本地启动（开发模式）
-```bash
-# 安装依赖
-pnpm install
+---
 
-# 本地热启动（访问：http://localhost:3000/pblot）
-pnpm start
+## ✨ 核心功能一览
+<details open>
+<summary>点击展开 / 收起 全部功能</summary>
+
+### 🏠 基础站点能力
+- 基于 Docusaurus 标准文档结构，支持 Markdown 文档渲染、分类、标签、搜索
+- 响应式布局，完美适配 PC / 平板 / 手机 多端访问
+- 自定义页面、导航栏、侧边栏、站点样式，高度可定制
+
+### 👤 用户系统
+- 对接 Supabase 原生账号体系，支持邮箱登录/注册
+- 独立个人中心：资料编辑、头像设置、基础信息管理
+- 数据库权限隔离，保障用户数据安全
+
+### 💬 实时聊天系统
+- 基于 Supabase Realtime 实现**全双工即时通讯**
+- 消息持久化存储，历史记录可回溯
+- 标准消息表结构，支持后续扩展表情包、文件传输等功能
+
+### 🛡️ 数据底层
+- 基于 PostgreSQL 关系型数据库，数据结构规范、稳定可靠
+- 完整外键约束、数据校验机制，保证数据完整性
+- 可视化后台（Supabase Dashboard），一键管理数据表、数据、权限
+
+</details>
+
+---
+
+## 🧰 技术栈明细
+| 分类 | 技术/框架 | 说明 |
+| :--- | :--- | :--- |
+| **前端框架** | Docusaurus 3.x | 静态站点生成器，基于 React，专注文档 & 社区页面 |
+| **后端服务** | Supabase | 开源 Firebase 替代方案，内置 PostgreSQL + 实时订阅 + 身份认证 |
+| **数据库** | PostgreSQL | 关系型数据库，支持外键、事务、复杂查询 |
+| **包管理器** | pnpm | 快速、节省磁盘空间的现代包管理工具 |
+| **部署平台** | Vercel / GitHub Pages | 免费静态站点托管，自动 CI/CD 构建部署 |
+| **实时通信** | Supabase Realtime | 数据库变更实时推送，实现聊天消息即时同步 |
+
+---
+
+## 🌐 在线预览
+> 线上访问地址（持续更新）
+- GitHub Pages：https://ye2f4.github.io/pblot/
+- Vercel 部署地址：待补充
+
+<br>
+
+<!-- 预览截图占位，后续可替换为真实页面截图 -->
+<div align="center">
+<img src=".github/preview_demo.png" alt="PBLOT 站点预览" width="800"/>
+<p><i>站点预览示意图（可替换为实际截图）</i></p>
+</div>
+
+---
+
+## ⚙️ 前置环境依赖
+> 本地开发、构建项目前，请确保你的设备已安装以下环境：
+
+### 必装软件
+1. **Node.js 18.x 及以上版本**
+   推荐使用 `LTS` 长期支持版：[Node.js 官方下载](https://nodejs.org/)
+2. **pnpm 包管理器**
+   全局安装 pnpm（终端执行）：
+   ```bash
+   # 全局安装 pnpm
+   npm install -g pnpm
