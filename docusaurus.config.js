@@ -336,7 +336,6 @@ const config = {
             type: 'rss',
             copyright: `© ${new Date().getFullYear()} Monoの小窝`,
             language: 'zh-CN',
-            path: 'rss.xml',
           },
         },
         theme: {
