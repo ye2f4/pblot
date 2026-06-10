@@ -237,13 +237,9 @@ export default function Calendar() {
   const data = buildHuangLiData(currentDate);
 
   // 【修复】安全返回函数：兼容空历史记录场景
+  // 改为直接跳网站根目录
   const handleGoBack = () => {
-    // 判断路由历史长度，有上一页则返回，无则跳转到首页
-    if (history.length > 1) {
-      history.goBack();
-    } else {
-      history.push('/pblot');
-    }
+    history.push('/');
   };
 
   // 日期切换
