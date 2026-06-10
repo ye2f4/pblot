@@ -19,19 +19,22 @@ const config = {
   baseUrl: "/",
   trailingSlash: false,
 
-  // 断链告警规则（补全规范配置）
+  // 断链告警规范写法（消除弃用警告）
   onBrokenLinks: "warn",
-  onBrokenMarkdownLinks: "warn",
+  markdown: {
+    mermaid: true,
+    hooks: {
+      onBrokenMarkdownLinks: "warn"
+    }
+  },
 
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "",
-  deploymentBranch: "gh-pages", // 显式指定部署分支
+  deploymentBranch: "gh-pages",
 
-  // 实验性功能
   future: {},
 
-  // 头部资源预加载、预连接、SEO 标签（原样保留）
   headTags: [
     {
       tagName: 'link',
@@ -93,7 +96,6 @@ const config = {
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
   ],
 
-  // 主题配置（导航、页脚、样式、图表 原样保留）
   themeConfig: {
     respectPrefersColorScheme: true,
     docs: { sidebar: { autoCollapseCategories: true } },
@@ -157,29 +159,25 @@ const config = {
     image: "img/og-image.png",
   },
 
-  // 插件列表：新增【自动生成CNAME插件】，其余插件原样保留
   plugins: [
-    // 自定义插件：构建完成自动生成 CNAME（核心修复，替代根节点 postBuild）
+    // 自动生成CNAME插件
     function AutoGenerateCNAMEPlugin() {
       return {
         name: "auto-generate-cname",
         async postBuild({ outDir }) {
           const cnameFilePath = path.join(outDir, "CNAME");
-          // 写入标准 CNAME 内容：纯域名，无空格/换行/协议
           fs.writeFileSync(cnameFilePath, SITE_DOMAIN, "utf8");
           console.log(`✅ [插件] 已自动生成 CNAME 文件: ${cnameFilePath}`);
         },
       };
     },
 
-    // 原有本地搜索插件
     [require.resolve("@easyops-cn/docusaurus-search-local"), {
       hashed: true,
       language: ["zh", "en"],
       highlightSearchTermsOnTargetPage: true,
     }],
 
-    // Tailwind CSS 插件
     () => ({
       name: "docusaurus-tailwindcss",
       configurePostCss(postcssOptions) {
@@ -189,7 +187,6 @@ const config = {
       },
     }),
 
-    // Webpack 别名插件 + 环境区分 SourceMap
     () => ({
       name: "docusaurus-webpack-alias",
       configureWebpack() {
@@ -203,7 +200,6 @@ const config = {
     }),
   ],
 
-  // 预设配置（文档、博客、站点地图 原样保留）
   presets: [
     [
       "@docusaurus/preset-classic",
@@ -230,18 +226,14 @@ const config = {
           priority: 0.7,
           lastmod: "date",
         },
-        hashRouter: false, // 新增，明确使用history路由
       },
     ],
   ],
 
-  // 国际化：修复为中文站点
   i18n: {
     defaultLocale: "zh-CN",
     locales: ["zh-CN"]
   },
-
-  markdown: { mermaid: true },
 };
 
 export default config;
