@@ -9,19 +9,20 @@ export const useAuth = () => {
     const [isSessionChecked, setIsSessionChecked] = useState(false);
     const isMountedRef = useRef(true);
 
-    // GitHub登录（修复域名+新增弹窗模式）
+    // GitHub登录（弹窗模式）
     const handleGitHubLogin = async () => {
         setLoading(true);
         try {
-            // 自适应当前页面域名，不再拼接旧 /callback 路径
+            // 自适应当前页面域名
             const redirectUrl = window.location.origin;
 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "github",
                 options: {
-                    popup: true, // 优先弹窗授权，不跳转整页（解决跳转后无响应）
+                    popup: true,
                     redirectTo: redirectUrl,
-                    scopes: "user:email"
+                    // 修复：补充 read:user 权限，允许拉取 GitHub 用户资料/头像/昵称
+                    scopes: "user:email,read:user"
                 }
             });
 
@@ -37,7 +38,7 @@ export const useAuth = () => {
         }
     };
 
-    // 备用页面跳转登录（弹窗被浏览器拦截时手动切换调用）
+    // 备用页面跳转登录（弹窗被拦截时使用）
     const handleGitHubLoginPageMode = async () => {
         setLoading(true);
         try {
@@ -47,7 +48,8 @@ export const useAuth = () => {
                 options: {
                     popup: false,
                     redirectTo: redirectUrl,
-                    scopes: "user:email"
+                    // 同步补充权限
+                    scopes: "user:email,read:user"
                 }
             });
             if (error) alert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
@@ -67,7 +69,7 @@ export const useAuth = () => {
                 console.error('登出失败', error);
             } else {
                 setUser(null);
-                // 清除残留哈希
+                // 清除URL残留哈希参数
                 if (window.location.hash) {
                     window.history.replaceState(null, document.title, window.location.pathname);
                 }
@@ -78,7 +80,7 @@ export const useAuth = () => {
         }
     };
 
-    // 初始化认证状态
+    // 初始化认证状态 + 全局会话监听
     useEffect(() => {
         isMountedRef.current = true;
 
@@ -102,13 +104,13 @@ export const useAuth = () => {
 
         fetchUser();
 
-        // 监听全局认证状态变化
+        // 监听认证状态变化
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             console.log('Auth状态变更事件', event, session?.user?.email);
             if (isMountedRef.current) {
                 if (session?.user) {
                     setUser({ ...session.user });
-                    // 登录成功后清除URL里#token哈希，页面干净
+                    // 登录成功后清理URL哈希
                     if (window.location.hash) {
                         window.history.replaceState(null, document.title, window.location.pathname);
                     }
@@ -129,7 +131,7 @@ export const useAuth = () => {
         loading,
         isSessionChecked,
         handleGitHubLogin,
-        handleGitHubLoginPageMode, // 备用页面跳转模式暴露
+        handleGitHubLoginPageMode,
         handleSignOut
     };
 };
