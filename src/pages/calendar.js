@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Layout from '@theme/Layout';
+// 新增：导入 Docusaurus 路由钩子
+import { useHistory } from '@docusaurus/router';
 // 修正：相对路径导入JSON配置
 import config from '../data/calendar.json';
 
@@ -226,11 +228,23 @@ function buildHuangLiData(inputDate) {
 
 // ====================== 页面组件（日期选择器+完整UI） ======================
 export default function Calendar() {
+  // 路由历史对象
+  const history = useHistory();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(currentDate.getFullYear());
   const [pickerMonth, setPickerMonth] = useState(currentDate.getMonth());
   const data = buildHuangLiData(currentDate);
+
+  // 【修复】安全返回函数：兼容空历史记录场景
+  const handleGoBack = () => {
+    // 判断路由历史长度，有上一页则返回，无则跳转到首页
+    if (history.length > 1) {
+      history.goBack();
+    } else {
+      history.push('/');
+    }
+  };
 
   // 日期切换
   const changeDay = (num) => {
@@ -269,7 +283,8 @@ export default function Calendar() {
     <Layout title="正统完整版老黄历" description="干支、时辰、卦象、宜忌、方位、太岁全套传统黄历">
       <div style={{ minHeight: '100vh', background: '#FFF8E1', padding: '20px', fontFamily: '"SimSun","Microsoft YaHei",serif' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto 20px auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button onClick={() => window.history.back()} style={baseBtn}>← 返回</button>
+          {/* 替换为修复后的点击事件 */}
+          <button onClick={handleGoBack} style={baseBtn}>← 返回</button>
           <h2 style={{ color: '#B71C1C', margin: 0, fontSize: '24px' }}>📜 正统完整版老黄历</h2>
         </div>
 
@@ -290,7 +305,7 @@ export default function Calendar() {
                       <button onClick={() => setPickerMonth(pickerMonth - 1)}>←</button>
                       <button onClick={() => setPickerMonth(pickerMonth + 1)}>→</button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,32px)', gap: '2px' }}>{['日', '一', '二', '三', '四', '五', '六'].map(w => <div key={w} style={{ textAlign: 'center', fontSize: '12px' }}>{w}</div>)}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,32px)', gap: '2px', marginBottom: '8px' }}>{['日', '一', '二', '三', '四', '五', '六'].map(w => <div key={w} style={{ textAlign: 'center', fontSize: '12px' }}>{w}</div>)}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,32px)', gap: '2px', marginTop: '4px' }}>{renderPickerDays()}</div>
                   </div>
                 )}
