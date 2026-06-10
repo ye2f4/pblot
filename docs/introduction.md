@@ -10,21 +10,20 @@
 
 <br />
 
-<!-- 状态徽章组（分两行排版，国内稳定镜像，全统一域名） -->
 <!-- 第一行：构建 & 技术栈 徽章 -->
-[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/deploy.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/actions)
+[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/auto-deploy.yml?branch=master&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
 [![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
-[![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-2088FF?logo=github&logoColor=white)](https://ye2f4.github.io/)
+[![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-2088FF?logo=github&logoColor=white)](https://ye2f4.github.io/pblot/)
 
 <br />
 
-<!-- 第二行：Shields 动态徽章（追加个人Token，替换为你自己的Token） -->
-[![GitHub Stars](https://img.shields.io/github/stars/ye2f4/pblot?logo=github&color=blue&gh_token=你的GitHubToken)](https://github.com/ye2f4/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/ye2f4/pblot?logo=github&color=lightblue&gh_token=你的GitHubToken)](https://github.com/ye2f4/fork)
-[![GitHub Issues](https://img.shields.io/github/issues/ye2f4/pblot?logo=github&color=red&gh_token=你的GitHubToken)](https://github.com/ye2f4/issues)
-[![License](https://img.shields.io/github/license/ye2f4/pblot?color=green&gh_token=你的GitHubToken)](LICENSE)
-[![Node Version](https://img.shields.io/github/package-json/node-version/ye2f4/pblot?logo=node.js&color=339933&gh_token=你的GitHubToken)](https://nodejs.org/)
+<!-- 第二行：仓库数据徽章 -->
+[![GitHub Stars](https://img.shields.io/github/stars/ye2f4/pblot?logo=github&color=blue)](https://github.com/ye2f4/pblot/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/ye2f4/pblot?logo=github&color=lightblue)](https://github.com/ye2f4/pblot/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/ye2f4/pblot?logo=github&color=red)](https://github.com/ye2f4/pblot/issues)
+[![License](https://img.shields.io/github/license/ye2f4/pblot?color=green)](https://github.com/ye2f4/pblot/blob/master/LICENSE)
+[![Node Version](https://img.shields.io/github/package-json/node-version/ye2f4/pblot?logo=node.js&color=339933)](https://nodejs.org/)
 
 </div>
 
@@ -84,12 +83,10 @@
 
 ## 🌐 在线预览
 > 线上访问地址（持续更新）
-- GitHub Pages：https://ye2f4.github.io/
+- GitHub Pages：https://ye2f4.github.io/pblot/
 - Vercel 部署地址：待补充
 
 <br />
-
-<!-- 预览截图占位，后续可替换为真实页面截图 -->
 <div align="center">
 <img src=".github/preview_demo.png" alt="PBLOT 站点预览" width="800"/>
 <p><i>站点预览示意图（可替换为实际截图）</i></p>
@@ -106,6 +103,4 @@
 2. **pnpm 包管理器**
    全局安装 pnpm（终端执行）：
    ```bash
-   # 全局安装 pnpm
    npm install -g pnpm
-
