@@ -23,6 +23,8 @@ export default function ChatPage() {
   const [showEmojiPanel, setShowEmojiPanel] = useState(false);
   const [showAtModal, setShowAtModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false); // 发送中状态，防重复提交
+  const [error, setError] = useState(null); // 错误提示
 
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -68,24 +70,35 @@ export default function ChatPage() {
   // ===================== 【核心修复】登录后立刻加载自己的头像（数据库同步） =====================
   useEffect(() => {
     const init = async () => {
-      // 1. 获取登录用户
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setCurrentUser(null);
-        setLoading(false);
-        return;
-      }
-      setCurrentUser(user);
+      setError(null);
+      try {
+        // 1. 获取登录用户
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        
+        if (!user) {
+          setCurrentUser(null);
+          setLoading(false);
+          return;
+        }
+        setCurrentUser(user);
 
-      // 2. 强制从数据库拿自己的头像（100%同步）
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, avatar_url')
-        .eq('id', user.id)
-        .single();
-      
-      setMyProfile(profile || { avatar_url: DEFAULT_EMOJI_AVATAR });
-      setLoading(false);
+        // 2. 强制从数据库拿自己的头像（100%同步）
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileError) throw profileError;
+        
+        setMyProfile(profile || { avatar_url: DEFAULT_EMOJI_AVATAR });
+      } catch (err) {
+        console.error("初始化聊天页面失败：", err);
+        setError("加载用户信息失败，请刷新重试");
+      } finally {
+        setLoading(false);
+      }
     };
 
     init();
@@ -95,9 +108,13 @@ export default function ChatPage() {
       const user = session?.user || null;
       setCurrentUser(user);
       if (user) {
-        const { data } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
-        // 修复：增加兜底
-        setMyProfile(data || { avatar_url: DEFAULT_EMOJI_AVATAR });
+        try {
+          const { data } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
+          setMyProfile(data || { avatar_url: DEFAULT_EMOJI_AVATAR });
+        } catch (err) {
+          console.error("加载用户头像失败：", err);
+          setMyProfile({ avatar_url: DEFAULT_EMOJI_AVATAR });
+        }
       } else {
         setMyProfile(null);
       }
@@ -109,31 +126,46 @@ export default function ChatPage() {
   // 获取联系人列表
   const fetchAllUsers = async () => {
     if (!currentUser) return;
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, nickname, avatar_url')
-      .neq('id', currentUser.id);
-    setUserList(data || []);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nickname, avatar_url')
+        .neq('id', currentUser.id);
+      
+      if (error) throw error;
+      setUserList(data || []);
+    } catch (err) {
+      console.error("加载联系人列表失败：", err);
+      setError("加载联系人失败，请刷新重试");
+    }
   };
 
   // 获取聊天记录
   const fetchMessages = async (toUserId) => {
     if (!currentUser || !toUserId) return;
+    try {
+      const { data: msgData, error: msgError } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`and(from_user_id.eq.${currentUser.id},to_user_id.eq.${toUserId}),and(from_user_id.eq.${toUserId},to_user_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: true });
 
-    const { data: msgData } = await supabase
-      .from('messages')
-      .select('*')
-      .or(`and(from_user_id.eq.${currentUser.id},to_user_id.eq.${toUserId}),and(from_user_id.eq.${toUserId},to_user_id.eq.${currentUser.id})`)
-      .order('created_at', { ascending: true });
+      if (msgError) throw msgError;
+      if (!msgData) { setMessageList([]); scrollToBottom(); return; }
 
-    if (!msgData) { setMessageList([]); scrollToBottom(); return; }
+      const userIds = [...new Set(msgData.map(m => m.from_user_id))];
+      const { data: profileData, error: profileError } = await supabase.from('profiles').select('id, avatar_url').in('id', userIds);
+      if (profileError) throw profileError;
+      
+      const map = {}; 
+      profileData?.forEach(p => map[p.id] = p);
 
-    const userIds = [...new Set(msgData.map(m => m.from_user_id))];
-    const { data: profileData } = await supabase.from('profiles').select('id, avatar_url').in('id', userIds);
-    const map = {}; profileData?.forEach(p => map[p.id] = p);
-
-    setMessageList(msgData.map(m => ({ ...m, sender: map[m.from_user_id] || {} })));
-    scrollToBottom();
+      setMessageList(msgData.map(m => ({ ...m, sender: map[m.from_user_id] || {} })));
+      scrollToBottom();
+    } catch (err) {
+      console.error("加载聊天记录失败：", err);
+      setError("加载聊天记录失败，请刷新重试");
+    }
   };
 
   // 平滑滚动（无抖动）
@@ -143,17 +175,31 @@ export default function ChatPage() {
     });
   };
 
-  // 发送消息
+  // 发送消息【核心修复：增加错误捕获和loading】
   const sendMessage = async () => {
     const txt = inputValue.trim();
-    if (!txt || !targetUser || !currentUser) return;
-    await supabase.from('messages').insert([{
-      from_user_id: currentUser.id,
-      to_user_id: targetUser.id,
-      content: txt
-    }]);
-    setInputValue('');
-    fetchMessages(targetUser.id);
+    if (!txt || !targetUser || !currentUser || sending) return;
+    
+    setSending(true);
+    setError(null);
+    try {
+      const { error: insertError } = await supabase.from('messages').insert([{
+        from_user_id: currentUser.id,
+        to_user_id: targetUser.id,
+        content: txt
+      }]);
+
+      if (insertError) throw insertError;
+      
+      setInputValue('');
+      fetchMessages(targetUser.id);
+    } catch (err) {
+      console.error("发送消息失败：", err);
+      // 关键：这里会打印出具体的错误信息，比如RLS权限问题
+      setError(`发送失败：${err.message || '未知错误，请检查网络或重试'}`);
+    } finally {
+      setSending(false);
+    }
   };
 
   // 实时消息
@@ -212,6 +258,16 @@ export default function ChatPage() {
 
         {/* 右侧聊天 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* 错误提示 */}
+          {error && (
+            <div style={{
+              background: '#fff2f0', color: '#ff4d4f', padding: '12px 20px', 
+              borderBottom: '1px solid #ffccc7', textAlign: 'center'
+            }}>
+              {error}
+            </div>
+          )}
+          
           {targetUser ? (
             <>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>
@@ -222,7 +278,6 @@ export default function ChatPage() {
                   const isSelf = msg.from_user_id === myId;
                   return (
                     <div key={msg.id} style={{ display: 'flex', justifyContent: isSelf ? 'flex-end' : 'flex-start', marginBottom: '16px', gap: '10px', alignItems: 'flex-end' }}>
-                      {/* 🚀 核心修复：对方头像直接用 targetUser.avatar_url，100%正确 */}
                       {!isSelf && renderAvatar(targetUser.avatar_url, targetUser.id, 34)}
                       <div style={{
                         maxWidth: '65%', padding: '9px 14px', borderRadius: '20px',
@@ -247,7 +302,20 @@ export default function ChatPage() {
                   <button onClick={() => setShowEmojiPanel(!showEmojiPanel)} style={{ fontSize: '22px', border: 'none', background: 'transparent', cursor: 'pointer' }}>😊</button>
                   <input ref={inputRef} value={inputValue} onChange={handleInput} onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="输入消息，@可提及用户" style={{ flex: 1, padding: '11px 18px', borderRadius: '26px', border: '1px solid #e2e8f0' }} />
-                  <button onClick={sendMessage} style={{ padding: '10px 22px', borderRadius: '26px', background: '#07c160', color: '#fff', border: 'none', cursor: 'pointer' }}>发送</button>
+                  <button 
+                    onClick={sendMessage} 
+                    disabled={sending}
+                    style={{ 
+                      padding: '10px 22px', 
+                      borderRadius: '26px', 
+                      background: sending ? '#94e3b9' : '#07c160', 
+                      color: '#fff', 
+                      border: 'none', 
+                      cursor: sending ? 'not-allowed' : 'pointer' 
+                    }}
+                  >
+                    {sending ? "发送中" : "发送"}
+                  </button>
                 </div>
               </div>
             </>
