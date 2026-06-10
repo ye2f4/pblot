@@ -332,6 +332,11 @@ const config = {
           postsPerPage: 10,
           blogSidebarCount: 5,
           onUntruncatedBlogPosts: "ignore",
+          feedOptions: {
+            type: 'rss',
+            copyright: `© ${new Date().getFullYear()} Monoの小窝`,
+            language: 'zh-CN',
+          },
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -344,7 +349,6 @@ const config = {
             '/tags/**',
             '/categories/**',
             '/search',
-            '/rss',
           ],
         },
       },
