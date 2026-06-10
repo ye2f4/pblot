@@ -12,19 +12,20 @@
 
 <!-- 状态徽章组（分两行排版，国内稳定镜像，全统一域名） -->
 <!-- 第一行：构建 & 技术栈 徽章 -->
-[![GitHub CI](https://shields.vercel.app/github/actions/workflow/status/ye2f4/pblot/deploy.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
-[![Docusaurus](https://shields.vercel.app/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
-[![Supabase](https://shields.vercel.app/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
-[![Vercel](https://shields.vercel.app/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com)
+[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/deploy.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
+[![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
+[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-2088FF?logo=github&logoColor=white)](https://ye2f4.github.io/pblot/)
 
 <br>
 
-<!-- 第二行：开源 & 统计 & 协议 徽章 -->
-[![GitHub Stars](https://shields.vercel.app/github/stars/ye2f4/pblot?logo=github&color=blue)](https://github.com/ye2f4/pblot/stargazers)
-[![GitHub Forks](https://shields.vercel.app/github/forks/ye2f4/pblot?logo=git&color=lightblue)](https://github.com/ye2f4/pblot/fork)
-[![GitHub Issues](https://shields.vercel.app/github/issues/ye2f4/pblot?logo=github&color=red)](https://github.com/ye2f4/pblot/issues)
-[![License](https://shields.vercel.app/github/license/ye2f4/pblot?color=green)](LICENSE)
-[![Node Version](https://shields.vercel.app/node/v/package.json?logo=node.js&color=339933)](https://nodejs.org/)
+<!-- 第二行：Shields 动态徽章（追加个人Token，替换为你自己的Token） -->
+[![GitHub Stars](https://img.shields.io/github/stars/ye2f4/pblot?logo=github&color=blue&gh_token=你的GitHubToken)](https://github.com/ye2f4/pblot/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/ye2f4/pblot?logo=github&color=lightblue&gh_token=你的GitHubToken)](https://github.com/ye2f4/pblot/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/ye2f4/pblot?logo=github&color=red&gh_token=你的GitHubToken)](https://github.com/ye2f4/pblot/issues)
+[![License](https://img.shields.io/github/license/ye2f4/pblot?color=green&gh_token=你的GitHubToken)](LICENSE)
+[![Node Version](https://img.shields.io/github/package-json/node-version/ye2f4/pblot?logo=node.js&color=339933&gh_token=你的GitHubToken)](https://nodejs.org/)
+
 
 </div>
 
