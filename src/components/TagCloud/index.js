@@ -10,7 +10,7 @@ export default function TagCloud({ siteData }) {
                 {siteData.tags.map((tag, i) => (
                     <Link
                         key={i}
-                        to={`/pblot/tags/${tag.name.toLowerCase()}`}
+                        to={`/tags/${tag.name.toLowerCase()}`}
                         className={styles.tagItem}
                         style={{
                             backgroundColor: `${tag.color}20`,

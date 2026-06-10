@@ -11,3 +11,4 @@ export const Dark = ({ children }: ColorModeProps): JSX.Element => {
 export const Light = ({ children }: ColorModeProps): JSX.Element => {
   return <div className="hideDark">{children}</div>;
 };
+

@@ -30,7 +30,7 @@ export default function Register() {
             const { error } = await supabase.auth.signUp({ email, password });
             if (error) throw error;
             alert('注册成功！请查收邮箱验证，随后登录');
-            window.location.href = '/pblot/login';
+            window.location.href = '/login';
         } catch (err) {
             setError(err.message);
         } finally {
@@ -59,7 +59,7 @@ export default function Register() {
                 }}>
                     {/* 🔥 改为Link，解决SEO问题 */}
                     <Link
-                        to="/pblot/"
+                        to="/"
                         style={{
                             background: 'none',
                             border: 'none',
@@ -151,7 +151,7 @@ export default function Register() {
 
                     {/* 🔥 改为Link，解决SEO问题 */}
                     <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#666' }}>
-                        已有账号？<Link to="/pblot/login" style={{ background: 'none', border: 'none', color: '#4285f4', cursor: 'pointer', textDecoration: 'none' }}>立即登录</Link>
+                        已有账号？<Link to="/login" style={{ background: 'none', border: 'none', color: '#4285f4', cursor: 'pointer', textDecoration: 'none' }}>立即登录</Link>
                     </div>
                 </div>
             </div>

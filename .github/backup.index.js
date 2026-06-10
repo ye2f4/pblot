@@ -251,3 +251,4 @@ export default function MiddleStatsCard({
         </div>
     );
 }
+

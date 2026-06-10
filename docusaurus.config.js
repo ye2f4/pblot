@@ -10,13 +10,13 @@ import remarkDefList from "remark-deflist";
 const config = {
   title: "Monoの小窝",
   tagline: "一半白发藏温柔，一半白发载星网。",
-  url: "https://ye2f4.github.io",
-  baseUrl: "/pblot/",
+  url: "https://monoblog.cc.cd",
+  baseUrl: "/",
   trailingSlash: false,
   onBrokenLinks: "warn",
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
-  projectName: "pblot",
+  projectName: "",
 
   // 已彻底关闭实验模式，无崩溃
   future: {},
@@ -26,7 +26,7 @@ const config = {
       tagName: 'link',
       attributes: {
         rel: 'preload',
-        href: '/pblot/img/bg_big.webp',
+        href: '/img/bg_big.webp',
         as: 'image',
         type: 'image/webp',
         fetchpriority: 'high',
@@ -183,7 +183,7 @@ const config = {
       {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/ye2f4/pblot/edit/master/",
+          editUrl: "https://github.com/ye2f4/edit/master/",
           breadcrumbs: false,
           showLastUpdateAuthor: true,
           remarkPlugins: [remarkDefList],

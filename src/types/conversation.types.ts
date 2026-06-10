@@ -59,3 +59,4 @@ export interface BuiltMessage {
   isOutgoing?: boolean;
   reactions?: string[];
 }
+

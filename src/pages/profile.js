@@ -59,7 +59,7 @@ export default function Profile() {
             // 1. 先获取当前登录用户
             const { data: { user: authUser } } = await supabase.auth.getUser();
             if (!authUser) {
-                window.location.href = '/pblot/login';
+                window.location.href = '/login';
                 return;
             }
             setCurrentUser(authUser);

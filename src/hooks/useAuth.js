@@ -14,7 +14,7 @@ export const useAuth = () => {
         setLoading(true);
         try {
             const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
-            const cbPath = siteData.callbackPath || "/pblot/callback";
+            const cbPath = siteData.callbackPath || "/callback";
             const redirectUrl = rootUrl + cbPath;
 
             const { error } = await supabase.auth.signInWithOAuth({

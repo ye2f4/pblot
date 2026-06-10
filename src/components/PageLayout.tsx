@@ -22,3 +22,4 @@ export const PageLayout = ({
 export interface ColorModeProps {
   children: React.ReactNode;
 }
+

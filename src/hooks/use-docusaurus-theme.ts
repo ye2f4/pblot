@@ -41,3 +41,4 @@ export function useDocusaurusTheme(): { resolvedTheme: "light" | "dark" } {
 
 // Re-export with the same API as next-themes for easy migration
 export const useTheme = useDocusaurusTheme;
+

@@ -24,3 +24,4 @@ export function useNumberAnimation(target: number, duration = 1500) {
 
   return count;
 }
+

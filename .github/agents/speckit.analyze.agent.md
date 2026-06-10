@@ -247,3 +247,5 @@ After reporting, check if `.specify/extensions.yml` exists in the project root.
 ## Context
 
 $ARGUMENTS
+
+

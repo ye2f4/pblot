@@ -18,3 +18,4 @@ export function getAvatarTextColor(backgroundColor: string): string {
   // This ensures good contrast while keeping a cohesive look
   return `color-mix(in srgb, ${backgroundColor} 25%, black)`;
 }
+

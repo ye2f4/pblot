@@ -21,3 +21,4 @@ export function useEffectEvent<T extends (...args: never[]) => unknown>(
 
   return useCallback((...args: Parameters<T>) => ref.current(...args), []) as T;
 }
+

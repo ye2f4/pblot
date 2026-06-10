@@ -14,7 +14,7 @@ export default function AuthCallback() {
     const redirectToHome = () => {
       // 安全取值 + 兜底
       const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
-      const homePath = siteData.basePath || "/pblot/";
+      const homePath = siteData.basePath || "/";
       const homeFullUrl = rootUrl + homePath;
       
       window.location.replace(homeFullUrl);

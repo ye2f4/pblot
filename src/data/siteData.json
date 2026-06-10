@@ -1,8 +1,8 @@
 {
   "siteTitle": "Monoの小窝",
   "siteUrl": "https://ye2f4.github.io",
-  "basePath": "/pblot/",
-  "callbackPath": "/pblot/callback",
+  "basePath": "/",
+  "callbackPath": "/callback",
   "texts": {
     "announcement": "欢迎来到Mono的小窝！本站为个人技术分享站点~",
     "notification": "📢 欢迎来到Mono的小窝！本站持续更新技术教程和资源分享，记得常来看看哦~ 🔥 最新上线React入门系列教程！",
@@ -97,22 +97,22 @@
   "tabs": [
     {
       "name": "最新主题",
-      "link": "/pblot/blog/latest_post",
+      "link": "/blog/latest_post",
       "color": "#4285f4"
     },
     {
       "name": "最新回复",
-      "link": "/pblot/blog/latest_comments",
+      "link": "/blog/latest_comments",
       "color": "#ea4335"
     },
     {
       "name": "热门主题",
-      "link": "/pblot/blog/hot",
+      "link": "/blog/hot",
       "color": "#fbbc05"
     },
     {
       "name": "精华推荐",
-      "link": "/pblot/blog/good",
+      "link": "/blog/good",
       "color": "#34a853"
     }
   ],
@@ -151,37 +151,37 @@
       "name": "React教程",
       "icon": "⚛️",
       "color": "#61dafb",
-      "link": "/pblot/blog/react"
+      "link": "/blog/react"
     },
     {
       "name": "前端开发",
       "icon": "🎨",
       "color": "#ff6b6b",
-      "link": "/pblot/blog/frontend"
+      "link": "/blog/frontend"
     },
     {
       "name": "后端技术",
       "icon": "⚙️",
       "color": "#4ecdc4",
-      "link": "/pblot/blog/backend"
+      "link": "/blog/backend"
     },
     {
       "name": "开发工具",
       "icon": "🛠️",
       "color": "#ffe66d",
-      "link": "/pblot/tools"
+      "link": "/tools"
     },
     {
       "name": "游戏模组",
       "icon": "🎮",
       "color": "#a78bfa",
-      "link": "/pblot/blog/minecraft"
+      "link": "/blog/minecraft"
     },
     {
       "name": "开源项目",
       "icon": "📦",
       "color": "#f472b6",
-      "link": "/pblot/projects"
+      "link": "/projects"
     }
   ],
   "updates": [
@@ -266,37 +266,37 @@
   "rankList": [
     {
       "title": "React入门到精通",
-      "link": "/pblot/blog/react-guide",
+      "link": "/blog/react-guide",
       "date": "2025-06-07"
     },
     {
       "title": "GitHub Pages部署教程",
-      "link": "/pblot/blog/gh-pages",
+      "link": "/blog/gh-pages",
       "date": "2025-06-06"
     },
     {
       "title": "Docusaurus静态站点搭建",
-      "link": "/pblot/blog/docusaurus",
+      "link": "/blog/docusaurus",
       "date": "2025-06-05"
     },
     {
       "title": "React-Slick轮播使用",
-      "link": "/pblot/blog/react-slick",
+      "link": "/blog/react-slick",
       "date": "2025-06-04"
     },
     {
       "title": "CSS模糊效果实现",
-      "link": "/pblot/blog/css-blur",
+      "link": "/blog/css-blur",
       "date": "2025-06-03"
     },
     {
       "title": "JavaScript定时器详解",
-      "link": "/pblot/blog/js-timer",
+      "link": "/blog/js-timer",
       "date": "2025-06-02"
     },
     {
       "title": "JSON静态数据管理",
-      "link": "/pblot/blog/json-data",
+      "link": "/blog/json-data",
       "date": "2025-06-01"
     }
   ],

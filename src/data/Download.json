@@ -53,7 +53,7 @@
       "desc": "LoRa 通信技术基础原理与标准入门文档",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/AN1200_22_Semtech_LoRa_Basics_v2_STD.pdf",
+      "url": "/documents/AN1200_22_Semtech_LoRa_Basics_v2_STD.pdf",
       "type": "hardware"
     },
     {
@@ -61,7 +61,7 @@
       "desc": "AXP192 电源管理芯片英文数据手册 V1.1",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/AXP192%20Datasheet_v1.1_en_draft_2211.pdf",
+      "url": "/documents/AXP192%20Datasheet_v1.1_en_draft_2211.pdf",
       "type": "hardware"
     },
     {
@@ -69,7 +69,7 @@
       "desc": "SX1261/1262 射频芯片官方数据手册 V1.2",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/DS_SX1261-2_V1.2.pdf",
+      "url": "/documents/DS_SX1261-2_V1.2.pdf",
       "type": "hardware"
     },
     {
@@ -77,7 +77,7 @@
       "desc": "SX1276/77/78/79 系列 LoRa 芯片应用手册 V6",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/DS_SX1276-7-8-9_W_APP_V6.pdf",
+      "url": "/documents/DS_SX1276-7-8-9_W_APP_V6.pdf",
       "type": "hardware"
     },
     {
@@ -85,7 +85,7 @@
       "desc": "LoRa 射频产品硬件电路设计参考文档",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/LoRa_Design_Guide.pdf",
+      "url": "/documents/LoRa_Design_Guide.pdf",
       "type": "hardware"
     },
     {
@@ -93,7 +93,7 @@
       "desc": "u-blox NEO-6 定位模块硬件数据手册",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/NEO-6_DataSheet_(GPS.G6-HW-09005).pdf",
+      "url": "/documents/NEO-6_DataSheet_(GPS.G6-HW-09005).pdf",
       "type": "hardware"
     },
     {
@@ -101,7 +101,7 @@
       "desc": "RFM 系列 LoRa 射频模块规格与使用说明",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/RFM95_96_97_98W.pdf",
+      "url": "/documents/RFM95_96_97_98W.pdf",
       "type": "hardware"
     },
     {
@@ -109,7 +109,7 @@
       "desc": "基于 SX1262 方案的配套模组资料",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/T-SX1262.pdf",
+      "url": "/documents/T-SX1262.pdf",
       "type": "hardware"
     },
     {
@@ -117,7 +117,7 @@
       "desc": "T-Beam V1.0 物联网设备硬件说明文档",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/T_BeamV1.0.pdf",
+      "url": "/documents/T_BeamV1.0.pdf",
       "type": "hardware"
     },
     {
@@ -125,7 +125,7 @@
       "desc": "WIFI_LoRa_32 V1 (868-915MHz) 硬件电路图",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/WIFI_LoRa_32_V1(868-915version)Schematic_diagram.PDF",
+      "url": "/documents/WIFI_LoRa_32_V1(868-915version)Schematic_diagram.PDF",
       "type": "hardware"
     },
     {
@@ -133,7 +133,7 @@
       "desc": "WIFI_LoRa_32 V2 (868-915MHz) 完整硬件资料",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/WIFI_LoRa_32_V2(868-915).PDF",
+      "url": "/documents/WIFI_LoRa_32_V2(868-915).PDF",
       "type": "hardware"
     },
     {
@@ -141,7 +141,7 @@
       "desc": "AXP192 电源管理芯片完整中文数据手册",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/axp192-complete-datasheet-chinese.pdf",
+      "url": "/documents/axp192-complete-datasheet-chinese.pdf",
       "type": "hardware"
     },
     {
@@ -149,7 +149,7 @@
       "desc": "乐鑫 ESP32 主控芯片官方英文数据手册",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/esp32_datasheet_en.pdf",
+      "url": "/documents/esp32_datasheet_en.pdf",
       "type": "hardware"
     },
     {
@@ -157,7 +157,7 @@
       "desc": "Heltec WIFI-LoRa-32 V2 (915MHz) 模组资料",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/heltec-wifi-lora-32-v2-915.pdf",
+      "url": "/documents/heltec-wifi-lora-32-v2-915.pdf",
       "type": "hardware"
     },
     {
@@ -165,7 +165,7 @@
       "desc": "LoRa 产品射频 FCC 认证要求文档",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/lora-fcc-requirements.pdf",
+      "url": "/documents/lora-fcc-requirements.pdf",
       "type": "hardware"
     },
     {
@@ -173,7 +173,7 @@
       "desc": "PE4259 射频开关芯片数据手册",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/pe4259ds-rf-switch.pdf",
+      "url": "/documents/pe4259ds-rf-switch.pdf",
       "type": "hardware"
     },
     {
@@ -181,7 +181,7 @@
       "desc": "u-blox6 接收机功能描述与通信协议规范",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/u-blox6_ReceiverDescrProtSpec_(GPS.G6-SW-10018)_Public.pdf",
+      "url": "/documents/u-blox6_ReceiverDescrProtSpec_(GPS.G6-SW-10018)_Public.pdf",
       "type": "hardware"
     },
     {
@@ -189,7 +189,7 @@
       "desc": "u-blox8-M8 系列定位接收机协议与说明",
       "size": "未知",
       "date": "2026-06-10",
-      "url": "/pblot/documents/u-blox8-M8_ReceiverDescrProtSpec_(UBX-13003221).pdf",
+      "url": "/documents/u-blox8-M8_ReceiverDescrProtSpec_(UBX-13003221).pdf",
       "type": "hardware"
     }
   ],
@@ -201,3 +201,4 @@
     "hardware": "📄 硬件手册 & 技术文档"
   }
 }
+

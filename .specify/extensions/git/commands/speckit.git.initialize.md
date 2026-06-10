@@ -47,3 +47,5 @@ If Git is not installed:
 If Git is installed but `git init`, `git add .`, or `git commit` fails:
 - Surface the error to the user
 - Stop this command rather than continuing with a partially initialized repository
+
+

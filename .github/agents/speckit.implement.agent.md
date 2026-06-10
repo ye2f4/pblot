@@ -197,3 +197,5 @@ Note: This command assumes a complete task breakdown exists in tasks.md. If task
         EXECUTE_COMMAND: {command}
         ```
     - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
+
+

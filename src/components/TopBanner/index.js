@@ -146,7 +146,7 @@ export default function TopBanner({
                                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'rotate(0) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)' }} />
                             )}
                             <span style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>{getUserName(user)}</span>
-                            <Link to="/pblot/profile" className="btn-hover" style={{ 
+                            <Link to="/profile" className="btn-hover" style={{ 
                                 width: '100%', padding: '7px 14px', backgroundColor: '#4285f4', 
                                 color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, 
                                 fontWeight: 500, minHeight: 42, textDecoration: 'none', 
@@ -170,7 +170,7 @@ export default function TopBanner({
                                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(360deg) scale(1.12)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)' }}
                                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'rotate(0) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)' }} />
                             <div style={{ display: 'flex', gap: 7, width: '100%' }}>
-                                <Link to="/pblot/login" className="btn-hover" style={{ 
+                                <Link to="/login" className="btn-hover" style={{ 
                                     flex: 1, padding: '7px 14px', background: '#4285f4', 
                                     color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, 
                                     fontWeight: 500, minHeight: 42, textDecoration: 'none', 
@@ -178,7 +178,7 @@ export default function TopBanner({
                                 }}>
                                     {siteData?.texts?.buttons?.login || '登录'}
                                 </Link>
-                                <Link to="/pblot/register" className="btn-hover" style={{ 
+                                <Link to="/register" className="btn-hover" style={{ 
                                     flex: 1, padding: '7px 14px', background: '#999', 
                                     color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, 
                                     fontWeight: 500, minHeight: 42, textDecoration: 'none', 

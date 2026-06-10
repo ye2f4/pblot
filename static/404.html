@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <title>页面跳转中</title>
     <script>
-        // 适配 GitHub Pages 子站点 /pblot/
+        // 适配 GitHub Pages 子站点 /
         const path = window.location.pathname;
         // 若访问根域名/无效路由，统一跳转到项目首页
-        if (path === '/' || !path.startsWith('/pblot/')) {
-            window.location.href = '/pblot/';
+        if (path === '/' || !path.startsWith('/')) {
+            window.location.href = '/';
         }
         // 保留哈希参数但正常渲染页面（兼容OAuth残留参数）
         history.replaceState(null, document.title, window.location.pathname);

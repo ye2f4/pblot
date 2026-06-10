@@ -4,7 +4,7 @@ import Layout from '@theme/Layout';
 import { supabase } from '@site/src/supabase/supabaseClient';
 
 // 固定常量（无缺失，无报错）
-const PROFILE_PAGE = '/pblot/profile';
+const PROFILE_PAGE = '/profile';
 const DEFAULT_EMOJI_AVATAR = '😀';
 
 export const metadata = {
@@ -327,3 +327,4 @@ export default function ChatPage() {
     </Layout>
   );
 }
+

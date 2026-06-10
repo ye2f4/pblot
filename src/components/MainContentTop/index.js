@@ -66,7 +66,7 @@ export default function MainContentTop({ siteData }) {
             {/* 操作按钮组 */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
                 <Link
-                    to="/pblot/signin"
+                    to="/signin"
                     className={styles.btnHover}
                     style={{
                         padding: '8px 16px',
@@ -87,7 +87,7 @@ export default function MainContentTop({ siteData }) {
                     {siteData.texts.buttons.signIn}
                 </Link>
                 <Link
-                    to="/pblot/draw"
+                    to="/draw"
                     className={styles.btnHover}
                     style={{
                         padding: '8px 16px',

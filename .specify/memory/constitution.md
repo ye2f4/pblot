@@ -208,3 +208,5 @@ acceptable in this repository.
 - The constitution is re-reviewed at each major Docusaurus version upgrade.
 
 **Version**: 1.0.0 | **Ratified**: 2026-05-08 | **Last Amended**: 2026-05-08
+
+

@@ -39,3 +39,4 @@ export function NavbarHideOnScroll(): null {
 
   return null;
 }
+

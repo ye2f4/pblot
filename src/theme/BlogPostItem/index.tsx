@@ -17,3 +17,4 @@ export default function BlogPostItemWrapper(props: Props): JSX.Element {
     </>
   );
 }
+

@@ -23,7 +23,7 @@ export default function Login() {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
             // 登录成功跳转到首页
-            window.location.href = `${siteData.siteUrl}/pblot/`;
+            window.location.href = `${siteData.siteUrl}/`;
         } catch (err) {
             setError(err.message);
         } finally {
@@ -72,7 +72,7 @@ export default function Login() {
                     boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
                 }}>
                     <Link
-                        to="/pblot/"
+                        to="/"
                         style={{
                             background: 'none',
                             border: 'none',
@@ -170,7 +170,7 @@ export default function Login() {
                     </button>
 
                     <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#666' }}>
-                        还没有账号？<Link to="/pblot/register" style={{ color: '#4285f4', textDecoration: 'none' }}>立即注册</Link>
+                        还没有账号？<Link to="/register" style={{ color: '#4285f4', textDecoration: 'none' }}>立即注册</Link>
                     </div>
                 </div>
             </div>

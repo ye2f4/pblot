@@ -9,7 +9,7 @@ export default function PixelClock({
 }) {
     // 打开日历的函数（固定正确路径）
     const openCalendar = () => {
-        window.open('/pblot/calendar', '_blank');
+        window.open('/calendar', '_blank');
     };
 
     return (

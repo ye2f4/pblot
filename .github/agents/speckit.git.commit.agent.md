@@ -49,3 +49,4 @@ auto_commit:
 - If Git is not available or the current directory is not a repository: skips with a warning
 - If no config file exists: skips (disabled by default)
 - If no changes to commit: skips with a message
+

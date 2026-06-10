@@ -359,3 +359,5 @@ Check if `.specify/extensions.yml` exists in the project root.
     EXECUTE_COMMAND: {command}
     ```
 - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
+
+
