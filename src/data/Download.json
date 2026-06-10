@@ -1,0 +1,203 @@
+{
+  "resourceList": [
+    {
+      "title": "前端开发入门教程",
+      "desc": "HTML/CSS/JS 零基础全套学习文档，附带示例代码",
+      "size": "12.8 MB",
+      "date": "2026-06-09",
+      "url": "",
+      "type": "tutorial"
+    },
+    {
+      "title": "Docusaurus 搭建博客手册",
+      "desc": "本站同款博客搭建全流程、配置详解、踩坑记录",
+      "size": "4.2 MB",
+      "date": "2026-06-08",
+      "url": "",
+      "type": "tutorial"
+    },
+    {
+      "title": "常用开发工具合集",
+      "desc": "开发辅助软件、插件、绿色工具包",
+      "size": "86.5 MB",
+      "date": "2026-06-05",
+      "url": "",
+      "type": "tool"
+    },
+    {
+      "title": "作者",
+      "desc": "作者",
+      "size": "2 MB",
+      "date": "2026-06-05",
+      "url": "",
+      "type": "tool"
+    },
+    {
+      "title": "本站首页完整源码",
+      "desc": "TopBanner 公告+统计+时钟组件全套源码",
+      "size": "0.3 MB",
+      "date": "2026-06-09",
+      "url": "",
+      "type": "source"
+    },
+    {
+      "title": "网站背景&图标素材包",
+      "desc": "站点使用的背景图、图标、装饰资源",
+      "size": "24.6 MB",
+      "date": "2026-06-01",
+      "url": "",
+      "type": "asset"
+    },
+    {
+      "title": "Semtech LoRa 基础手册",
+      "desc": "LoRa 通信技术基础原理与标准入门文档",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/AN1200_22_Semtech_LoRa_Basics_v2_STD.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "AXP192 电源芯片手册(英文)",
+      "desc": "AXP192 电源管理芯片英文数据手册 V1.1",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/AXP192%20Datasheet_v1.1_en_draft_2211.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "SX1261/SX1262 LoRa 芯片手册",
+      "desc": "SX1261/1262 射频芯片官方数据手册 V1.2",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/DS_SX1261-2_V1.2.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "SX1276~SX1279 LoRa 芯片手册",
+      "desc": "SX1276/77/78/79 系列 LoRa 芯片应用手册 V6",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/DS_SX1276-7-8-9_W_APP_V6.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "LoRa 硬件设计指南",
+      "desc": "LoRa 射频产品硬件电路设计参考文档",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/LoRa_Design_Guide.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "NEO-6 GPS 模块手册",
+      "desc": "u-blox NEO-6 定位模块硬件数据手册",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/NEO-6_DataSheet_(GPS.G6-HW-09005).pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "RFM95/96/97/98W 射频模块手册",
+      "desc": "RFM 系列 LoRa 射频模块规格与使用说明",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/RFM95_96_97_98W.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "T-SX1262 模组技术文档",
+      "desc": "基于 SX1262 方案的配套模组资料",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/T-SX1262.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "T-Beam V1.0 设备手册",
+      "desc": "T-Beam V1.0 物联网设备硬件说明文档",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/T_BeamV1.0.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "WIFI_LoRa_32 V1 原理图",
+      "desc": "WIFI_LoRa_32 V1 (868-915MHz) 硬件电路图",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/WIFI_LoRa_32_V1(868-915version)Schematic_diagram.PDF",
+      "type": "hardware"
+    },
+    {
+      "title": "WIFI_LoRa_32 V2 硬件手册",
+      "desc": "WIFI_LoRa_32 V2 (868-915MHz) 完整硬件资料",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/WIFI_LoRa_32_V2(868-915).PDF",
+      "type": "hardware"
+    },
+    {
+      "title": "AXP192 电源芯片手册(中文)",
+      "desc": "AXP192 电源管理芯片完整中文数据手册",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/axp192-complete-datasheet-chinese.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "ESP32 主控芯片手册",
+      "desc": "乐鑫 ESP32 主控芯片官方英文数据手册",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/esp32_datasheet_en.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "Heltec WIFI-LoRa-32 V2 手册",
+      "desc": "Heltec WIFI-LoRa-32 V2 (915MHz) 模组资料",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/heltec-wifi-lora-32-v2-915.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "LoRa FCC 认证规范",
+      "desc": "LoRa 产品射频 FCC 认证要求文档",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/lora-fcc-requirements.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "PE4259 射频开关手册",
+      "desc": "PE4259 射频开关芯片数据手册",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/pe4259ds-rf-switch.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "u-blox6 定位模块协议手册",
+      "desc": "u-blox6 接收机功能描述与通信协议规范",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/u-blox6_ReceiverDescrProtSpec_(GPS.G6-SW-10018)_Public.pdf",
+      "type": "hardware"
+    },
+    {
+      "title": "u-blox8-M8 定位模块协议手册",
+      "desc": "u-blox8-M8 系列定位接收机协议与说明",
+      "size": "未知",
+      "date": "2026-06-10",
+      "url": "/documents/u-blox8-M8_ReceiverDescrProtSpec_(UBX-13003221).pdf",
+      "type": "hardware"
+    }
+  ],
+  "categoryMap": {
+    "tutorial": "📚 技术教程",
+    "tool": "🔧 工具软件",
+    "source": "💻 项目源码",
+    "asset": "🎨 素材资源",
+    "hardware": "📄 硬件手册 & 技术文档"
+  }
+}
