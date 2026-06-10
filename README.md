@@ -109,3 +109,21 @@
    ```bash
    # 全局安装 pnpm
    npm install -g pnpm
+
+### 关键优化说明（针对之前的徽章问题）
+1. 所有 `<br>` 统一改为 `<br />`，彻底兼容 MDX/JSX；
+2. **移除明文 `gh_token`**：公开仓库绝对不能把 GitHub Token 写在前端文本中（会泄露账号权限），改用**静态徽章**规避 `401/令牌耗尽` 问题；
+3. 保留原有排版、居中、图片、表格、折叠面板等所有功能。
+
+---
+
+# 三、本地验证 + 重新触发 CI 部署
+## 1. 本地构建验证（优先做，避免再次触发线上CI失败）
+在项目根目录打开 PowerShell / Git Bash，执行：
+```bash
+# 清理旧缓存（可选，彻底规避缓存干扰）
+Remove-Item -Recurse -Force .docusaurus
+Remove-Item -Recurse -Force node_modules/.cache
+
+# 生产构建
+pnpm run build
