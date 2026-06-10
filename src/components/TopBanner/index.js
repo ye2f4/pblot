@@ -212,12 +212,30 @@ export default function TopBanner({
         }}>
           {user ? (
             <>
-              {/* 头像：使用CSS hover动画，删除行内onMouse事件 */}
+              {/* ========== 【修改区域】头像兼容 URL / Emoji ========== */}
               {avatarEmoji ? (
-                <div className={styles.avatarWrap}>
-                  {avatarEmoji}
-                </div>
+                avatarEmoji.startsWith('http://') || avatarEmoji.startsWith('https://') ? (
+                  // 网络图片链接 → 使用 img 标签渲染
+                  <img
+                    className={styles.avatarWrap}
+                    src={avatarEmoji}
+                    alt="用户头像"
+                    width="50"
+                    height="50"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = `${base}avatar.png`;
+                    }}
+                  />
+                ) : (
+                  // 纯 Emoji 表情 → 文本渲染
+                  <div className={styles.avatarWrap}>
+                    {avatarEmoji}
+                  </div>
+                )
               ) : (
+                // 无头像数据 → 默认头像
                 <img
                   className={styles.avatarWrap}
                   src={`${base}avatar.png`}
@@ -231,6 +249,7 @@ export default function TopBanner({
                   }}
                 />
               )}
+              {/* ===================================================== */}
 
               <span style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>
                 {getUserName(user)}
