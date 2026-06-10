@@ -4,7 +4,7 @@ export const AVATAR_CACHE_KEY = 'supabase_avatar_cache';
 export const AVATAR_CACHE_EXPIRE = 24 * 60 * 60 * 1000;
 
 const SUPABASE_URL = "https://xwhwcmorcmgpfpocmgez.supabase.co";
-const SUPABASE_ANON_KEY = "你的匿名密钥";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aHdjbW9yY21ncGZwb2NtZ2V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2ODk2MzQsImV4cCI6MjA5NjI2NTYzNH0.O5YcPuehUMjEofFdoNfE5NDxT71qtcMdYeLCvyyoQgw";
 
 const ssrEmptyClient = {
   auth: {
