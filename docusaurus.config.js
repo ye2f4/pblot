@@ -2,7 +2,12 @@
 // 导入依赖模块
 // ==============================================
 import path from "node:path";
+import fs from "node:fs";
 import remarkDefList from "remark-deflist";
+
+// 环境 & 域名常量
+const isDev = process.env.NODE_ENV === "development";
+const SITE_DOMAIN = "monoblog.cc.cd";
 
 /**
  * @type {import('@docusaurus/types').Config}
@@ -13,14 +18,20 @@ const config = {
   url: "https://monoblog.cc.cd",
   baseUrl: "/",
   trailingSlash: false,
+
+  // 断链告警规则（补全规范配置）
   onBrokenLinks: "warn",
+  onBrokenMarkdownLinks: "warn",
+
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "",
+  deploymentBranch: "gh-pages", // 显式指定部署分支
 
-  // 已彻底关闭实验模式，无崩溃
+  // 实验性功能
   future: {},
 
+  // 头部资源预加载、预连接、SEO 标签（原样保留）
   headTags: [
     {
       tagName: 'link',
@@ -82,6 +93,7 @@ const config = {
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
   ],
 
+  // 主题配置（导航、页脚、样式、图表 原样保留）
   themeConfig: {
     respectPrefersColorScheme: true,
     docs: { sidebar: { autoCollapseCategories: true } },
@@ -108,15 +120,12 @@ const config = {
           ],
         },
         { label: "关于", to: "/about/", position: "left" },
-
-        // ✅ 绿色聊天按钮（自动适配样式）
         {
           label: "聊天",
           to: "/chat/",
           position: "right",
           className: "navbar-chat-btn",
         },
-        // ✅ GitHub 统一风格按钮
         {
           label: "GitHub",
           href: "https://github.com/ye2f4",
@@ -128,7 +137,6 @@ const config = {
     footer: {
       copyright: `Powered by Docusaurus & GitHub Pages © ${new Date().getFullYear()} Monoの小窝`,
     },
-    // ✅ 已彻底删除所有 algolia 配置（崩溃根源）
     colorMode: { respectPrefersColorScheme: true },
     mermaid: {
       theme: { light: "base", dark: "base" },
@@ -149,13 +157,29 @@ const config = {
     image: "img/og-image.png",
   },
 
-  // ✅ 正确的本地搜索插件（无崩溃、支持中文）
+  // 插件列表：新增【自动生成CNAME插件】，其余插件原样保留
   plugins: [
+    // 自定义插件：构建完成自动生成 CNAME（核心修复，替代根节点 postBuild）
+    function AutoGenerateCNAMEPlugin() {
+      return {
+        name: "auto-generate-cname",
+        async postBuild({ outDir }) {
+          const cnameFilePath = path.join(outDir, "CNAME");
+          // 写入标准 CNAME 内容：纯域名，无空格/换行/协议
+          fs.writeFileSync(cnameFilePath, SITE_DOMAIN, "utf8");
+          console.log(`✅ [插件] 已自动生成 CNAME 文件: ${cnameFilePath}`);
+        },
+      };
+    },
+
+    // 原有本地搜索插件
     [require.resolve("@easyops-cn/docusaurus-search-local"), {
       hashed: true,
       language: ["zh", "en"],
       highlightSearchTermsOnTargetPage: true,
     }],
+
+    // Tailwind CSS 插件
     () => ({
       name: "docusaurus-tailwindcss",
       configurePostCss(postcssOptions) {
@@ -164,6 +188,8 @@ const config = {
         return postcssOptions;
       },
     }),
+
+    // Webpack 别名插件 + 环境区分 SourceMap
     () => ({
       name: "docusaurus-webpack-alias",
       configureWebpack() {
@@ -171,12 +197,13 @@ const config = {
           resolve: {
             alias: { "@": path.resolve(__dirname, "src") }
           },
-          devtool: 'source-map',
+          devtool: isDev ? "source-map" : false,
         };
       },
     }),
   ],
 
+  // 预设配置（文档、博客、站点地图 原样保留）
   presets: [
     [
       "@docusaurus/preset-classic",
@@ -203,11 +230,17 @@ const config = {
           priority: 0.7,
           lastmod: "date",
         },
+        hashRouter: false, // 新增，明确使用history路由
       },
     ],
   ],
 
-  i18n: { defaultLocale: "en", locales: ["en"] },
+  // 国际化：修复为中文站点
+  i18n: {
+    defaultLocale: "zh-CN",
+    locales: ["zh-CN"]
+  },
+
   markdown: { mermaid: true },
 };
 
