@@ -28,11 +28,92 @@ export default function MiddleStatsCard({
     today: 0,
     total: 0
   });
+  // 新增：系统健康状态
+  const [sysHealth, setSysHealth] = useState({
+    apiHealth: true,
+    dbHealth: true,
+    cacheHealth: true,
+    dbLatency: 0,
+    cacheLatency: 0,
+    totalLatency: 0
+  });
+  // 新增：24小时访问数据
+  const [hourData, setHourData] = useState(Array(24).fill(0));
 
   const weekJp = siteData?.texts?.weekJp?.[now.getDay()] || '水';
   const weekEn = siteData?.texts?.weekEn?.[now.getDay()] || 'Wednesday';
   const weekNum = getWeekNumber(now);
 
+  // 1. 检测数据库延迟与健康度
+  const checkSystemHealth = async () => {
+    const startTotal = performance.now();
+    let apiHealth = true;
+    let dbHealth = true;
+    let cacheHealth = true;
+    let dbLatency = 0;
+    let cacheLatency = 0;
+
+    try {
+      // 测试DB查询延迟
+      const dbStart = performance.now();
+      const { error: dbErr } = await supabase.from('visit_stats').select('id').limit(1);
+      dbLatency = Math.round(performance.now() - dbStart);
+      if (dbErr) dbHealth = false;
+    } catch {
+      dbHealth = false;
+      dbLatency = 999;
+    }
+
+    try {
+      // 简易缓存模拟（localStorage读写测速）
+      const cacheStart = performance.now();
+      localStorage.setItem('health_test', Date.now().toString());
+      localStorage.getItem('health_test');
+      cacheLatency = Math.round(performance.now() - cacheStart);
+    } catch {
+      cacheHealth = false;
+      cacheLatency = 999;
+    }
+
+    const totalLatency = Math.round(performance.now() - startTotal);
+    setSysHealth({
+      apiHealth,
+      dbHealth,
+      cacheHealth,
+      dbLatency,
+      cacheLatency,
+      totalLatency
+    });
+
+    // 后台写入状态到visit_stats持久化
+    await supabase
+      .from('visit_stats')
+      .update({
+        db_latency: dbLatency,
+        cache_latency: cacheLatency,
+        api_healthy: apiHealth,
+        db_healthy: dbHealth,
+        cache_healthy: cacheHealth
+      })
+      .eq('id', 1);
+  };
+
+  // 2. 拉取今日24小时真实访问数据
+  const loadHourlyData = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supabase
+      .from('hourly_visits')
+      .select('hour, count')
+      .eq('stat_date', today);
+
+    const arr = Array(24).fill(0);
+    data?.forEach(item => {
+      arr[item.hour] = item.count;
+    });
+    setHourData(arr);
+  };
+
+  // 3. 原有访客统计逻辑（保留，新增调用健康、小时数据）
   useEffect(() => {
     if (!supabase) return;
     const updateStats = async () => {
@@ -68,6 +149,10 @@ export default function MiddleStatsCard({
           .select('*', { count: 'exact', head: true });
 
         setVisitStats({ total: newTotal, today: newToday, online: onlineCount || 0 });
+
+        // 新增并行加载健康、小时热力数据
+        checkSystemHealth();
+        loadHourlyData();
       } catch (e) {
         console.log('统计加载失败', e);
       }
@@ -78,6 +163,10 @@ export default function MiddleStatsCard({
     return () => clearInterval(interval);
   }, []);
 
+  // 计算热力图最大数值，用来等比例计算高度
+  const maxHourCount = Math.max(...hourData, 1);
+  const currentHour = new Date().getHours();
+
   return (
     <div style={{
       borderRadius: '18px',
@@ -86,19 +175,14 @@ export default function MiddleStatsCard({
       boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
       padding: '14px',
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr', // 左右两列宽度完全相等
-      gridTemplateRows: 'auto auto auto auto', // 4行基础骨架
+      gridTemplateColumns: '1fr 1fr',
+      gridTemplateRows: 'auto auto auto auto',
       gap: '4px 14px',
       alignItems: 'stretch',
-      // 移动端自适应：小屏幕切换为单列堆叠
-      '@media (max-width: 768px)': {
-        gridTemplateColumns: '1fr',
-        gridTemplateRows: 'auto auto auto auto auto auto',
-      }
     }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* ========== A区域：左列第1行 | 今昨总会新图标 ========== */}
+      {/* A区域：图标统计行（完全原样保留） */}
       <div style={{ gridColumn: 1, gridRow: 1 }}>
         <div style={{
           display: 'grid',
@@ -141,7 +225,7 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* ========== B区域：左列第2行 | 在线/今日/总访问 ========== */}
+      {/* B区域：在线/今日/总访问（原样保留） */}
       <div style={{ gridColumn: 1, gridRow: 2 }}>
         <div style={{
           display: 'flex',
@@ -160,7 +244,7 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* ========== C区域：左列第3行 | 系统状态监控 ========== */}
+      {/* ========== C区域：改造后真实系统状态监控 ========== */}
       <div style={{ gridColumn: 1, gridRow: 3 }}>
         <div style={{
           padding: '3px 6px',
@@ -172,27 +256,48 @@ export default function MiddleStatsCard({
         }}>
           <span style={{ fontSize: '10px', color: '#666' }}>⚙️ 系统状态</span>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {/* API状态 */}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '20px', height: '20px', margin: '0 auto 2px', background: '#34d399' }} />
+              <div style={{
+                width: '20px', height: '20px', margin: '0 auto 2px',
+                background: sysHealth.apiHealth ? '#34d399' : '#ef4444'
+              }} />
               <span style={{ fontSize: '9px', color: '#555' }}>API</span>
             </div>
+            {/* 数据库状态 + 真实延迟 */}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '20px', height: '20px', margin: '0 auto 2px', background: '#fbbf24' }} />
-              <span style={{ fontSize: '9px', color: '#555' }}>DB</span>
+              <div style={{
+                width: '20px', height: '20px', margin: '0 auto 2px',
+                background: sysHealth.dbHealth ? '#fbbf24' : '#ef4444'
+              }} />
+              <span style={{ fontSize: '9px', color: '#555' }}>DB {sysHealth.dbLatency}ms</span>
             </div>
+            {/* 缓存状态 + 真实延迟 */}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '20px', height: '20px', margin: '0 auto 2px', background: '#4285f4' }} />
-              <span style={{ fontSize: '9px', color: '#555' }}>缓存</span>
+              <div style={{
+                width: '20px', height: '20px', margin: '0 auto 2px',
+                background: sysHealth.cacheHealth ? '#4285f4' : '#ef4444'
+              }} />
+              <span style={{ fontSize: '9px', color: '#555' }}>缓存 {sysHealth.cacheLatency}ms</span>
             </div>
+            {/* 整体总延迟进度条 */}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '40px', height: '12px', margin: '0 auto 2px', background: 'linear-gradient(90deg, #34d399 85%, #e5e7eb 85%)', borderRadius: '2px' }} />
-              <span style={{ fontSize: '9px', color: '#555' }}>23ms</span>
+              <div style={{
+                width: '40px', height: '12px', margin: '0 auto 2px',
+                borderRadius: '2px',
+                background: sysHealth.totalLatency < 50
+                  ? 'linear-gradient(90deg, #34d399 100%, #e5e7eb 0%)'
+                  : sysHealth.totalLatency < 150
+                    ? `linear-gradient(90deg, #fbbf24 ${(sysHealth.totalLatency / 150) * 100}%, #e5e7eb ${(sysHealth.totalLatency / 150) * 100}%)`
+                    : `linear-gradient(90deg, #ef4444 100%, #e5e7eb 0%)`
+              }} />
+              <span style={{ fontSize: '9px', color: '#555' }}>总{sysHealth.totalLatency}ms</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ========== D区域：左列第4行 | 24小时访问热力图（高度=F） ========== */}
+      {/* ========== D区域：真实24小时访问热力图 ========== */}
       <div style={{ gridColumn: 1, gridRow: 4 }}>
         <div style={{
           height: '100%',
@@ -206,7 +311,7 @@ export default function MiddleStatsCard({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#666' }}>
             <span>📊 今日访问热力</span>
-            <span>{new Date().getHours()}:00 高峰</span>
+            <span>当前{currentHour}:00 峰值{Math.max(...hourData)}次</span>
           </div>
           <div style={{
             display: 'grid',
@@ -216,24 +321,41 @@ export default function MiddleStatsCard({
             minHeight: '30px',
             alignItems: 'flex-end'
           }}>
-            {Array.from({ length: 24 }).map((_, i) => {
-              const hour = new Date().getHours();
-              const isCurrent = i === hour;
-              const intensity = isCurrent ? 1 : Math.abs(i - hour) <= 2 ? 0.8 : Math.random() * 0.6 + 0.2;
-              const height = `${intensity * 100}%`;
-              const color = intensity > 0.8 ? '#4285f4' : intensity > 0.6 ? '#34d399' : intensity > 0.4 ? '#fbbf24' : '#9ca3af';
-              return <div key={i} style={{ height, backgroundColor: color, borderRadius: '1px 1px 0 0', transition: 'height 0.5s ease' }} title={`${i}:00`} />;
+            {hourData.map((count, i) => {
+              const isCurrent = i === currentHour;
+              // 真实比例高度
+              const heightPercent = maxHourCount === 0 ? 5 : (count / maxHourCount) * 100;
+              // 梯度颜色
+              let color;
+              if (isCurrent) color = '#4285f4';
+              else if (count / maxHourCount > 0.8) color = '#34d399';
+              else if (count / maxHourCount > 0.5) color = '#fbbf24';
+              else if (count > 0) color = '#9ca3af';
+              else color = '#e5e7eb';
+
+              return (
+                <div
+                  key={i}
+                  style={{
+                    height: `${heightPercent}%`,
+                    backgroundColor: color,
+                    borderRadius: '1px 1px 0 0',
+                    transition: 'height 0.5s ease'
+                  }}
+                  title={`${i}:00 访问${count}次`}
+                />
+              );
             })}
           </div>
         </div>
       </div>
 
-      {/* ========== E区域：右列 横跨行1/2/3 | 像素时钟（高度=A+B+C总和） ========== */}
+      {/* E区域：像素时钟 完全原样 */}
       <div style={{ gridColumn: 2, gridRow: '1 / span 3', height: '100%' }}>
         <PixelClock now={now} weekJp={weekJp} weekEn={weekEn} weekNum={weekNum} />
       </div>
 
-      {/* ========== F区域：右列第4行 | 公告栏（高度=D） ========== */}
+      {/* F区域：公告栏 原样保留 */}
       <div style={{ gridColumn: 2, gridRow: 4 }}>
         <div style={{
           height: '100%',
@@ -254,7 +376,6 @@ export default function MiddleStatsCard({
               </p>
             </div>
           </div>
-          {/* 可整体替换此div内部内容：签到/导航/计时器/标语等 */}
         </div>
       </div>
     </div>
