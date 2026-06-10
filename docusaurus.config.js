@@ -226,7 +226,7 @@ const config = {
             { label: "更新日志", to: "/changelog/" },
             { label: "隐私政策", to: "/privacy/" },
             { label: "用户协议", to: "/terms/" },
-            { label: "RSS订阅", to: "/rss/" },
+            { label: "RSS订阅", to: "/rss.xml" },
           ],
         },
         { label: "关于", to: "/about/", position: "left" },
@@ -336,6 +336,7 @@ const config = {
             type: 'rss',
             copyright: `© ${new Date().getFullYear()} Monoの小窝`,
             language: 'zh-CN',
+            path: 'rss.xml',
           },
         },
         theme: {
