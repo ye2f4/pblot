@@ -8,7 +8,7 @@
 
 > 轻量化、易部署、全开源的一体化社区解决方案，集成文档、用户体系、即时通讯与后台数据管理
 
-<br>
+<br />
 
 <!-- 状态徽章组（分两行排版，国内稳定镜像，全统一域名） -->
 <!-- 第一行：构建 & 技术栈 徽章 -->
@@ -17,7 +17,7 @@
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
 [![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-2088FF?logo=github&logoColor=white)](https://ye2f4.github.io/pblot/)
 
-<br>
+<br />
 
 <!-- 第二行：Shields 动态徽章（追加个人Token，替换为你自己的Token） -->
 [![GitHub Stars](https://img.shields.io/github/stars/ye2f4/pblot?logo=github&color=blue&gh_token=你的GitHubToken)](https://github.com/ye2f4/pblot/stargazers)
@@ -88,7 +88,7 @@
 - GitHub Pages：https://ye2f4.github.io/pblot/
 - Vercel 部署地址：待补充
 
-<br>
+<br />
 
 <!-- 预览截图占位，后续可替换为真实页面截图 -->
 <div align="center">
@@ -109,21 +109,3 @@
    ```bash
    # 全局安装 pnpm
    npm install -g pnpm
-
-### 关键优化说明（针对之前的徽章问题）
-1. 所有 `<br>` 统一改为 `<br />`，彻底兼容 MDX/JSX；
-2. **移除明文 `gh_token`**：公开仓库绝对不能把 GitHub Token 写在前端文本中（会泄露账号权限），改用**静态徽章**规避 `401/令牌耗尽` 问题；
-3. 保留原有排版、居中、图片、表格、折叠面板等所有功能。
-
----
-
-# 三、本地验证 + 重新触发 CI 部署
-## 1. 本地构建验证（优先做，避免再次触发线上CI失败）
-在项目根目录打开 PowerShell / Git Bash，执行：
-```bash
-# 清理旧缓存（可选，彻底规避缓存干扰）
-Remove-Item -Recurse -Force .docusaurus
-Remove-Item -Recurse -Force node_modules/.cache
-
-# 生产构建
-pnpm run build
