@@ -9,7 +9,7 @@
   </p>
 
 <!-- 项目徽章：根据你的实际仓库/部署环境选用，已适配国内常用场景 -->
-[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/ci.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
+[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/deploy.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
 [![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus)](https://docusaurus.io/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase)](https://supabase.com/)
 [![Vercel](https://img.shields.io/static/v1?label=Deploy&message=Vercel&style=flat&logo=vercel&color=000000)](https://vercel.com)
