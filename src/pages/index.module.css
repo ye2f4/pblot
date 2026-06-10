@@ -708,3 +708,59 @@ img {
   user-select: none;
   -webkit-user-drag: none;
 }
+
+/* 顶部外层容器 */
+.topBannerWrap {
+  box-sizing: border-box;
+  padding: 24px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  border-radius: 24px;
+  margin: 16px auto;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* 三列网格布局 + 响应式（修复行内媒体查询无效问题） */
+.bannerGrid {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* 移动端：网格改为单列 */
+@media (max-width: 992px) {
+  .bannerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 头像容器 + hover 动画（替代行内JS动画） */
+.avatarWrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #f0f7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.5s ease;
+  cursor: pointer;
+  object-fit: cover;
+}
+
+.avatarWrap:hover {
+  transform: rotate(360deg) scale(1.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 按钮基础hover样式（原有 .btn-hover 保留） */
+.btn-hover:hover {
+  opacity: 0.9;
+}

@@ -4,7 +4,7 @@ export default function SiteTimer() {
   const [time, setTime] = useState('');
 
   useEffect(() => {
-    const start = new Date('2025-01-01').getTime(); // 修改你的建站时间
+    const start = new Date('2026-06-10').getTime(); // 修改你的建站时间
     const timer = setInterval(() => {
       const now = Date.now();
       const diff = now - start;

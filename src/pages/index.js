@@ -24,7 +24,7 @@ import RankList from '../components/RankList';
 const CommentSection = lazy(() => import('../components/CommentSection'));
 const AdSection = lazy(() => import('../components/AdSection'));
 
-// ========== 你要的 14 个新功能组件全部导入 ==========
+// ========== 你所有功能组件（完整保留） ==========
 import BackToTop from '../components/BackToTop';
 import PageLoading from '../components/PageLoading';
 import ClickLove from '../components/ClickLove';
@@ -46,21 +46,37 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const mainContentRef = useRef(null);
 
+  // ========== 【新增】退出登录加载态（适配TopBanner） ==========
+  const [signOutLoading, setSignOutLoading] = useState(false);
+
   // ========== 用户统计状态 ==========
   const [userCount, setUserCount] = useState(0);
   const [latestUser, setLatestUser] = useState('新用户');
 
-  // ========== 网络时间系统（已修复国内稳定版） ==========
+  // ========== 网络时间系统（完整保留你原有逻辑） ==========
   const [realTs, setRealTs] = useState(Date.now());
   const [timeOffset, setTimeOffset] = useState(0);
   const [showTimeErrModal, setShowTimeErrModal] = useState(false);
   const [errModalText, setErrModalText] = useState('');
   const realNow = new Date(realTs);
 
-  // 登录状态
-  const { user, loading, isSessionChecked, handleGitHubLogin, handleSignOut } = useAuth();
+  // 登录状态（来自自定义钩子）
+  const { user, loading, isSessionChecked, handleGitHubLogin, handleSignOut: rawHandleSignOut } = useAuth();
 
-  // 评论逻辑
+  // ========== 【改造】退出登录方法：增加加载态控制 ==========
+  const handleSignOut = async () => {
+    if (signOutLoading) return;
+    setSignOutLoading(true);
+    try {
+      await rawHandleSignOut();
+    } catch (err) {
+      console.error("退出登录异常：", err);
+    } finally {
+      setSignOutLoading(false);
+    }
+  };
+
+  // 评论逻辑（完整保留）
   const {
     comments,
     commentContent,
@@ -82,7 +98,7 @@ export default function Home() {
       setTimeOffset(Number(cacheOffset));
     }
 
-    // 国内最稳定：淘宝时间接口（永不429/不重置）
+    // 国内淘宝时间接口（完整保留）
     const fetchNetworkTime = async () => {
       try {
         const res = await fetch("https://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp", {
@@ -126,7 +142,7 @@ export default function Home() {
     };
   }, [commentsLoaded]);
 
-  // ========== Supabase 400 已修复 ==========
+  // ========== 用户统计请求（完整保留） ==========
   useEffect(() => {
     if (!isClient) return;
 
@@ -169,7 +185,7 @@ export default function Home() {
 
   return (
     <Layout title={siteData.siteTitle}>
-      {/* ========== 全局14个新功能组件挂载 ========== */}
+      {/* 全局14个功能组件（完整保留） */}
       <BackToTop />
       <PageLoading />
       <ClickLove />
@@ -180,12 +196,13 @@ export default function Home() {
       <MobileOptimization />
       <PWA />
 
-      {/* 顶部横幅 */}
+      {/* 顶部横幅 【关键：补充 signOutLoading 传参】 */}
       <TopBanner
         siteData={siteData}
         base={base}
         user={user}
         loading={loading}
+        signOutLoading={signOutLoading}
         isSessionChecked={isSessionChecked}
         userCount={userCount}
         latestUser={latestUser}
@@ -197,7 +214,7 @@ export default function Home() {
         onCloseModal={() => setShowTimeErrModal(false)}
       />
 
-      {/* 主内容 */}
+      {/* 主内容区域（样式、布局、组件全部原样保留） */}
       <div ref={mainContentRef} className="main-content" style={{
         maxWidth: 1200, margin: '20px auto', padding: '0 15px',
         display: 'flex', flexDirection: 'column', gap: 20, width: '100%',
@@ -237,14 +254,11 @@ export default function Home() {
             <Suspense fallback={null}>
               <AdSection ads={siteData.ads} base={base} />
             </Suspense>
-
-            {/* 右下角统计组件 */}
-            
           </div>
         </div>
       </div>
 
-      {/* 时间弹窗 */}
+      {/* 时间同步弹窗（完整保留） */}
       {showTimeErrModal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 99999,
