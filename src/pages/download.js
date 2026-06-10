@@ -2,8 +2,8 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 // 导入外部 JSON 数据文件
-import downloadData from '@/data/Download.json';
-
+// 如果你的组件在 src/pages/download.jsx，这样写：
+import downloadData from '../data/Download.json';
 // 从 JSON 中取出资源列表、分类映射
 const downloadList = downloadData.resourceList;
 const categoryMap = downloadData.categoryMap;
