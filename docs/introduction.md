@@ -1,7 +1,6 @@
 <div align="center">
 
-<!-- 项目 Logo 区域 -->
-<img src=".github/pblot_logo.png" alt="PBLOT Logo" width="90" style={{marginBottom: "12px"}}/>
+<img src="/img/pblot_logo.png" alt="PBLOT Logo" width="90" style={{marginBottom: "12px"}}/>
 
 # 🧩 PBLOT 社区平台
 ### 基于 Docusaurus + Supabase 构建的现代化社区 | 个人中心 | 实时聊天系统
@@ -10,7 +9,6 @@
 
 <br />
 
-<!-- 第一行：构建 & 技术栈 徽章 -->
 [![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/auto-deploy.yml?branch=master&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
 [![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
@@ -18,7 +16,6 @@
 
 <br />
 
-<!-- 第二行：仓库数据徽章 -->
 [![GitHub Stars](https://img.shields.io/github/stars/ye2f4/pblot?logo=github&color=blue)](https://github.com/ye2f4/pblot/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/ye2f4/pblot?logo=github&color=lightblue)](https://github.com/ye2f4/pblot/fork)
 [![GitHub Issues](https://img.shields.io/github/issues/ye2f4/pblot?logo=github&color=red)](https://github.com/ye2f4/pblot/issues)
