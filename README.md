@@ -1,4 +1,4 @@
-<div align="center" markdown="1">
+<div align="center">
 
 <!-- 项目 Logo 区域 -->
 <img src=".github/pblot_logo.png" alt="PBLOT Logo" width="90" style="margin-bottom: 12px;"/>
@@ -25,7 +25,6 @@
 [![GitHub Issues](https://img.shields.io/github/issues/ye2f4/pblot?logo=github&color=red&gh_token=你的GitHubToken)](https://github.com/ye2f4/pblot/issues)
 [![License](https://img.shields.io/github/license/ye2f4/pblot?color=green&gh_token=你的GitHubToken)](LICENSE)
 [![Node Version](https://img.shields.io/github/package-json/node-version/ye2f4/pblot?logo=node.js&color=339933&gh_token=你的GitHubToken)](https://nodejs.org/)
-
 
 </div>
 
