@@ -309,13 +309,8 @@ const config = {
   ],
 
   future: {
-    faster: {
-      imageOptimization: true, // 自动压缩图片
-      swcJsLoader: true, // 使用SWC替代Babel编译
-      swcJsMinimizer: true, // 使用SWC压缩JS
-      lightningCssMinimizer: true, // 使用Lightning CSS压缩CSS
-      mdxRs: true, // 使用Rust编译MDX
-    },
+    faster: true,
+    v4: true,
   },
 
   presets: [
@@ -325,7 +320,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: "https://github.com/ye2f4/edit/master/",
-          breadcrumbs: true, // 启用面包屑
+          breadcrumbs: true,
           showLastUpdateAuthor: true,
           remarkPlugins: [remarkDefList],
         },
@@ -352,10 +347,56 @@ const config = {
         },
       },
     ],
-    // 新增：启用官方Faster插件
-    "@docusaurus/faster",
   ],
 
+  plugins: [
+    // 自动生成CNAME插件
+    function AutoGenerateCNAMEPlugin() {
+      return {
+        name: "auto-generate-cname",
+        async postBuild({ outDir }) {
+          const cnameFilePath = path.join(outDir, "CNAME");
+          fs.writeFileSync(cnameFilePath, SITE_DOMAIN, "utf8");
+          console.log(`✅ [插件] 已自动生成 CNAME 文件: ${cnameFilePath}`);
+        },
+      };
+    },
+
+    [require.resolve("@easyops-cn/docusaurus-search-local"), {
+      hashed: true,
+      language: ["zh", "en"],
+      highlightSearchTermsOnTargetPage: true,
+    }],
+
+    () => ({
+      name: "docusaurus-tailwindcss",
+      configurePostCss(postcssOptions) {
+        postcssOptions.plugins.push(require("tailwindcss"));
+        postcssOptions.plugins.push(require("autoprefixer"));
+        return postcssOptions;
+      },
+    }),
+
+    () => ({
+      name: "docusaurus-webpack-alias",
+      configureWebpack() {
+        return {
+          resolve: {
+            alias: { "@": path.resolve(__dirname, "src") }
+          },
+          devtool: isDev ? "source-map" : false,
+        };
+      },
+    }),
+
+    ["@docusaurus/faster", {
+      imageOptimization: true,
+      swcJsLoader: true,
+      swcJsMinimizer: true,
+      lightningCssMinimizer: true,
+      mdxRs: true,
+    }],
+  ],
   i18n: {
     defaultLocale: "zh-CN",
     locales: ["zh-CN"]
