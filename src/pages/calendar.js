@@ -242,7 +242,7 @@ export default function Calendar() {
     if (history.length > 1) {
       history.goBack();
     } else {
-      history.push('/');
+      history.push('/pblot');
     }
   };
 
