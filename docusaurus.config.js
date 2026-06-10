@@ -309,7 +309,7 @@ const config = {
   ],
 
   future: {
-    experimental_faster: {
+    faster: {
       imageOptimization: true, // 自动压缩图片
       swcJsLoader: true, // 使用SWC替代Babel编译
       swcJsMinimizer: true, // 使用SWC压缩JS
