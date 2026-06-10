@@ -1,8 +1,8 @@
 {
   "siteTitle": "Monoの小窝",
-  "siteUrl": "https://ye2f4.github.io",
+  "siteUrl": "https://monoblog.cc.cd",
   "basePath": "/",
-  "callbackPath": "/callback",
+  "callbackPath": "",
   "texts": {
     "announcement": "欢迎来到Mono的小窝！本站为个人技术分享站点~",
     "notification": "📢 欢迎来到Mono的小窝！本站持续更新技术教程和资源分享，记得常来看看哦~ 🔥 最新上线React入门系列教程！",

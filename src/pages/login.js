@@ -31,7 +31,7 @@ export default function Login() {
         }
     };
 
-    // 🔥 修复完成：GitHub 登录（完整版）
+    // 修复：GitHub 登录 统一域名 + 补齐权限
     const handleGithubLogin = async () => {
         setLoading(true);
         setError('');
@@ -39,16 +39,16 @@ export default function Login() {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'github',
                 options: {
-                    // 🔥 强制完整绝对路径（和后台配置 100% 一致）
-                    redirectTo: `${siteData.siteUrl}${siteData.callbackPath}`
+                    // 核心修复：使用当前站点真实根域名，不再依赖旧 siteData 配置
+                    redirectTo: window.location.origin,
+                    // 补齐授权范围，和首页登录保持一致
+                    scopes: "user:email,read:user"
                 }
             });
             if (error) throw error;
         } catch (err) {
-            // 🔥 修复：显示错误 + 重置 loading
             setError(`GitHub 登录失败：${err.message}`);
         } finally {
-            // 🔥 修复：无论成功/失败，都重置 loading（按钮恢复可用）
             setLoading(false);
         }
     };
