@@ -10,12 +10,12 @@
 
 <br>
 
-<!-- 状态徽章组（分两行排版，避免拥挤，新增常用徽章 + 国内镜像兼容） -->
+<!-- 状态徽章组（分两行排版，国内稳定镜像，全统一域名） -->
 <!-- 第一行：构建 & 技术栈 徽章 -->
 [![GitHub CI](https://shields.vercel.app/github/actions/workflow/status/ye2f4/pblot/deploy.yml?branch=main&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
-[![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
-[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
-[![Vercel](https://img.shields.io/static/v1?label=Deploy&message=Vercel&style=flat&logo=vercel&color=000000&logoColor=white)](https://vercel.com)
+[![Docusaurus](https://shields.vercel.app/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
+[![Supabase](https://shields.vercel.app/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vercel](https://shields.vercel.app/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com)
 
 <br>
 
@@ -24,7 +24,7 @@
 [![GitHub Forks](https://shields.vercel.app/github/forks/ye2f4/pblot?logo=git&color=lightblue)](https://github.com/ye2f4/pblot/fork)
 [![GitHub Issues](https://shields.vercel.app/github/issues/ye2f4/pblot?logo=github&color=red)](https://github.com/ye2f4/pblot/issues)
 [![License](https://shields.vercel.app/github/license/ye2f4/pblot?color=green)](LICENSE)
-[![Node Version](https://shields.vercel.app/node/v18?logo=node.js&color=339933)](https://nodejs.org/)
+[![Node Version](https://shields.vercel.app/node/v/package.json?logo=node.js&color=339933)](https://nodejs.org/)
 
 </div>
 
