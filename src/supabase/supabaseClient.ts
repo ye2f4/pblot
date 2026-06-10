@@ -8,7 +8,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const ssrEmptyClient = {
   auth: {
-    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
     signInWithOAuth: async () => ({ error: null }),
     signOut: async () => ({ error: null }),
     getSession: async () => ({ data: { session: null } }),
@@ -20,12 +20,19 @@ const ssrEmptyClient = {
 
 export const supabase = isBrowser
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true, // 重中之重，自动抓取#token
-        flow: 'pkce',
-        storage: window.localStorage
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true, // 重中之重，自动抓取#token
+      flow: 'pkce',
+      storage: window.localStorage,
+         // 新增：会话安全配置
+        storageKey: 'sb-session',
+      cookieOptions: {
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 7, // 7天
       }
-    })
+    }
+  })
   : ssrEmptyClient;

@@ -1,0 +1,102 @@
+name: 自动部署到 GitHub Pages
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  # 第一阶段：Docusaurus 构建 + GitHub Pages 部署
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检出完整代码+Git标签
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: PNPM 依赖缓存
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm/store
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: 激活指定版本PNPM
+        run: corepack enable && corepack prepare pnpm@11.5.2 --activate
+
+      - name: 配置Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 静态构建（注入Supabase环境变量供前端页面调用）
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          rm -rf .docusaurus build
+          pnpm build
+
+      - name: 校验构建产物
+        run: ls -la build/
+
+      - name: 推送静态文件至GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+          force_orphan: true
+          enable_jekyll: false
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+
+  # 第二阶段：部署成功后自动解析Git Tag/提交，写入更新日志
+  auto_changelog:
+    needs: deploy # 强制等待页面部署完全成功才执行
+    runs-on: ubuntu-latest
+    env:
+      SUPA_URL: ${{ secrets.SUPABASE_URL }}
+      SUPA_API_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - name: 重新拉取完整代码与标签
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: 赋予脚本可执行权限
+        run: chmod +x ./get-commit-desc.sh
+
+      - name: 运行脚本解析版本、标题、类型、描述
+        run: ./get-commit-desc.sh
+
+      - name: 写入日志到Supabase（接口失败不影响部署状态）
+        continue-on-error: true
+        run: |
+          curl -X POST "${SUPA_URL}/rest/v1/update_logs" \
+          -H "apikey: ${SUPA_API_KEY}" \
+          -H "Content-Type: application/json" \
+          -d '[
+            {
+              "version": "${{ env.VERSION }}",
+              "title": "${{ env.TITLE }}",
+              "type": "${{ env.TYPE }}",
+              "description": "${{ env.DESC }}",
+              "release_date": "'$(date +%Y-%m-%d)'"
+            }
+          ]'

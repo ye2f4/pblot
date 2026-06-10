@@ -1,0 +1,47 @@
+name: Auto Changelog From Git Commit
+run-name: 部署自动生成更新日志
+
+# 触发：推送到main分支 / 手动运行
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  push_log_to_supabase:
+    runs-on: ubuntu-latest
+    env:
+      # 仅保留两个固定密钥，无需LOG_*变量
+      SUPA_URL: ${{ secrets.SUPABASE_URL }}
+      SUPA_API_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+    steps:
+      # 1. 拉取完整代码（必须，否则读不到VERSION和脚本、git记录）
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 拉取完整git历史，对比分支提交
+
+      # 2. 给shell脚本开启可执行权限
+      - name: Grant execute permission for script
+        run: chmod +x ./get-commit-desc.sh
+
+      # 3. 运行脚本，自动导出 VERSION / TITLE / DESC / TYPE 到环境变量
+      - name: Parse git commit & version
+        run: ./get-commit-desc.sh
+
+      # 4. 调用Supabase REST API 插入更新日志
+      - name: Insert log into update_logs table
+        run: |
+          curl -X POST "${SUPA_URL}/rest/v1/update_logs" \
+          -H "apikey: ${SUPA_API_KEY}" \
+          -H "Content-Type: application/json" \
+          -d '[
+            {
+              "version": "${{ env.VERSION }}",
+              "title": "${{ env.TITLE }}",
+              "type": "${{ env.TYPE }}",
+              "description": "${{ env.DESC }}",
+              "release_date": "'$(date +%Y-%m-%d)'"
+            }
+          ]'

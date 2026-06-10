@@ -1,10 +1,4 @@
 User-agent: *
 Allow: /
-Allow: /pblot/
-Disallow: /pblot/tags/
-Disallow: /pblot/categories/
-Disallow: /pblot/blog/archive/
 
-Sitemap: https://ye2f4.github.io/pblot/sitemap.xml
-
-# Algolia-Crawler-Verif: 5CB8AFBEBF426B24
+Sitemap: https://monoblog.cc.cd/sitemap.xml

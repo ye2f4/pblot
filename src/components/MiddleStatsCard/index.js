@@ -28,7 +28,6 @@ export default function MiddleStatsCard({
     today: 0,
     total: 0
   });
-  // 新增：系统健康状态
   const [sysHealth, setSysHealth] = useState({
     apiHealth: true,
     dbHealth: true,
@@ -37,14 +36,13 @@ export default function MiddleStatsCard({
     cacheLatency: 0,
     totalLatency: 0
   });
-  // 新增：24小时访问数据
   const [hourData, setHourData] = useState(Array(24).fill(0));
 
   const weekJp = siteData?.texts?.weekJp?.[now.getDay()] || '水';
   const weekEn = siteData?.texts?.weekEn?.[now.getDay()] || 'Wednesday';
   const weekNum = getWeekNumber(now);
 
-  // 1. 检测数据库延迟与健康度
+  // 1. 系统健康检测（带容错，写入失败不阻塞）
   const checkSystemHealth = async () => {
     const startTotal = performance.now();
     let apiHealth = true;
@@ -54,7 +52,6 @@ export default function MiddleStatsCard({
     let cacheLatency = 0;
 
     try {
-      // 测试DB查询延迟
       const dbStart = performance.now();
       const { error: dbErr } = await supabase.from('visit_stats').select('id').limit(1);
       dbLatency = Math.round(performance.now() - dbStart);
@@ -65,7 +62,6 @@ export default function MiddleStatsCard({
     }
 
     try {
-      // 简易缓存模拟（localStorage读写测速）
       const cacheStart = performance.now();
       localStorage.setItem('health_test', Date.now().toString());
       localStorage.getItem('health_test');
@@ -85,85 +81,119 @@ export default function MiddleStatsCard({
       totalLatency
     });
 
-    // 后台写入状态到visit_stats持久化
-    await supabase
-      .from('visit_stats')
-      .update({
-        db_latency: dbLatency,
-        cache_latency: cacheLatency,
-        api_healthy: apiHealth,
-        db_healthy: dbHealth,
-        cache_healthy: cacheHealth
-      })
-      .eq('id', 1);
+    // 权限不足会静默失败，加捕获
+    try {
+      await supabase
+        .from('visit_stats')
+        .update({
+          db_latency: dbLatency,
+          cache_latency: cacheLatency,
+          api_healthy: apiHealth,
+          db_healthy: dbHealth,
+          cache_healthy: cacheHealth
+        })
+        .eq('id', 1);
+    } catch (e) {
+      console.warn('健康数据无写入权限，跳过持久化', e.message);
+    }
   };
 
-  // 2. 拉取今日24小时真实访问数据
+  // 2. 加载24小时小时访问热力数据
   const loadHourlyData = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const { data } = await supabase
-      .from('hourly_visits')
-      .select('hour, count')
-      .eq('stat_date', today);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('hourly_visits')
+        .select('hour, count')
+        .eq('stat_date', today);
 
-    const arr = Array(24).fill(0);
-    data?.forEach(item => {
-      arr[item.hour] = item.count;
-    });
-    setHourData(arr);
+      const arr = Array(24).fill(0);
+      data?.forEach(item => {
+        arr[item.hour] = item.count;
+      });
+      setHourData(arr);
+    } catch (e) {
+      console.warn('加载小时热力数据失败', e.message);
+      setHourData(Array(24).fill(0));
+    }
   };
 
-  // 3. 原有访客统计逻辑（保留，新增调用健康、小时数据）
+  // 3. 主统计更新逻辑（全链路拆分容错）
   useEffect(() => {
     if (!supabase) return;
     const updateStats = async () => {
+      const todayISO = new Date().toISOString().split('T')[0];
+      let currentStat = { today_visits: 0, total_visits: 0, last_reset: todayISO };
+
+      // 第一步：读取visit_stats（单独捕获406权限错误）
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const { data: current } = await supabase
+        const res = await supabase
           .from('visit_stats')
-          .select('*')
+          .select('today_visits, total_visits, last_reset')
           .eq('id', 1)
           .single();
+        if (res.data) currentStat = res.data;
+      } catch (e) {
+        console.warn('读取访问总量受限，使用默认值', e.message);
+      }
 
-        let todayCount = current?.today_visits || 0;
-        if (current?.last_reset !== today) todayCount = 0;
-        const newTotal = (current?.total_visits || 0) + 1;
-        const newToday = todayCount + 1;
+      // 前端不再执行UPDATE写入（无service_role权限，避免406报错）
+      const displayToday = currentStat.last_reset === todayISO ? currentStat.today_visits : 0;
+      const displayTotal = currentStat.total_visits;
 
-        await supabase
-          .from('visit_stats')
-          .update({ total_visits: newTotal, today_visits: newToday, last_reset: today })
-          .eq('id', 1);
+      // 访客会话标识
+      const sessionId = localStorage.getItem('visitor_session') || crypto.randomUUID();
+      localStorage.setItem('visitor_session', sessionId);
 
-        const sessionId = localStorage.getItem('visitor_session') || crypto.randomUUID();
-        localStorage.setItem('visitor_session', sessionId);
-
+      // 上报在线状态（时间强制ISO）
+      try {
+        const nowIso = new Date().toISOString();
         await supabase.from('online_users').upsert(
-          [{ session_id: sessionId, last_active: new Date() }],
+          [{ session_id: sessionId, last_active: nowIso }],
           { onConflict: 'session_id' }
         );
-        await supabase.from('online_users').delete().lt('last_active', new Date(Date.now() - 300000));
+      } catch (e) {
+        console.warn('在线状态上报失败', e.message);
+      }
 
-        const { count: onlineCount } = await supabase
+      // 清理过期在线用户（修复ISO时间格式，根除400）
+      try {
+        const expireIso = new Date(Date.now() - 300000).toISOString();
+        await supabase.from('online_users').delete().lt('last_active', expireIso);
+      } catch (e) {
+        console.warn('清理过期在线用户失败', e.message);
+      }
+
+      // 获取实时在线人数
+      let onlineCount = 0;
+      try {
+        const { count } = await supabase
           .from('online_users')
           .select('*', { count: 'exact', head: true });
-
-        setVisitStats({ total: newTotal, today: newToday, online: onlineCount || 0 });
-
-        // 新增并行加载健康、小时热力数据
-        checkSystemHealth();
-        loadHourlyData();
+        onlineCount = count || 0;
       } catch (e) {
-        console.log('统计加载失败', e);
+        console.warn('读取在线人数失败', e.message);
       }
+
+      // 更新页面展示数据
+      setVisitStats({
+        total: displayTotal,
+        today: displayToday,
+        online: onlineCount
+      });
+
+      // 异步加载辅助数据
+      checkSystemHealth();
+      loadHourlyData();
     };
 
+    // 立即执行 + 5秒轮询
     updateStats();
-    const interval = setInterval(updateStats, 5000);
-    return () => clearInterval(interval);
+    const timer = setInterval(updateStats, 5000);
+    return () => clearInterval(timer);
   }, []);
 
-  // 计算热力图最大数值，用来等比例计算高度
+  // 热力图峰值计算
   const maxHourCount = Math.max(...hourData, 1);
   const currentHour = new Date().getHours();
 
@@ -182,7 +212,7 @@ export default function MiddleStatsCard({
     }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* A区域：图标统计行（完全原样保留） */}
+      {/* A区域：顶部5个图标统计 */}
       <div style={{ gridColumn: 1, gridRow: 1 }}>
         <div style={{
           display: 'grid',
@@ -225,7 +255,7 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* B区域：在线/今日/总访问（原样保留） */}
+      {/* B区域：在线/今日/总访问 */}
       <div style={{ gridColumn: 1, gridRow: 2 }}>
         <div style={{
           display: 'flex',
@@ -244,7 +274,7 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* ========== C区域：改造后真实系统状态监控 ========== */}
+      {/* C区域：真实系统健康监控面板 */}
       <div style={{ gridColumn: 1, gridRow: 3 }}>
         <div style={{
           padding: '3px 6px',
@@ -256,7 +286,6 @@ export default function MiddleStatsCard({
         }}>
           <span style={{ fontSize: '10px', color: '#666' }}>⚙️ 系统状态</span>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {/* API状态 */}
             <div style={{ textAlign: 'center' }}>
               <div style={{
                 width: '20px', height: '20px', margin: '0 auto 2px',
@@ -264,7 +293,6 @@ export default function MiddleStatsCard({
               }} />
               <span style={{ fontSize: '9px', color: '#555' }}>API</span>
             </div>
-            {/* 数据库状态 + 真实延迟 */}
             <div style={{ textAlign: 'center' }}>
               <div style={{
                 width: '20px', height: '20px', margin: '0 auto 2px',
@@ -272,7 +300,6 @@ export default function MiddleStatsCard({
               }} />
               <span style={{ fontSize: '9px', color: '#555' }}>DB {sysHealth.dbLatency}ms</span>
             </div>
-            {/* 缓存状态 + 真实延迟 */}
             <div style={{ textAlign: 'center' }}>
               <div style={{
                 width: '20px', height: '20px', margin: '0 auto 2px',
@@ -280,7 +307,6 @@ export default function MiddleStatsCard({
               }} />
               <span style={{ fontSize: '9px', color: '#555' }}>缓存 {sysHealth.cacheLatency}ms</span>
             </div>
-            {/* 整体总延迟进度条 */}
             <div style={{ textAlign: 'center' }}>
               <div style={{
                 width: '40px', height: '12px', margin: '0 auto 2px',
@@ -297,7 +323,7 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* ========== D区域：真实24小时访问热力图 ========== */}
+      {/* D区域：24小时真实访问热力图 */}
       <div style={{ gridColumn: 1, gridRow: 4 }}>
         <div style={{
           height: '100%',
@@ -323,9 +349,7 @@ export default function MiddleStatsCard({
           }}>
             {hourData.map((count, i) => {
               const isCurrent = i === currentHour;
-              // 真实比例高度
               const heightPercent = maxHourCount === 0 ? 5 : (count / maxHourCount) * 100;
-              // 梯度颜色
               let color;
               if (isCurrent) color = '#4285f4';
               else if (count / maxHourCount > 0.8) color = '#34d399';
@@ -350,12 +374,12 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* E区域：像素时钟 完全原样 */}
+      {/* E区域：像素时钟 */}
       <div style={{ gridColumn: 2, gridRow: '1 / span 3', height: '100%' }}>
         <PixelClock now={now} weekJp={weekJp} weekEn={weekEn} weekNum={weekNum} />
       </div>
 
-      {/* F区域：公告栏 原样保留 */}
+      {/* F区域：站点公告 */}
       <div style={{ gridColumn: 2, gridRow: 4 }}>
         <div style={{
           height: '100%',

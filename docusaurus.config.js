@@ -33,9 +33,24 @@ const config = {
   projectName: "",
   deploymentBranch: "gh-pages",
 
-  future: {},
-
   headTags: [
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preload',
+        href: '/img/logo.svg',
+        as: 'image',
+        type: 'image/svg+xml',
+        fetchpriority: 'high',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'dns-prefetch',
+        href: 'https://xwhwcmorcmgpfpocmgez.supabase.co',
+      },
+    },
     {
       tagName: 'link',
       attributes: {
@@ -79,6 +94,52 @@ const config = {
       },
     },
     {
+      tagName: 'meta',
+      attributes: {
+        'http-equiv': 'Content-Security-Policy',
+        content: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://xwhwcmorcmgpfpocmgez.supabase.co",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "img-src 'self' data: https: blob:",
+          "font-src 'self' https://fonts.gstatic.com",
+          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co",
+          "frame-src 'self'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+        ].join('; '),
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        'http-equiv': 'X-Frame-Options',
+        content: 'DENY',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        'http-equiv': 'X-Content-Type-Options',
+        content: 'nosniff',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        'http-equiv': 'Referrer-Policy',
+        content: 'strict-origin-when-cross-origin',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        'http-equiv': 'Permissions-Policy',
+        content: 'camera=(), microphone=(), geolocation=()',
+      },
+    },
+    {
       tagName: "meta",
       attributes: {
         name: "description",
@@ -91,6 +152,31 @@ const config = {
         name: "keywords",
         content: "ESP32P4,智能手表,LVGL,Meshtastic,开源硬件,Docusaurus,游戏模组,React教程",
       },
+    },
+    {
+      tagName: 'script',
+      attributes: {
+        type: 'application/ld+json',
+      },
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        "name": "Monoの小窝",
+        "description": "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享",
+        "url": "https://monoblog.cc.cd",
+        "author": {
+          "@type": "Person",
+          "name": "Mono"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Monoの小窝",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://monoblog.cc.cd/img/avatar.webp"
+          }
+        }
+      }),
     },
     { tagName: "meta", attributes: { name: "author", content: "Mono" } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
@@ -108,7 +194,6 @@ const config = {
         srcDark: "img/logo.svg",
       },
       items: [
-        { label: "首页", to: "/", position: "left" },
         { label: "文章", to: "/docs/introduction/", position: "left" },
         { label: "博客", to: "/blog/", position: "left" },
         {
@@ -119,6 +204,29 @@ const config = {
             { label: "资料下载", to: "/downloads/" },
             { label: "开源项目", to: "/projects/" },
             { label: "开发工具", to: "/tools/" },
+          ],
+        },
+        {
+          type: "dropdown",
+          label: "工具箱",
+          position: "left",
+          items: [
+            { label: "硬件监控", to: "/hardware/" },
+            { label: "代码片段", to: "/snippets/" },
+            { label: "PCB元器件", to: "/pcb/" },
+            { label: "时光胶囊", to: "/capsule/" },
+            { label: "排行榜", to: "/leaderboard/" },
+          ],
+        },
+        {
+          type: "dropdown",
+          label: "更多",
+          position: "left",
+          items: [
+            { label: "更新日志", to: "/changelog/" },
+            { label: "隐私政策", to: "/privacy/" },
+            { label: "用户协议", to: "/terms/" },
+            { label: "RSS订阅", to: "/rss/" },
           ],
         },
         { label: "关于", to: "/about/", position: "left" },
@@ -200,6 +308,16 @@ const config = {
     }),
   ],
 
+  future: {
+    experimental_faster: {
+      imageOptimization: true, // 自动压缩图片
+      swcJsLoader: true, // 使用SWC替代Babel编译
+      swcJsMinimizer: true, // 使用SWC压缩JS
+      lightningCssMinimizer: true, // 使用Lightning CSS压缩CSS
+      mdxRs: true, // 使用Rust编译MDX
+    },
+  },
+
   presets: [
     [
       "@docusaurus/preset-classic",
@@ -207,7 +325,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: "https://github.com/ye2f4/edit/master/",
-          breadcrumbs: false,
+          breadcrumbs: true, // 启用面包屑
           showLastUpdateAuthor: true,
           remarkPlugins: [remarkDefList],
         },
@@ -222,12 +340,20 @@ const config = {
           customCss: require.resolve("./src/css/custom.css"),
         },
         sitemap: {
-          changefreq: "weekly",
+          changefreq: 'weekly',
           priority: 0.7,
-          lastmod: "date",
+          lastmod: 'date',
+          ignorePatterns: [
+            '/tags/**',
+            '/categories/**',
+            '/search',
+            '/rss',
+          ],
         },
       },
     ],
+    // 新增：启用官方Faster插件
+    "@docusaurus/faster",
   ],
 
   i18n: {
