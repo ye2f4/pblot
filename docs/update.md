@@ -4,7 +4,7 @@
 ## 我们更新了PBLoT社区的访问地址
 
 现在你可以输入
-···bash
+```bash
 monoblog.cc.cd
 ```
 或者
