@@ -3,14 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "license": "GPL-3.0-only",
+  "packageManager": "pnpm@11.5.2",
   "engines": {
-    "node": "22.x",
-    "pnpm": ">=11.5.0"
+    "node": "22.x"
   },
   "scripts": {
     "start": "docusaurus start",
     "build": "docusaurus build"
-  },
+  }
+}
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
