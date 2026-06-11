@@ -8,11 +8,6 @@
     "node": "22.x"
   },
   "scripts": {
-    "start": "docusaurus start",
-    "build": "docusaurus build"
-  }
-}
-  "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build",
