@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Layout from '@theme/Layout';
 import { useHistory } from '@docusaurus/router';
 // 1. 导入JSON配置
@@ -14,8 +14,10 @@ export default function Calendar() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(currentDate.getFullYear());
   const [pickerMonth, setPickerMonth] = useState(currentDate.getMonth());
-  // 调用公共函数生成黄历数据
-  const data = buildHuangLiData(currentDate, config);
+
+  // ========== 核心优化：黄历数据缓存 ==========
+  // 只有currentDate变化时才重新计算黄历，避免无意义重复渲染
+  const data = useMemo(() => buildHuangLiData(currentDate, config), [currentDate]);
 
   // 安全返回函数
   const handleGoBack = () => {
@@ -35,12 +37,44 @@ export default function Calendar() {
     setShowDatePicker(false);
   };
 
-  // 样式
+  // 样式：适配明暗模式
   const baseBtn = { padding: '6px 14px', background: '#D32F2F', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' };
-  const blockCard = { background: '#fff', border: '2px solid #D32F2F', borderRadius: '16px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' };
-  const subBlock = { background: '#fef8e6', borderRadius: '10px', padding: '14px', margin: '10px 0' };
-  const pickerPanel = { position: 'absolute', top: '110%', left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '2px solid #D32F2F', borderRadius: '12px', padding: '12px', zIndex: 9999, minWidth: '280px' };
-  const dayItem = { width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', cursor: 'pointer', border: '1px solid #eee' };
+  const blockCard = { 
+    background: 'var(--ifm-card-background-color)', 
+    border: '2px solid #D32F2F', 
+    borderRadius: '16px', 
+    padding: '20px', 
+    marginBottom: '16px', 
+    boxShadow: '0 4px 16px rgba(0,0,0,0.08)' 
+  };
+  const subBlock = { 
+    background: 'var(--ifm-background-surface-color)', 
+    borderRadius: '10px', 
+    padding: '14px', 
+    margin: '10px 0' 
+  };
+  const pickerPanel = { 
+    position: 'absolute', 
+    top: '110%', 
+    left: '50%', 
+    transform: 'translateX(-50%)', 
+    background: 'var(--ifm-card-background-color)', 
+    border: '2px solid #D32F2F', 
+    borderRadius: '12px', 
+    padding: '12px', 
+    zIndex: 9999, 
+    minWidth: '280px' 
+  };
+  const dayItem = { 
+    width: '32px', 
+    height: '32px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    borderRadius: '4px', 
+    cursor: 'pointer', 
+    border: '1px solid var(--ifm-toc-border-color)' 
+  };
 
   // 渲染日期选择器
   const renderPickerDays = () => {
@@ -50,14 +84,14 @@ export default function Calendar() {
     for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} style={{ ...dayItem, border: 'none' }}></div>);
     for (let d = 1; d <= totalDays; d++) {
       const isCurrent = d === currentDate.getDate() && pickerYear === currentDate.getFullYear() && pickerMonth === currentDate.getMonth();
-      days.push(<div key={d} style={{ ...dayItem, background: isCurrent ? '#D32F2F' : '#fff', color: isCurrent ? '#fff' : '#333' }} onClick={() => selectDate(d)}>{d}</div>);
+      days.push(<div key={d} style={{ ...dayItem, background: isCurrent ? '#D32F2F' : 'var(--ifm-background-color)', color: isCurrent ? '#fff' : 'var(--ifm-font-color-base)' }} onClick={() => selectDate(d)}>{d}</div>);
     }
     return days;
   };
 
   return (
     <Layout title="正统完整版老黄历" description="干支、时辰、卦象、宜忌、方位、太岁全套传统黄历">
-      <div style={{ minHeight: '100vh', background: '#FFF8E1', padding: '20px', fontFamily: '"SimSun","Microsoft YaHei",serif' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--ifm-background-color)', padding: '20px', fontFamily: '"SimSun","Microsoft YaHei",serif' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto 20px auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={handleGoBack} style={baseBtn}>← 返回</button>
           <h2 style={{ color: '#B71C1C', margin: 0, fontSize: '24px' }}>📜 正统完整版老黄历</h2>
@@ -90,9 +124,9 @@ export default function Calendar() {
             </div>
 
             {/* 核心信息 */}
-            <div style={{ textAlign: 'center', borderBottom: '1px dashed #ccc', paddingBottom: '16px' }}>
+            <div style={{ textAlign: 'center', borderBottom: '1px dashed var(--ifm-toc-border-color)', paddingBottom: '16px' }}>
               <h1 style={{ color: '#D32F2F', fontSize: '42px', margin: '0 0 6px 0' }}>{data.year}年{data.month}月{data.day}日 星期{data.week}</h1>
-              <h3 style={{ margin: 0, color: '#333' }}>农历：{data.lunarStr} | 节气：{data.jieQi} | 生肖：{data.animal} | 星座：{data.xingZuo}</h3>
+              <h3 style={{ margin: 0, color: 'var(--ifm-font-color-base)' }}>农历：{data.lunarStr} | 节气：{data.jieQi} | 生肖：{data.animal} | 星座：{data.xingZuo}</h3>
               <p>干支：{data.yearGanZhi}年 {data.dayGanZhi}日</p>
             </div>
 
@@ -121,7 +155,7 @@ export default function Calendar() {
             {/* 卦象 */}
             <div style={subBlock}>
               <p><strong>彭祖百忌：</strong>{data.pengZu}</p>
-              <div style={{ marginTop: '12px', borderTop: '1px dashed #ccc', paddingTop: '12px' }}>
+              <div style={{ marginTop: '12px', borderTop: '1px dashed var(--ifm-toc-border-color)', paddingTop: '12px' }}>
                 <h4>📖 今日卦象：{data.gua.name}</h4>
                 <p><strong>卦辞：</strong>{data.gua.xiang}</p>
                 <p><strong>事业参考：</strong>{data.gua.shi}</p>
@@ -148,19 +182,19 @@ export default function Calendar() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead><tr style={{ background: '#D32F2F', color: '#fff' }}>
-                  <th style={{ border: '1px solid #ddd', padding: '8px' }}>时辰</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>时间</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>干支</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>冲煞</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>纳音</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>财神</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>吉凶</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>时宜</th><th style={{ border: '1px solid #ddd', padding: '8px' }}>时忌</th>
+                  <th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>时辰</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>时间</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>干支</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>冲煞</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>纳音</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>财神</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>吉凶</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>时宜</th><th style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px' }}>时忌</th>
                 </tr></thead>
                 <tbody>{data.shiChenList.map((sc, i) => (
                   <tr key={i} style={{ background: sc.ji ? '#f0fff4' : '#fff5f5' }}>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.name}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.time}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.ganZhi}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.chong}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.naYin}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.wealthPos}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', color: sc.ji ? '#2e7d32' : '#c62828' }}>{sc.ji ? '吉' : '凶'}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.yi}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>{sc.jiTaboo}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.name}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.time}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.ganZhi}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.chong}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.naYin}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.wealthPos}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center', color: sc.ji ? '#2e7d32' : '#c62828' }}>{sc.ji ? '吉' : '凶'}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.yi}</td>
+                    <td style={{ border: '1px solid var(--ifm-toc-border-color)', padding: '8px', textAlign: 'center' }}>{sc.jiTaboo}</td>
                   </tr>
                 ))}</tbody>
               </table>

@@ -16,21 +16,19 @@ export default class PCBPage extends React.Component {
       loading: true,
       error: null,
 
-      // 元器件弹窗：package 改为 pkg 规避JS保留字
       showPartModal: false,
       currentPart: null,
       partForm: {
         name: '',
         part_number: '',
         description: '',
-        pkg: '',       // 前端改用 pkg，不再使用 package
+        pkg: '',
         price: '',
         stock: '',
         datasheet_url: '',
         lcsc_url: ''
       },
 
-      // PCB工程弹窗
       showPcbModal: false,
       currentPcb: null,
       pcbForm: {
@@ -49,7 +47,6 @@ export default class PCBPage extends React.Component {
     this.fetchData();
   }
 
-  // 切换标签页 + 清空搜索
   handleTabChange = (tab) => {
     this.setState({
       activeTab: tab,
@@ -57,13 +54,11 @@ export default class PCBPage extends React.Component {
     });
   };
 
-  // 全局刷新数据
   refreshData = async () => {
-    this.setState({ loading: true, searchTerm: '' }); // 刷新时清空搜索
+    this.setState({ loading: true, searchTerm: '' });
     await this.fetchData();
   };
 
-  // 拉取所有数据
   fetchData = async () => {
     try {
       const { data: parts, error: partsError } = await supabase
@@ -95,7 +90,6 @@ export default class PCBPage extends React.Component {
     }
   };
 
-  // ========== 元器件 增/改/删（核心修复：pkg 映射 + 空值处理） ==========
   openAddPartModal = () => {
     this.setState({
       showPartModal: true,
@@ -121,7 +115,7 @@ export default class PCBPage extends React.Component {
         name: item.name || '',
         part_number: item.part_number || '',
         description: item.description || '',
-        pkg: item.package || '', // 数据库字段是 package，前端读取到 pkg
+        pkg: item.package || '',
         price: item.price ?? '',
         stock: item.stock ?? '',
         datasheet_url: item.datasheet_url || '',
@@ -132,7 +126,6 @@ export default class PCBPage extends React.Component {
 
   savePart = async () => {
     const { currentPart, partForm } = this.state;
-    // 强化校验：过滤空格，禁止纯空内容
     const name = partForm.name.trim();
     const partNumber = partForm.part_number.trim();
     if (!name || !partNumber) {
@@ -140,12 +133,11 @@ export default class PCBPage extends React.Component {
       return;
     }
 
-    // 字段映射：前端 pkg → 数据库 package；空字符串转 null
     const submitData = {
       name: name,
       part_number: partNumber,
       description: partForm.description.trim() || null,
-      package: partForm.pkg.trim() || null, // 映射回数据库原始字段 package
+      package: partForm.pkg.trim() || null,
       price: partForm.price === '' ? null : Number(partForm.price),
       stock: partForm.stock === '' ? null : Number(partForm.stock),
       datasheet_url: partForm.datasheet_url.trim() || null,
@@ -154,16 +146,14 @@ export default class PCBPage extends React.Component {
 
     try {
       if (currentPart) {
-        // 编辑
         const { error } = await supabase.from('parts').update(submitData).eq('id', currentPart.id);
         if (error) throw error;
       } else {
-        // 新增
         const { error } = await supabase.from('parts').insert([submitData]);
         if (error) throw error;
       }
       this.setState({ showPartModal: false });
-      await this.refreshData(); // 保存后强制刷新
+      await this.refreshData();
     } catch (e) {
       console.error('保存元器件失败：', e);
       alert(`保存失败：${e.message}`);
@@ -181,7 +171,6 @@ export default class PCBPage extends React.Component {
     }
   };
 
-  // ========== PCB工程 增/改/删（修复tags冗余代码） ==========
   openAddPcbModal = () => {
     this.setState({
       showPcbModal: true,
@@ -222,7 +211,6 @@ export default class PCBPage extends React.Component {
       return;
     }
 
-    // 标签：英文逗号分割 → 数组
     const tagArr = pcbForm.tags.split(',')
       .map(t => t.trim())
       .filter(t => t);
@@ -264,17 +252,16 @@ export default class PCBPage extends React.Component {
     }
   };
 
-  // 空状态组件
   renderEmptyTip = (text) => {
     return (
       <div style={{
         textAlign: 'center',
         padding: '60px 20px',
-        color: '#94a3b8',
+        color: 'var(--ifm-color-emphasis-600)',
         fontSize: '15px',
-        background: '#ffffff',
+        background: 'var(--ifm-card-background-color)',
         borderRadius: '12px',
-        border: '1px dashed #e2e8f0'
+        border: '1px dashed var(--ifm-color-emphasis-300)'
       }}>
         📭 {text}
       </div>
@@ -295,7 +282,7 @@ export default class PCBPage extends React.Component {
             margin: '60px auto',
             padding: '0 20px',
             textAlign: 'center',
-            color: '#64748b',
+            color: 'var(--ifm-color-emphasis-600)',
             fontSize: '16px'
           }}>
             正在加载数据...
@@ -335,7 +322,6 @@ export default class PCBPage extends React.Component {
       );
     }
 
-    // 搜索过滤
     const term = searchTerm.toLowerCase().trim();
     const filteredParts = parts.filter(p => {
       const name = (p.name || '').toLowerCase().trim();
@@ -353,26 +339,25 @@ export default class PCBPage extends React.Component {
       <Layout title="PCB元器件速查">
         <div style={{
           minHeight: 'calc(100vh - 120px)',
-          background: '#f8fafc',
+          background: 'var(--ifm-color-emphasis-100)',
           padding: '32px 20px',
           boxSizing: 'border-box'
         }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            {/* 头部 */}
             <div style={{
               textAlign: 'center',
               marginBottom: '36px'
             }}>
               <h1 style={{
                 fontSize: '32px',
-                color: '#1e293b',
+                color: 'var(--ifm-text-color)',
                 margin: '0 0 8px 0',
                 fontWeight: 600
               }}>
                 🧩 PCB元器件速查
               </h1>
               <p style={{
-                color: '#64748b',
+                color: 'var(--ifm-color-emphasis-600)',
                 fontSize: '14px',
                 margin: '0 0 16px 0'
               }}>
@@ -395,7 +380,6 @@ export default class PCBPage extends React.Component {
               </button>
             </div>
 
-            {/* 标签页 + 添加按钮 */}
             <div style={{
               display: 'flex',
               gap: '12px',
@@ -412,8 +396,8 @@ export default class PCBPage extends React.Component {
                   border: 'none',
                   cursor: 'pointer',
                   transition: 'all 0.25s ease',
-                  background: activeTab === 'parts' ? '#2196f3' : '#ffffff',
-                  color: activeTab === 'parts' ? '#ffffff' : '#334155',
+                  background: activeTab === 'parts' ? '#2196f3' : 'var(--ifm-card-background-color)',
+                  color: activeTab === 'parts' ? '#ffffff' : 'var(--ifm-text-color)',
                   boxShadow: activeTab === 'parts'
                     ? '0 4px 12px rgba(33, 150, 243, 0.35)'
                     : '0 2px 6px rgba(0,0,0,0.06)'
@@ -430,8 +414,8 @@ export default class PCBPage extends React.Component {
                   border: 'none',
                   cursor: 'pointer',
                   transition: 'all 0.25s ease',
-                  background: activeTab === 'pcb' ? '#2196f3' : '#ffffff',
-                  color: activeTab === 'pcb' ? '#ffffff' : '#334155',
+                  background: activeTab === 'pcb' ? '#2196f3' : 'var(--ifm-card-background-color)',
+                  color: activeTab === 'pcb' ? '#ffffff' : 'var(--ifm-text-color)',
                   boxShadow: activeTab === 'pcb'
                     ? '0 4px 12px rgba(33, 150, 243, 0.35)'
                     : '0 2px 6px rgba(0,0,0,0.06)'
@@ -470,7 +454,6 @@ export default class PCBPage extends React.Component {
               )}
             </div>
 
-            {/* 搜索框 */}
             <input
               type="text"
               placeholder={activeTab === 'parts' ? "🔍 搜索元器件名称 / 型号" : "🔍 搜索PCB工程名称 / 描述"}
@@ -480,24 +463,25 @@ export default class PCBPage extends React.Component {
                 width: '100%',
                 padding: '14px 18px',
                 borderRadius: '12px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--ifm-color-emphasis-300)',
                 fontSize: '15px',
                 marginBottom: '32px',
                 outline: 'none',
                 transition: 'border 0.25s ease, box-shadow 0.25s ease',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                background: 'var(--ifm-card-background-color)',
+                color: 'var(--ifm-text-color)'
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#2196f3';
                 e.target.style.boxShadow = '0 0 0 3px rgba(33, 150, 243, 0.15)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#e2e8f0';
+                e.target.style.borderColor = 'var(--ifm-color-emphasis-300)';
                 e.target.style.boxShadow = 'none';
               }}
             />
 
-            {/* 元器件列表 */}
             {activeTab === 'parts' && (
               <>
                 {filteredParts.length === 0 ? (
@@ -512,9 +496,9 @@ export default class PCBPage extends React.Component {
                       <div
                         key={part.id}
                         style={{
-                          background: '#ffffff',
+                          background: 'var(--ifm-card-background-color)',
                           borderRadius: '16px',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--ifm-color-emphasis-300)',
                           padding: '24px',
                           transition: 'all 0.25s ease',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -528,19 +512,19 @@ export default class PCBPage extends React.Component {
                           e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
                         }}
                       >
-                        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#1e293b' }}>
+                        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: 'var(--ifm-text-color)' }}>
                           {part.name}
                         </h3>
-                        <p style={{ color: '#64748b', fontSize: '14px', margin: '0 0 12px 0' }}>
+                        <p style={{ color: 'var(--ifm-color-emphasis-600)', fontSize: '14px', margin: '0 0 12px 0' }}>
                           型号：{part.part_number}
                         </p>
                         {part.description && (
-                          <p style={{ fontSize: '14px', margin: '0 0 16px 0', color: '#475569', lineHeight: '1.6' }}>
+                          <p style={{ fontSize: '14px', margin: '0 0 16px 0', color: 'var(--ifm-color-emphasis-600)', lineHeight: '1.6' }}>
                             {part.description}
                           </p>
                         )}
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
-                          <span style={{ padding: '4px 10px', background: '#f1f5f9', borderRadius: '6px', fontSize: '12px' }}>
+                          <span style={{ padding: '4px 10px', background: 'var(--ifm-color-emphasis-100)', borderRadius: '6px', fontSize: '12px', color: 'var(--ifm-text-color)' }}>
                             封装：{part.package || '无'}
                           </span>
                           {part.price && (
@@ -596,7 +580,6 @@ export default class PCBPage extends React.Component {
               </>
             )}
 
-            {/* PCB工程列表 */}
             {activeTab === 'pcb' && (
               <>
                 {filteredProjects.length === 0 ? (
@@ -611,9 +594,9 @@ export default class PCBPage extends React.Component {
                       <div
                         key={project.id}
                         style={{
-                          background: '#ffffff',
+                          background: 'var(--ifm-card-background-color)',
                           borderRadius: '16px',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--ifm-color-emphasis-300)',
                           overflow: 'hidden',
                           transition: 'all 0.25s ease',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -635,10 +618,10 @@ export default class PCBPage extends React.Component {
                           />
                         )}
                         <div style={{ padding: '24px' }}>
-                          <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#1e293b' }}>
+                          <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: 'var(--ifm-text-color)' }}>
                             {project.name}
                           </h3>
-                          <p style={{ color: '#64748b', fontSize: '14px', margin: '0 0 16px 0', lineHeight: '1.6' }}>
+                          <p style={{ color: 'var(--ifm-color-emphasis-600)', fontSize: '14px', margin: '0 0 16px 0', lineHeight: '1.6' }}>
                             {project.description}
                           </p>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
@@ -648,7 +631,7 @@ export default class PCBPage extends React.Component {
                                 borderRadius: '6px', fontSize: '12px'
                               }}>
                                 {tag}
-                            </span>
+                              </span>
                             ))}
                           </div>
                           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -697,7 +680,7 @@ export default class PCBPage extends React.Component {
               </>
             )}
 
-            {/* 元器件表单弹窗 */}
+            {/* 元器件弹窗 */}
             {showPartModal && (
               <div style={{
                 position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
@@ -705,33 +688,32 @@ export default class PCBPage extends React.Component {
                 zIndex: 9999, padding: '20px', boxSizing: 'border-box'
               }} onClick={(e) => e.target === e.currentTarget && this.setState({ showPartModal: false })}>
                 <div style={{
-                  width: '100%', maxWidth: '520px', background: '#fff',
+                  width: '100%', maxWidth: '520px', background: 'var(--ifm-card-background-color)',
                   borderRadius: '16px', padding: '28px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
                 }}>
-                  <h3 style={{ margin: '0 0 24px 0', fontSize: '20px' }}>
+                  <h3 style={{ margin: '0 0 24px 0', fontSize: '20px', color: 'var(--ifm-text-color)' }}>
                     {this.state.currentPart ? '编辑元器件' : '新增元器件'}
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <input placeholder="名称 *" value={partForm.name} onChange={e => this.setState({ partForm: { ...partForm, name: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="型号/料号 *" value={partForm.part_number} onChange={e => this.setState({ partForm: { ...partForm, part_number: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
-                    {/* 前端字段改为 pkg */}
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="封装" value={partForm.pkg} onChange={e => this.setState({ partForm: { ...partForm, pkg: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="单价" type="number" value={partForm.price} onChange={e => this.setState({ partForm: { ...partForm, price: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="库存" type="number" value={partForm.stock} onChange={e => this.setState({ partForm: { ...partForm, stock: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <textarea placeholder="描述" value={partForm.description} onChange={e => this.setState({ partForm: { ...partForm, description: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '80px' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', minHeight: '80px', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="Datasheet 链接" value={partForm.datasheet_url} onChange={e => this.setState({ partForm: { ...partForm, datasheet_url: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="立创商城链接" value={partForm.lcsc_url} onChange={e => this.setState({ partForm: { ...partForm, lcsc_url: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
                       <button onClick={() => this.setState({ showPartModal: false })} style={{
-                        padding: '10px 20px', border: '1px solid #ddd', borderRadius: '8px', background: '#fff'
+                        padding: '10px 20px', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)'
                       }}>取消</button>
                       <button onClick={this.savePart} style={{
                         padding: '10px 20px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: '8px'
@@ -742,7 +724,7 @@ export default class PCBPage extends React.Component {
               </div>
             )}
 
-            {/* PCB工程表单弹窗 */}
+            {/* PCB工程弹窗 */}
             {showPcbModal && (
               <div style={{
                 position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
@@ -750,30 +732,30 @@ export default class PCBPage extends React.Component {
                 zIndex: 9999, padding: '20px', boxSizing: 'border-box'
               }} onClick={(e) => e.target === e.currentTarget && this.setState({ showPcbModal: false })}>
                 <div style={{
-                  width: '100%', maxWidth: '520px', background: '#fff',
+                  width: '100%', maxWidth: '520px', background: 'var(--ifm-card-background-color)',
                   borderRadius: '16px', padding: '28px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
                 }}>
-                  <h3 style={{ margin: '0 0 24px 0', fontSize: '20px' }}>
+                  <h3 style={{ margin: '0 0 24px 0', fontSize: '20px', color: 'var(--ifm-text-color)' }}>
                     {this.state.currentPcb ? '编辑PCB工程' : '新增PCB工程'}
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <input placeholder="工程名称 *" value={pcbForm.name} onChange={e => this.setState({ pcbForm: { ...pcbForm, name: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <textarea placeholder="工程描述" value={pcbForm.description} onChange={e => this.setState({ pcbForm: { ...pcbForm, description: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minHeight: '80px' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', minHeight: '80px', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="预览图URL" value={pcbForm.preview_image} onChange={e => this.setState({ pcbForm: { ...pcbForm, preview_image: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="标签（多个用英文逗号分隔）" value={pcbForm.tags} onChange={e => this.setState({ pcbForm: { ...pcbForm, tags: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="Gerber 文件链接" value={pcbForm.gerber_url} onChange={e => this.setState({ pcbForm: { ...pcbForm, gerber_url: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="BOM 清单链接" value={pcbForm.bom_url} onChange={e => this.setState({ pcbForm: { ...pcbForm, bom_url: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <input placeholder="原理图链接" value={pcbForm.schematic_url} onChange={e => this.setState({ pcbForm: { ...pcbForm, schematic_url: e.target.value } })}
-                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                      style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)' }} />
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
                       <button onClick={() => this.setState({ showPcbModal: false })} style={{
-                        padding: '10px 20px', border: '1px solid #ddd', borderRadius: '8px', background: '#fff'
+                        padding: '10px 20px', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px', background: 'var(--ifm-card-background-color)', color: 'var(--ifm-text-color)'
                       }}>取消</button>
                       <button onClick={this.savePcb} style={{
                         padding: '10px 20px', background: '#2196f3', color: '#fff', border: 'none', borderRadius: '8px'

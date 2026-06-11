@@ -17,14 +17,12 @@ export default function TimeCapsule() {
   });
   const [loading, setLoading] = useState(true);
 
-  // 初始化：获取登录状态 + 加载胶囊数据
   useEffect(() => {
     const init = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
         await fetchCapsules();
-        // 每日自动检查并更新解锁状态
         await checkAutoUnlock();
       } catch (err) {
         console.error('初始化失败：', err);
@@ -35,7 +33,6 @@ export default function TimeCapsule() {
     init();
   }, []);
 
-  // 自动解锁：到达日期自动改为已解锁
   const checkAutoUnlock = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -49,10 +46,8 @@ export default function TimeCapsule() {
     }
   };
 
-  // 获取胶囊列表（我的 + 公开已解锁）
   const fetchCapsules = async () => {
     try {
-      // 公开已解锁胶囊
       const { data: publicData } = await supabase
         .from('time_capsules')
         .select('*')
@@ -60,7 +55,6 @@ export default function TimeCapsule() {
         .order('unlock_date', { ascending: false });
       setPublicCapsules(publicData || []);
 
-      // 当前用户的所有胶囊
       if (user) {
         const { data: myData } = await supabase
           .from('time_capsules')
@@ -74,7 +68,6 @@ export default function TimeCapsule() {
     }
   };
 
-  // 创建新时光胶囊
   const createCapsule = async () => {
     if (!user) {
       alert('请先登录后再创建时光胶囊');
@@ -94,7 +87,6 @@ export default function TimeCapsule() {
         is_unlocked: false
       }]);
 
-      // 重置表单、关闭弹窗、刷新列表
       setShowCreateModal(false);
       setNewCapsule({ title: '', content: '', unlockDate: '' });
       await fetchCapsules();
@@ -104,22 +96,20 @@ export default function TimeCapsule() {
     }
   };
 
-  // 空状态通用组件
   const EmptyPlaceholder = ({ text }) => (
     <div style={{
       textAlign: 'center',
       padding: '60px 20px',
-      color: '#94a3b8',
+      color: 'var(--ifm-color-emphasis-500)',
       fontSize: '15px',
-      background: '#ffffff',
+      background: 'var(--ifm-card-background-color)',
       borderRadius: '12px',
-      border: '1px dashed #e2e8f0'
+      border: '1px dashed var(--ifm-color-emphasis-300)'
     }}>
       📭 {text}
     </div>
   );
 
-  // 加载页面
   if (loading) {
     return (
       <Layout title="时光胶囊">
@@ -128,7 +118,7 @@ export default function TimeCapsule() {
           margin: '60px auto',
           padding: '0 20px',
           textAlign: 'center',
-          color: '#64748b',
+          color: 'var(--ifm-color-emphasis-500)',
           fontSize: '16px'
         }}>
           正在加载时光胶囊...
@@ -139,29 +129,27 @@ export default function TimeCapsule() {
 
   return (
     <Layout title="时光胶囊">
-      {/* 页面外层容器 */}
       <div style={{
         minHeight: 'calc(100vh - 120px)',
-        background: '#f8fafc',
+        background: 'var(--ifm-background-color)',
         padding: '32px 20px',
         boxSizing: 'border-box'
       }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          {/* 头部区域 */}
           <div style={{
             textAlign: 'center',
             marginBottom: '48px'
           }}>
             <h1 style={{
               fontSize: '34px',
-              color: '#1e293b',
+              color: 'var(--ifm-heading-color)',
               margin: '0 0 12px 0',
               fontWeight: 600
             }}>
               🕰️ 时光胶囊
             </h1>
             <p style={{
-              color: '#64748b',
+              color: 'var(--ifm-color-emphasis-600)',
               fontSize: '15px',
               margin: '0 0 28px 0',
               lineHeight: 1.6
@@ -169,7 +157,6 @@ export default function TimeCapsule() {
               写下给未来的留言，设定解锁日期，到期自动公开分享
             </p>
 
-            {/* 核心按钮：区分 登录 / 未登录 状态 */}
             {user ? (
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -198,11 +185,11 @@ export default function TimeCapsule() {
             ) : (
               <div style={{
                 padding: '14px 24px',
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
+                background: 'var(--ifm-card-background-color)',
+                border: '1px solid var(--ifm-color-emphasis-300)',
                 borderRadius: '999px',
                 display: 'inline-block',
-                color: '#64748b',
+                color: 'var(--ifm-color-emphasis-600)',
                 fontSize: '15px'
               }}>
                 🔒 请先登录，即可创建专属时光胶囊
@@ -210,12 +197,11 @@ export default function TimeCapsule() {
             )}
           </div>
 
-          {/* 我的胶囊区域（仅登录后展示） */}
           {user && (
             <div style={{ marginBottom: '48px' }}>
               <h2 style={{
                 fontSize: '20px',
-                color: '#1e293b',
+                color: 'var(--ifm-heading-color)',
                 margin: '0 0 20px 0',
                 paddingLeft: '12px',
                 borderLeft: '4px solid #9c27b0'
@@ -241,9 +227,9 @@ export default function TimeCapsule() {
                       <div
                         key={capsule.id}
                         style={{
-                          background: capsule.is_unlocked ? '#ffffff' : '#fef8fe',
+                          background: capsule.is_unlocked ? 'var(--ifm-card-background-color)' : 'var(--ifm-color-secondary-lightest)',
                           borderRadius: '16px',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--ifm-color-emphasis-200)',
                           padding: '24px',
                           transition: 'all 0.25s ease',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -257,7 +243,6 @@ export default function TimeCapsule() {
                           e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
                         }}
                       >
-                        {/* 标题 + 状态标签 */}
                         <div style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -267,7 +252,7 @@ export default function TimeCapsule() {
                           <h3 style={{
                             margin: 0,
                             fontSize: '18px',
-                            color: '#1e293b',
+                            color: 'var(--ifm-heading-color)',
                             flex: 1
                           }}>
                             {capsule.title}
@@ -275,7 +260,7 @@ export default function TimeCapsule() {
                           {!capsule.is_unlocked && (
                             <span style={{
                               padding: '4px 8px',
-                              background: '#9c27b020',
+                              background: 'rgba(156,39,176,0.1)',
                               color: '#9c27b0',
                               fontSize: '12px',
                               borderRadius: '6px',
@@ -287,12 +272,11 @@ export default function TimeCapsule() {
                           )}
                         </div>
 
-                        {/* 胶囊内容 / 解锁倒计时 */}
                         {capsule.is_unlocked ? (
                           <div style={{
                             whiteSpace: 'pre-wrap',
                             lineHeight: '1.7',
-                            color: '#334155',
+                            color: 'var(--ifm-text-color)',
                             fontSize: '14px',
                             minHeight: '60px'
                           }}>
@@ -300,11 +284,11 @@ export default function TimeCapsule() {
                           </div>
                         ) : (
                           <div style={{
-                            color: '#78716c',
+                            color: 'var(--ifm-color-emphasis-600)',
                             fontSize: '14px',
                             padding: '12px 0',
-                            borderTop: '1px dashed #e2e8f0',
-                            borderBottom: '1px dashed #e2e8f0',
+                            borderTop: '1px dashed var(--ifm-color-emphasis-300)',
+                            borderBottom: '1px dashed var(--ifm-color-emphasis-300)',
                             margin: '8px 0'
                           }}>
                             🔒 距离解锁还有
@@ -319,11 +303,10 @@ export default function TimeCapsule() {
                           </div>
                         )}
 
-                        {/* 日期信息 */}
                         <div style={{ marginTop: '16px' }}>
                           <div style={{
                             fontSize: '14px',
-                            color: '#64748b',
+                            color: 'var(--ifm-color-emphasis-600)',
                             marginBottom: '6px'
                           }}>
                             📅 解锁日期：{unlockDate.toLocaleDateString()}
@@ -333,7 +316,7 @@ export default function TimeCapsule() {
                           </div>
                           <div style={{
                             fontSize: '12px',
-                            color: '#94a3b8'
+                            color: 'var(--ifm-color-emphasis-500)'
                           }}>
                             创建时间：{new Date(capsule.created_at).toLocaleDateString()}
                           </div>
@@ -346,11 +329,10 @@ export default function TimeCapsule() {
             </div>
           )}
 
-          {/* 公开已解锁胶囊区域 */}
           <div>
             <h2 style={{
               fontSize: '20px',
-              color: '#1e293b',
+              color: 'var(--ifm-heading-color)',
               margin: '0 0 20px 0',
               paddingLeft: '12px',
               borderLeft: '4px solid #9c27b0'
@@ -374,9 +356,9 @@ export default function TimeCapsule() {
                     <div
                       key={capsule.id}
                       style={{
-                        background: '#ffffff',
+                        background: 'var(--ifm-card-background-color)',
                         borderRadius: '16px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-200)',
                         padding: '24px',
                         transition: 'all 0.25s ease',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -393,14 +375,14 @@ export default function TimeCapsule() {
                       <h3 style={{
                         margin: '0 0 16px 0',
                         fontSize: '18px',
-                        color: '#1e293b'
+                        color: 'var(--ifm-heading-color)'
                       }}>
                         {capsule.title}
                       </h3>
                       <div style={{
                         whiteSpace: 'pre-wrap',
                         lineHeight: '1.7',
-                        color: '#334155',
+                        color: 'var(--ifm-text-color)',
                         fontSize: '14px',
                         minHeight: '60px'
                       }}>
@@ -409,8 +391,8 @@ export default function TimeCapsule() {
                       <div style={{
                         marginTop: '20px',
                         fontSize: '14px',
-                        color: '#64748b',
-                        borderTop: '1px dashed #e2e8f0',
+                        color: 'var(--ifm-color-emphasis-600)',
+                        borderTop: '1px dashed var(--ifm-color-emphasis-300)',
                         paddingTop: '12px'
                       }}>
                         📅 解锁日期：{unlockDate.toLocaleDateString()}
@@ -427,7 +409,6 @@ export default function TimeCapsule() {
         </div>
       </div>
 
-      {/* 创建胶囊弹窗 */}
       {showCreateModal && (
         <div
           style={{
@@ -442,28 +423,26 @@ export default function TimeCapsule() {
             boxSizing: 'border-box'
           }}
           onClick={(e) => {
-            // 点击遮罩关闭弹窗
             if (e.target === e.currentTarget) setShowCreateModal(false);
           }}
         >
           <div style={{
             width: '100%',
             maxWidth: '520px',
-            background: '#ffffff',
+            background: 'var(--ifm-card-background-color)',
             borderRadius: '16px',
             padding: '28px',
             boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
           }}>
             <h3 style={{
               fontSize: '20px',
-              color: '#1e293b',
+              color: 'var(--ifm-heading-color)',
               margin: '0 0 24px 0'
             }}>
               ✍️ 写下你的时光胶囊
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* 标题输入 */}
               <input
                 placeholder="请输入胶囊标题"
                 value={newCapsule.title}
@@ -472,17 +451,18 @@ export default function TimeCapsule() {
                   width: '100%',
                   padding: '14px 16px',
                   borderRadius: '10px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--ifm-color-emphasis-300)',
                   fontSize: '15px',
                   outline: 'none',
                   transition: 'border 0.2s ease',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  background: 'var(--ifm-background-color)',
+                  color: 'var(--ifm-text-color)'
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#9c27b0'}
-                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
               />
 
-              {/* 内容输入 */}
               <textarea
                 placeholder="写下你想留给未来的话..."
                 value={newCapsule.content}
@@ -491,26 +471,27 @@ export default function TimeCapsule() {
                   width: '100%',
                   padding: '14px 16px',
                   borderRadius: '10px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--ifm-color-emphasis-300)',
                   fontSize: '15px',
                   minHeight: '220px',
                   resize: 'none',
                   outline: 'none',
                   transition: 'border 0.2s ease',
                   boxSizing: 'border-box',
-                  lineHeight: '1.7'
+                  lineHeight: '1.7',
+                  background: 'var(--ifm-background-color)',
+                  color: 'var(--ifm-text-color)'
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#9c27b0'}
-                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
               />
 
-              {/* 解锁日期 */}
               <div>
                 <label style={{
                   display: 'block',
                   marginBottom: '10px',
                   fontSize: '14px',
-                  color: '#475569'
+                  color: 'var(--ifm-color-emphasis-600)'
                 }}>
                   选择解锁日期（不可选择过去日期）
                 </label>
@@ -523,18 +504,19 @@ export default function TimeCapsule() {
                     width: '100%',
                     padding: '14px 16px',
                     borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     fontSize: '15px',
                     outline: 'none',
                     transition: 'border 0.2s ease',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    background: 'var(--ifm-background-color)',
+                    color: 'var(--ifm-text-color)'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#9c27b0'}
-                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                 />
               </div>
 
-              {/* 操作按钮 */}
               <div style={{
                 display: 'flex',
                 gap: '12px',
@@ -545,16 +527,16 @@ export default function TimeCapsule() {
                   onClick={() => setShowCreateModal(false)}
                   style={{
                     padding: '12px 24px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     borderRadius: '10px',
-                    background: '#ffffff',
-                    color: '#475569',
+                    background: 'var(--ifm-card-background-color)',
+                    color: 'var(--ifm-color-emphasis-600)',
                     fontSize: '15px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease'
                   }}
-                  onMouseOver={(e) => e.target.style.background = '#f8fafc'}
-                  onMouseOut={(e) => e.target.style.background = '#ffffff'}
+                  onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
+                  onMouseOut={(e) => e.target.style.background = 'var(--ifm-card-background-color)'}
                 >
                   取消
                 </button>

@@ -9,11 +9,11 @@ const EmptyTip = ({ text }) => (
   <div style={{
     textAlign: 'center',
     padding: '60px 20px',
-    color: '#94a3b8',
+    color: 'var(--ifm-color-emphasis-600)',
     fontSize: '15px',
-    background: '#ffffff',
+    background: 'var(--ifm-card-background-color)',
     borderRadius: '12px',
-    border: '1px dashed #e2e8f0'
+    border: '1px dashed var(--ifm-color-emphasis-300)'
   }}>
     📭 {text}
   </div>
@@ -204,7 +204,7 @@ export default function Changelog() {
           margin: '60px auto',
           padding: '0 20px',
           textAlign: 'center',
-          color: '#64748b',
+          color: 'var(--ifm-color-emphasis-600)',
           fontSize: '16px'
         }}>
           正在加载更新日志...
@@ -218,7 +218,7 @@ export default function Changelog() {
       {/* 页面外层容器（全站统一底色） */}
       <div style={{
         minHeight: 'calc(100vh - 120px)',
-        background: '#f8fafc',
+        background: 'var(--ifm-color-emphasis-100)',
         padding: '40px 20px',
         boxSizing: 'border-box'
       }}>
@@ -234,7 +234,7 @@ export default function Changelog() {
           }}>
             <h1 style={{
               fontSize: '32px',
-              color: '#1e293b',
+              color: 'var(--ifm-text-color)',
               margin: 0,
               fontWeight: 600,
               textAlign: 'center',
@@ -291,22 +291,22 @@ export default function Changelog() {
                   transition: 'all 0.25s ease',
                   background: filterType === item.key 
                     ? '#2196f3' 
-                    : '#ffffff',
+                    : 'var(--ifm-card-background-color)',
                   color: filterType === item.key 
                     ? '#ffffff' 
-                    : '#334155',
+                    : 'var(--ifm-text-color)',
                   boxShadow: filterType === item.key 
                     ? '0 4px 12px rgba(33, 150, 243, 0.2)' 
                     : '0 2px 8px rgba(0,0,0,0.06)'
                 }}
                 onMouseOver={(e) => {
                   if (filterType !== item.key) {
-                    e.target.style.background = '#f1f5f9';
+                    e.target.style.background = 'var(--ifm-color-emphasis-100)';
                   }
                 }}
                 onMouseOut={(e) => {
                   if (filterType !== item.key) {
-                    e.target.style.background = '#ffffff';
+                    e.target.style.background = 'var(--ifm-card-background-color)';
                   }
                 }}
               >
@@ -324,9 +324,9 @@ export default function Changelog() {
                 <div
                   key={log.id}
                   style={{
-                    background: '#ffffff',
+                    background: 'var(--ifm-card-background-color)',
                     borderRadius: '16px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     padding: '24px',
                     transition: 'all 0.25s ease',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -350,7 +350,7 @@ export default function Changelog() {
                     marginBottom: '16px'
                   }}>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>
+                      <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--ifm-text-color)' }}>
                         {log.version} - {log.title}
                       </h3>
                       <span style={{
@@ -409,7 +409,7 @@ export default function Changelog() {
 
                   {/* 日志描述 */}
                   <p style={{
-                    color: '#475569',
+                    color: 'var(--ifm-color-emphasis-600)',
                     margin: '0',
                     lineHeight: '1.7',
                     fontSize: '15px'
@@ -421,7 +421,7 @@ export default function Changelog() {
                   <div style={{
                     marginTop: '16px',
                     fontSize: '12px',
-                    color: '#94a3b8',
+                    color: 'var(--ifm-color-emphasis-600)',
                     textAlign: 'right'
                   }}>
                     发布时间：{new Date(log.release_date).toLocaleDateString()}
@@ -455,7 +455,7 @@ export default function Changelog() {
           <div style={{
             width: '100%',
             maxWidth: '520px',
-            background: '#ffffff',
+            background: 'var(--ifm-card-background-color)',
             borderRadius: '16px',
             padding: '28px',
             boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
@@ -463,7 +463,7 @@ export default function Changelog() {
             <h3 style={{
               margin: '0 0 24px 0',
               fontSize: '20px',
-              color: '#1e293b'
+              color: 'var(--ifm-text-color)'
             }}>
               {currentEditLog ? '✏️ 编辑更新日志' : '➕ 新增更新日志'}
             </h3>
@@ -489,7 +489,7 @@ export default function Changelog() {
                   display: 'block',
                   marginBottom: '6px',
                   fontSize: '14px',
-                  color: '#475569'
+                  color: 'var(--ifm-color-emphasis-600)'
                 }}>
                   版本号 *
                 </label>
@@ -501,13 +501,13 @@ export default function Changelog() {
                     width: '100%',
                     padding: '14px',
                     borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     fontSize: '15px',
                     outline: 'none',
                     transition: 'border 0.25s ease'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                 />
               </div>
 
@@ -517,7 +517,7 @@ export default function Changelog() {
                   display: 'block',
                   marginBottom: '6px',
                   fontSize: '14px',
-                  color: '#475569'
+                  color: 'var(--ifm-color-emphasis-600)'
                 }}>
                   日志标题 *
                 </label>
@@ -529,13 +529,13 @@ export default function Changelog() {
                     width: '100%',
                     padding: '14px',
                     borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     fontSize: '15px',
                     outline: 'none',
                     transition: 'border 0.25s ease'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                 />
               </div>
 
@@ -545,7 +545,7 @@ export default function Changelog() {
                   display: 'block',
                   marginBottom: '6px',
                   fontSize: '14px',
-                  color: '#475569'
+                  color: 'var(--ifm-color-emphasis-600)'
                 }}>
                   更新类型
                 </label>
@@ -556,10 +556,12 @@ export default function Changelog() {
                     width: '100%',
                     padding: '14px',
                     borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     fontSize: '15px',
                     outline: 'none',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    background: 'var(--ifm-card-background-color)',
+                    color: 'var(--ifm-text-color)'
                   }}
                 >
                   <option value="feature">新功能</option>
@@ -574,7 +576,7 @@ export default function Changelog() {
                   display: 'block',
                   marginBottom: '6px',
                   fontSize: '14px',
-                  color: '#475569'
+                  color: 'var(--ifm-color-emphasis-600)'
                 }}>
                   详细描述（选填）
                 </label>
@@ -586,15 +588,17 @@ export default function Changelog() {
                     width: '100%',
                     padding: '14px',
                     borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     fontSize: '15px',
                     minHeight: '120px',
                     outline: 'none',
                     transition: 'border 0.25s ease',
-                    resize: 'none'
+                    resize: 'none',
+                    background: 'var(--ifm-card-background-color)',
+                    color: 'var(--ifm-text-color)'
                   }}
                   onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                 />
               </div>
 
@@ -604,7 +608,7 @@ export default function Changelog() {
                   display: 'block',
                   marginBottom: '6px',
                   fontSize: '14px',
-                  color: '#475569'
+                  color: 'var(--ifm-color-emphasis-600)'
                 }}>
                   发布日期 *
                 </label>
@@ -616,10 +620,12 @@ export default function Changelog() {
                     width: '100%',
                     padding: '14px',
                     borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     fontSize: '15px',
                     outline: 'none',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    background: 'var(--ifm-card-background-color)',
+                    color: 'var(--ifm-text-color)'
                   }}
                 />
               </div>
@@ -635,16 +641,16 @@ export default function Changelog() {
                   onClick={() => setShowModal(false)}
                   style={{
                     padding: '12px 24px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     borderRadius: '10px',
-                    background: '#ffffff',
-                    color: '#475569',
+                    background: 'var(--ifm-card-background-color)',
+                    color: 'var(--ifm-color-emphasis-600)',
                     fontSize: '15px',
                     cursor: 'pointer',
                     transition: 'background 0.25s ease'
                   }}
-                  onMouseOver={(e) => e.target.style.background = '#f1f5f9'}
-                  onMouseOut={(e) => e.target.style.background = '#ffffff'}
+                  onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
+                  onMouseOut={(e) => e.target.style.background = 'var(--ifm-card-background-color)'}
                 >
                   取消
                 </button>

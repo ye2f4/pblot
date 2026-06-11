@@ -3,16 +3,40 @@ import Link from '@docusaurus/Link';
 import styles from '../../pages/index.module.css';
 
 export default function MainContentTop({ siteData }) {
+    const marqueeAnimation = {
+        animation: 'marquee 18s linear infinite',
+        whiteSpace: 'nowrap',
+        // 提前把垂直居中写死在动画容器，避免transform叠加冲突
+        top: '50%',
+        transform: 'translateY(-50%)'
+    };
+    const marqueeHover = {
+        animationPlayState: 'paused'
+    };
+
+    React.useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes marquee {
+                /* 只做水平位移，垂直位置不动 */
+                0% { transform: translateX(100%) translateY(-50%); }
+                100% { transform: translateX(-100%) translateY(-50%); }
+            }
+        `;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, []);
+
     return (
         <div style={{
             display: 'flex',
-            gap: 15,
+            gap: '15px',
             alignItems: 'center',
             width: '100%',
             flexWrap: 'wrap'
         }}>
             {/* 标签按钮组 */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: 0 }}>
                 {siteData.tabs.map((tab, i) => (
                     <Link
                         key={i}
@@ -40,31 +64,33 @@ export default function MainContentTop({ siteData }) {
                 ))}
             </div>
 
-            {/* 滚动通知栏 - 修复完成 */}
+            {/* 滚动通知栏 */}
             <div style={{
                 height: 40,
                 backgroundColor: '#E3F2FD',
                 borderRadius: 8,
-                display: 'flex', // ✅ 修复：加引号
-                alignItems: 'center',
                 overflow: 'hidden',
                 flex: 1,
                 padding: '0 12px',
-                minWidth: 250
+                minWidth: 250,
+                position: 'relative'
             }}>
                 <span
-                    className="scroll-text"
                     style={{
                         color: '#004085',
-                        fontSize: 14
+                        fontSize: 14,
+                        position: 'absolute',
+                        ...marqueeAnimation
                     }}
+                    onMouseEnter={(e) => Object.assign(e.target.style, marqueeHover)}
+                    onMouseLeave={(e) => Object.assign(e.target.style, marqueeAnimation)}
                 >
                     {siteData.texts.notification}
                 </span>
             </div>
 
             {/* 操作按钮组 */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 0 }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: 0 }}>
                 <Link
                     to="/signin"
                     className={styles.btnHover}

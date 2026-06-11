@@ -5,7 +5,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export const metadata = { ssr: false };
 
-// ===================== 内置模拟演示数据（固定实例，无数据库也能运行） =====================
 const MOCK_DEVICES = [
   {
     id: 'mock-001',
@@ -33,7 +32,6 @@ const MOCK_DEVICES = [
   }
 ];
 
-// 模拟时序图表数据
 const generateMockMetrics = () => {
   const baseTime = Date.now();
   const mockData = [];
@@ -58,13 +56,12 @@ export default function HardwareMonitor() {
   const [sending, setSending] = useState(false);
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
-  const [isMockMode, setIsMockMode] = useState(false); // 模拟演示模式标记
+  const [isMockMode, setIsMockMode] = useState(false);
   
-  // 新增：添加设备相关状态
   const [showAddDeviceModal, setShowAddDeviceModal] = useState(false);
   const [newDevice, setNewDevice] = useState({
     device_name: '',
-    device_id: '', // 设备唯一标识符（如MAC/UUID）
+    device_id: '',
     initial_battery: 100,
     initial_signal: -60,
     initial_temp: 25.0
@@ -72,33 +69,29 @@ export default function HardwareMonitor() {
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
 
-  // 全局样式 - 空状态组件（全站统一）
   const EmptyTip = ({ text }) => (
     <div style={{
       textAlign: 'center',
       padding: '60px 20px',
-      color: '#94a3b8',
+      color: 'var(--ifm-color-emphasis-600)',
       fontSize: '15px',
-      background: '#ffffff',
+      background: 'var(--ifm-card-background-color)',
       borderRadius: '12px',
-      border: '1px dashed #e2e8f0'
+      border: '1px dashed var(--ifm-color-emphasis-300)'
     }}>
       📭 {text}
     </div>
   );
 
-  // 加载设备列表 + 初始化
   useEffect(() => {
     let fetchTimer = null;
     const fetchDevices = async () => {
       try {
         setLoading(true);
         setError('');
-        // 获取登录用户
         const { data: { user: currentUser } } = await supabase.auth.getUser();
         setUser(currentUser);
 
-        // 未登录：直接启用模拟演示模式
         if (!currentUser) {
           setIsMockMode(true);
           setDevices(MOCK_DEVICES);
@@ -108,7 +101,6 @@ export default function HardwareMonitor() {
           return;
         }
 
-        // 已登录：请求真实设备数据
         const { data, err } = await supabase
           .from('devices')
           .select('*')
@@ -117,7 +109,6 @@ export default function HardwareMonitor() {
 
         if (err) throw err;
 
-        // 真实数据为空：切换到模拟模式
         if (!data || data.length === 0) {
           setIsMockMode(true);
           setDevices(MOCK_DEVICES);
@@ -126,13 +117,11 @@ export default function HardwareMonitor() {
         } else {
           setIsMockMode(false);
           setDevices(data);
-          // 默认选中第一个设备
           setSelectedDevice(data[0]);
         }
       } catch (err) {
         console.error('加载设备失败：', err);
         setError('数据加载异常，已切换为演示模式');
-        // 异常兜底：启用模拟数据
         setIsMockMode(true);
         setDevices(MOCK_DEVICES);
         setSelectedDevice(MOCK_DEVICES[0]);
@@ -142,26 +131,18 @@ export default function HardwareMonitor() {
       }
     };
 
-    // 首次加载
     fetchDevices();
-    // 30秒轮询刷新
     fetchTimer = setInterval(fetchDevices, 30000);
 
-    // 组件销毁时清除定时器
     return () => clearInterval(fetchTimer);
   }, []);
 
-  // 加载设备时序指标数据（重构：按时间聚合多类型指标）
   useEffect(() => {
     if (!selectedDevice) return;
-
-    // 模拟模式：直接使用内置图表数据
     if (isMockMode) {
       setMetrics(MOCK_METRICS);
       return;
     }
-
-    // 真实数据库模式
     const fetchMetrics = async () => {
       try {
         const { data, err } = await supabase
@@ -177,7 +158,6 @@ export default function HardwareMonitor() {
           return;
         }
 
-        // 重构：按时间戳聚合 电量/信号/温度
         const timeMap = new Map();
         data.forEach(item => {
           const timeStr = new Date(item.timestamp).toLocaleTimeString().slice(0, 5);
@@ -189,24 +169,18 @@ export default function HardwareMonitor() {
           if (item.metric_type === 'signal') row.signal = item.value;
           if (item.metric_type === 'temperature') row.temperature = item.value;
         });
-
-        // 转为数组并按时间正序
         setMetrics(Array.from(timeMap.values()));
       } catch (err) {
         console.error('加载指标数据失败：', err);
       }
     };
-
     fetchMetrics();
   }, [selectedDevice, isMockMode]);
 
-  // 发送设备指令（兼容真实/模拟模式）
   const sendCommand = async (command) => {
     if (!selectedDevice || sending || !selectedDevice.is_online) return;
     setSending(true);
-
     try {
-      // 真实模式：提交指令到数据库
       if (!isMockMode) {
         await supabase.from('device_commands').insert([{
           device_id: selectedDevice.id,
@@ -221,8 +195,6 @@ export default function HardwareMonitor() {
     }
   };
 
-  // ====================================== 新增：添加设备核心逻辑 ======================================
-  // 打开添加设备模态框
   const openAddDeviceModal = () => {
     setNewDevice({
       device_name: '',
@@ -235,27 +207,23 @@ export default function HardwareMonitor() {
     setShowAddDeviceModal(true);
   };
 
-  // 验证设备ID唯一性（真实数据库模式）
   const validateDeviceId = async (deviceId) => {
-    if (isMockMode) return true; // 模拟模式跳过验证
+    if (isMockMode) return true;
     try {
       const { data, err } = await supabase
         .from('devices')
         .select('id')
         .eq('device_id', deviceId)
         .limit(1);
-      
       if (err) throw err;
-      return data.length === 0; // 不存在返回true，存在返回false
+      return data.length === 0;
     } catch (err) {
       console.error('验证设备ID失败：', err);
       return false;
     }
   };
 
-  // 提交新设备
   const submitNewDevice = async () => {
-    // 表单基础验证
     if (!newDevice.device_name.trim()) {
       setFormError('请输入设备名称');
       return;
@@ -273,51 +241,43 @@ export default function HardwareMonitor() {
     setFormError('');
 
     try {
-      // 验证设备ID唯一性
       const isUnique = await validateDeviceId(newDevice.device_id.trim());
       if (!isUnique) {
         setFormError('该设备ID已存在，请更换');
         return;
       }
 
-      // 构造新设备数据
       const deviceData = {
         device_name: newDevice.device_name.trim(),
         device_id: newDevice.device_id.trim(),
         owner_id: user.id,
-        is_online: false, // 初始状态为离线
+        is_online: false,
         battery_percent: parseInt(newDevice.initial_battery, 10) || 100,
         signal_strength: parseInt(newDevice.initial_signal, 10) || -60,
         temperature: parseFloat(newDevice.initial_temp) || 25.0,
-        voltage: 3.3, // 默认初始电压
+        voltage: 3.3,
         last_heartbeat: new Date().toISOString(),
         created_at: new Date().toISOString()
       };
 
-      // 模拟模式：仅前端添加
       if (isMockMode) {
         const newMockDevice = {
           ...deviceData,
-          id: `mock-${Date.now().toString().slice(-6)}` // 生成临时ID
+          id: `mock-${Date.now().toString().slice(-6)}`
         };
         setDevices([newMockDevice, ...devices]);
         setSelectedDevice(newMockDevice);
       } else {
-        // 真实模式：写入数据库
         const { data, err } = await supabase
           .from('devices')
           .insert([deviceData])
-          .select(); // 插入后返回新数据
+          .select();
         if (err) throw err;
-        
-        // 刷新设备列表并选中新设备
         if (data && data.length > 0) {
           setDevices([data[0], ...devices]);
           setSelectedDevice(data[0]);
         }
       }
-
-      // 关闭模态框
       setShowAddDeviceModal(false);
       alert('设备添加成功！等待设备上线...');
     } catch (err) {
@@ -328,7 +288,6 @@ export default function HardwareMonitor() {
     }
   };
 
-  // 全局加载页面
   if (loading) {
     return (
       <Layout title="硬件设备监控">
@@ -337,7 +296,7 @@ export default function HardwareMonitor() {
           margin: '60px auto',
           padding: '0 20px',
           textAlign: 'center',
-          color: '#64748b',
+          color: 'var(--ifm-color-emphasis-600)',
           fontSize: '16px'
         }}>
           正在加载设备数据...
@@ -348,26 +307,24 @@ export default function HardwareMonitor() {
 
   return (
     <Layout title="硬件设备监控">
-      {/* 页面外层容器 - 全站统一底色 */}
       <div style={{
         minHeight: 'calc(100vh - 120px)',
-        background: '#f8fafc',
+        background: 'var(--ifm-color-emphasis-100)',
         padding: '32px 20px',
         boxSizing: 'border-box'
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {/* 页面头部 */}
           <div style={{ marginBottom: '36px' }}>
             <h1 style={{
               fontSize: '32px',
-              color: '#1e293b',
+              color: 'var(--ifm-text-color)',
               margin: '0 0 8px 0',
               fontWeight: 600
             }}>
               📡 硬件设备监控
             </h1>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
+              <p style={{ color: 'var(--ifm-color-emphasis-600)', fontSize: '14px', margin: 0 }}>
                 实时查看设备状态、运行指标 & 远程下发控制指令
               </p>
               {isMockMode && (
@@ -395,13 +352,11 @@ export default function HardwareMonitor() {
             </div>
           </div>
 
-          {/* 主体布局：左右分栏（移动端自动上下） */}
           <div style={{
             display: 'flex',
             gap: '24px',
             flexWrap: 'wrap'
           }}>
-            {/* 左侧：设备列表 */}
             <div style={{
               width: '100%',
               maxWidth: '300px',
@@ -415,14 +370,13 @@ export default function HardwareMonitor() {
               }}>
                 <h3 style={{
                   fontSize: '18px',
-                  color: '#1e293b',
+                  color: 'var(--ifm-text-color)',
                   margin: 0,
                   paddingBottom: '8px',
-                  borderBottom: '1px solid #e2e8f0'
+                  borderBottom: '1px solid var(--ifm-color-emphasis-300)'
                 }}>
                   我的设备
                 </h3>
-                {/* 新增：添加设备按钮（仅登录用户可见） */}
                 {user && (
                   <button
                     onClick={openAddDeviceModal}
@@ -455,8 +409,8 @@ export default function HardwareMonitor() {
                       style={{
                         padding: '20px',
                         borderRadius: '16px',
-                        background: selectedDevice?.id === device.id ? '#e3f2fd' : '#ffffff',
-                        border: '1px solid #e2e8f0',
+                        background: selectedDevice?.id === device.id ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-card-background-color)',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         cursor: 'pointer',
                         transition: 'all 0.25s ease',
                         boxShadow: selectedDevice?.id === device.id
@@ -476,14 +430,13 @@ export default function HardwareMonitor() {
                         }
                       }}
                     >
-                      {/* 设备名称 + 在线状态 */}
                       <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         marginBottom: '12px'
                       }}>
-                        <strong style={{ fontSize: '16px', color: '#1e293b' }}>
+                        <strong style={{ fontSize: '16px', color: 'var(--ifm-text-color)' }}>
                           {device.device_name}
                         </strong>
                         <span style={{
@@ -498,8 +451,7 @@ export default function HardwareMonitor() {
                         </span>
                       </div>
 
-                      {/* 基础状态 */}
-                      <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6' }}>
+                      <div style={{ fontSize: '14px', color: 'var(--ifm-color-emphasis-600)', lineHeight: '1.6' }}>
                         <div>🔋 电量: {device.battery_percent}%</div>
                         <div>📶 信号: {device.signal_strength} dBm</div>
                         {device.temperature && (
@@ -510,13 +462,12 @@ export default function HardwareMonitor() {
                         )}
                       </div>
 
-                      {/* 最后心跳 */}
                       <div style={{
                         fontSize: '12px',
-                        color: '#94a3b8',
+                        color: 'var(--ifm-color-emphasis-600)',
                         marginTop: '10px',
                         paddingTop: '8px',
-                        borderTop: '1px dashed #f1f5f9'
+                        borderTop: '1px dashed var(--ifm-color-emphasis-300)'
                       }}>
                         最后心跳: {new Date(device.last_heartbeat).toLocaleString()}
                       </div>
@@ -526,22 +477,19 @@ export default function HardwareMonitor() {
               )}
             </div>
 
-            {/* 右侧：设备详情 + 图表 */}
             <div style={{ flex: 1, minWidth: '320px' }}>
               {selectedDevice ? (
                 <>
-                  {/* 设备标题 */}
                   <h3 style={{
                     fontSize: '20px',
-                    color: '#1e293b',
+                    color: 'var(--ifm-text-color)',
                     margin: '0 0 20px 0',
                     paddingBottom: '8px',
-                    borderBottom: '1px solid #e2e8f0'
+                    borderBottom: '1px solid var(--ifm-color-emphasis-300)'
                   }}>
                     {selectedDevice.device_name} 运行详情
                   </h3>
 
-                  {/* 远程控制按钮组 */}
                   <div style={{
                     display: 'flex',
                     gap: '12px',
@@ -622,25 +570,24 @@ export default function HardwareMonitor() {
                     )}
                   </div>
 
-                  {/* 电量趋势图表 */}
                   <div style={{
-                    background: '#fff',
+                    background: 'var(--ifm-card-background-color)',
                     borderRadius: '16px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     padding: '20px',
                     marginBottom: '24px',
                     height: '300px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                   }}>
-                    <h4 style={{ margin: '0 0 16px 0', color: '#1e293b' }}>🔋 电量趋势曲线</h4>
+                    <h4 style={{ margin: '0 0 16px 0', color: 'var(--ifm-text-color)' }}>🔋 电量趋势曲线</h4>
                     {metrics.length === 0 ? (
-                      <div style={{ textAlign: 'center', lineHeight: '260px', color: '#94a3b8' }}>
+                      <div style={{ textAlign: 'center', lineHeight: '260px', color: 'var(--ifm-color-emphasis-600)' }}>
                         暂无时序数据
                       </div>
                     ) : (
                       <ResponsiveContainer width="100%" height="85%">
                         <LineChart data={metrics}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--ifm-color-emphasis-100)" />
                           <XAxis dataKey="time" tick={{ fontSize: 12 }} />
                           <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
                           <Tooltip />
@@ -659,24 +606,23 @@ export default function HardwareMonitor() {
                     )}
                   </div>
 
-                  {/* 信号 + 温度 组合图表 */}
                   <div style={{
-                    background: '#fff',
+                    background: 'var(--ifm-card-background-color)',
                     borderRadius: '16px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     padding: '20px',
                     height: '300px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                   }}>
-                    <h4 style={{ margin: '0 0 16px 0', color: '#1e293b' }}>📶 信号 & 温度趋势曲线</h4>
+                    <h4 style={{ margin: '0 0 16px 0', color: 'var(--ifm-text-color)' }}>📶 信号 & 温度趋势曲线</h4>
                     {metrics.length === 0 ? (
-                      <div style={{ textAlign: 'center', lineHeight: '260px', color: '#94a3b8' }}>
+                      <div style={{ textAlign: 'center', lineHeight: '260px', color: 'var(--ifm-color-emphasis-600)' }}>
                         暂无时序数据
                       </div>
                     ) : (
                       <ResponsiveContainer width="100%" height="85%">
                         <LineChart data={metrics}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--ifm-color-emphasis-100)" />
                           <XAxis dataKey="time" tick={{ fontSize: 12 }} />
                           <YAxis yAxisId="left" domain={[-120, -30]} tick={{ fontSize: 12 }} />
                           <YAxis yAxisId="right" orientation="right" domain={[0, 40]} tick={{ fontSize: 12 }} />
@@ -713,7 +659,6 @@ export default function HardwareMonitor() {
             </div>
           </div>
 
-          {/* ====================================== 新增：添加设备模态框 ====================================== */}
           {showAddDeviceModal && (
             <div
               style={{
@@ -728,14 +673,13 @@ export default function HardwareMonitor() {
                 boxSizing: 'border-box'
               }}
               onClick={(e) => {
-                // 点击遮罩关闭弹窗
                 if (e.target === e.currentTarget) setShowAddDeviceModal(false);
               }}
             >
               <div style={{
                 width: '100%',
                 maxWidth: '500px',
-                background: '#ffffff',
+                background: 'var(--ifm-card-background-color)',
                 borderRadius: '16px',
                 padding: '28px',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
@@ -743,7 +687,7 @@ export default function HardwareMonitor() {
                 <h3 style={{
                   margin: '0 0 24px 0',
                   fontSize: '20px',
-                  color: '#1e293b'
+                  color: 'var(--ifm-text-color)'
                 }}>
                   ➕ 添加新设备
                 </h3>
@@ -767,7 +711,7 @@ export default function HardwareMonitor() {
                       display: 'block',
                       marginBottom: '6px',
                       fontSize: '14px',
-                      color: '#475569'
+                      color: 'var(--ifm-color-emphasis-600)'
                     }}>
                       设备名称 *
                     </label>
@@ -779,13 +723,15 @@ export default function HardwareMonitor() {
                         width: '100%',
                         padding: '14px',
                         borderRadius: '10px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         fontSize: '15px',
                         outline: 'none',
-                        transition: 'border 0.25s ease'
+                        transition: 'border 0.25s ease',
+                        background: 'var(--ifm-card-background-color)',
+                        color: 'var(--ifm-text-color)'
                       }}
                       onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                      onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                      onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                     />
                   </div>
 
@@ -794,7 +740,7 @@ export default function HardwareMonitor() {
                       display: 'block',
                       marginBottom: '6px',
                       fontSize: '14px',
-                      color: '#475569'
+                      color: 'var(--ifm-color-emphasis-600)'
                     }}>
                       设备唯一ID * (如MAC/UUID)
                     </label>
@@ -806,18 +752,20 @@ export default function HardwareMonitor() {
                         width: '100%',
                         padding: '14px',
                         borderRadius: '10px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         fontSize: '15px',
                         outline: 'none',
-                        transition: 'border 0.25s ease'
+                        transition: 'border 0.25s ease',
+                        background: 'var(--ifm-card-background-color)',
+                        color: 'var(--ifm-text-color)'
                       }}
                       onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                      onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                      onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                     />
                     <p style={{
                       marginTop: '8px',
                       fontSize: '12px',
-                      color: '#94a3b8',
+                      color: 'var(--ifm-color-emphasis-600)',
                       margin: '8px 0 0 0'
                     }}>
                       请输入设备真实唯一标识，用于设备与平台通信认证
@@ -830,7 +778,7 @@ export default function HardwareMonitor() {
                         display: 'block',
                         marginBottom: '6px',
                         fontSize: '14px',
-                        color: '#475569'
+                        color: 'var(--ifm-color-emphasis-600)'
                       }}>
                         初始电量(%)
                       </label>
@@ -844,13 +792,15 @@ export default function HardwareMonitor() {
                           width: '100%',
                           padding: '14px',
                           borderRadius: '10px',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--ifm-color-emphasis-300)',
                           fontSize: '15px',
                           outline: 'none',
-                          transition: 'border 0.25s ease'
+                          transition: 'border 0.25s ease',
+                          background: 'var(--ifm-card-background-color)',
+                          color: 'var(--ifm-text-color)'
                         }}
                         onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                        onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                        onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                       />
                     </div>
 
@@ -859,7 +809,7 @@ export default function HardwareMonitor() {
                         display: 'block',
                         marginBottom: '6px',
                         fontSize: '14px',
-                        color: '#475569'
+                        color: 'var(--ifm-color-emphasis-600)'
                       }}>
                         初始信号(dBm)
                       </label>
@@ -873,13 +823,15 @@ export default function HardwareMonitor() {
                           width: '100%',
                           padding: '14px',
                           borderRadius: '10px',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid var(--ifm-color-emphasis-300)',
                           fontSize: '15px',
                           outline: 'none',
-                          transition: 'border 0.25s ease'
+                          transition: 'border 0.25s ease',
+                          background: 'var(--ifm-card-background-color)',
+                          color: 'var(--ifm-text-color)'
                         }}
                         onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                        onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                        onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                       />
                     </div>
                   </div>
@@ -889,7 +841,7 @@ export default function HardwareMonitor() {
                       display: 'block',
                       marginBottom: '6px',
                       fontSize: '14px',
-                      color: '#475569'
+                      color: 'var(--ifm-color-emphasis-600)'
                     }}>
                       初始温度(°C)
                     </label>
@@ -904,13 +856,15 @@ export default function HardwareMonitor() {
                         width: '100%',
                         padding: '14px',
                         borderRadius: '10px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         fontSize: '15px',
                         outline: 'none',
-                        transition: 'border 0.25s ease'
+                        transition: 'border 0.25s ease',
+                        background: 'var(--ifm-card-background-color)',
+                        color: 'var(--ifm-text-color)'
                       }}
                       onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                      onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                      onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                     />
                   </div>
 
@@ -924,16 +878,16 @@ export default function HardwareMonitor() {
                       onClick={() => setShowAddDeviceModal(false)}
                       style={{
                         padding: '12px 24px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         borderRadius: '10px',
-                        background: '#ffffff',
-                        color: '#475569',
+                        background: 'var(--ifm-card-background-color)',
+                        color: 'var(--ifm-color-emphasis-600)',
                         fontSize: '15px',
                         cursor: 'pointer',
                         transition: 'background 0.25s ease'
                       }}
-                      onMouseOver={(e) => e.target.style.background = '#f1f5f9'}
-                      onMouseOut={(e) => e.target.style.background = '#ffffff'}
+                      onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
+                      onMouseOut={(e) => e.target.style.background = 'var(--ifm-card-background-color)'}
                     >
                       取消
                     </button>

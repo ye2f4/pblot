@@ -5,7 +5,7 @@
   border: 1px solid #eee;
   border-radius: 12px;
   text-align: center;
-  background: #fff;
+  background: var(--ifm-card-background-color);
 }
 
 .input {

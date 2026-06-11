@@ -22,6 +22,10 @@ import TagCloud from '../components/TagCloud';
 import FriendsAndAbout from '../components/FriendsAndAbout';
 import RankList from '../components/RankList';
 
+// ========== 核心优化：像素时钟懒加载 ==========
+// 首页首屏不加载时钟组件，滚动到可视区域再渲染
+const PixelClock = lazy(() => import('../components/PixelClock'));
+
 // 懒加载非首屏组件
 const CommentSection = lazy(() => import('../components/CommentSection'));
 const AdSection = lazy(() => import('../components/AdSection'));
@@ -134,7 +138,7 @@ export default function Home() {
       if (isMountedRef.current) setRealTs(Date.now() + timeOffset);
     }, 10);
 
-    // 滚动加载评论
+    // 滚动加载评论 + 懒加载时钟
     const handleScroll = throttle(() => {
       if (window.scrollY > 600 && !commentsLoaded && isMountedRef.current) {
         setCommentsLoaded(true);
@@ -237,7 +241,7 @@ export default function Home() {
         onCloseModal={() => setShowTimeErrModal(false)}
       />
 
-      <div ref={mainContentRef} className="main-content" style={{
+      <div ref={mainContentRef} className="main-content fadeIn" style={{
         maxWidth: 1200, margin: '20px auto', padding: '0 15px',
         display: 'flex', flexDirection: 'column', gap: 20, width: '100%',
         opacity: isInView(mainContentRef) ? 1 : 0,
@@ -254,8 +258,15 @@ export default function Home() {
             <FriendsAndAbout siteData={siteData} />
           </div>
           <div className="sidebar-container" style={{ flex: 3, minWidth: 0 }}>
-            <RankList siteData={siteData} />
-            <Suspense fallback={<div style={{ background: '#fff', padding: 15, borderRadius: 8, minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载中...</div>}>
+            {/* ========== 时钟懒加载：滚动到可视区域再渲染 ========== */}
+            <Suspense fallback={<div className="stat-card" style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载中...</div>}>
+              <PixelClock now={realNow} />
+            </Suspense>
+            
+            <div className="stat-card">
+              <RankList siteData={siteData} />
+            </div>
+            <Suspense fallback={<div className="stat-card" style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载中...</div>}>
               {commentsLoaded && (
                 <CommentSection
                   comments={comments}
@@ -270,7 +281,9 @@ export default function Home() {
               )}
             </Suspense>
             <Suspense fallback={null}>
-              <AdSection ads={siteData.ads} base={base} />
+              <div className="stat-card">
+                <AdSection ads={siteData.ads} base={base} />
+              </div>
             </Suspense>
           </div>
         </div>

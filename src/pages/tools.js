@@ -2,7 +2,6 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 
-// 开发工具列表（自行修改）
 const tools = [
   {
     name: "VS Code",
@@ -40,25 +39,25 @@ export default function Tools() {
   return (
     <Layout title="开发工具" description="程序员必备开发工具合集">
       <div style={{
-        minHeight: "70vh", padding: "40px 20px", background: "#f8f9fa",
+        minHeight: "70vh", padding: "40px 20px", background: "var(--ifm-color-emphasis-100)",
         display: "flex", justifyContent: "center"
       }}>
         <div style={{
-          width: "100%", maxWidth: "1000px", background: "rgba(255,255,255,0.95)",
+          width: "100%", maxWidth: "1000px", background: "var(--ifm-card-background-color)",
           borderRadius: "20px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
           padding: "40px", backdropFilter: "blur(8px)"
         }}>
           <div style={{ textAlign: "center", marginBottom: "30px" }}>
-            <h1 style={{ fontSize: "32px", color: "#1a1a1a", margin: 0 }}>🔧 开发工具</h1>
-            <p style={{ color: "#666", marginTop: "10px" }}>提升效率 · 简化工作 · 精选推荐</p>
+            <h1 style={{ fontSize: "32px", color: "var(--ifm-text-color)", margin: 0 }}>🔧 开发工具</h1>
+            <p style={{ color: "var(--ifm-color-emphasis-600)", marginTop: "10px" }}>提升效率 · 简化工作 · 精选推荐</p>
           </div>
 
-          <hr style={{ border: "none", height: "1px", background: "#eee", margin: "30px 0" }} />
+          <hr style={{ border: "none", height: "1px", background: "var(--ifm-color-emphasis-300)", margin: "30px 0" }} />
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
             {tools.map((item, index) => (
               <div key={index} style={{
-                flex: "1 1 280px", padding: "22px", background: "#fff",
+                flex: "1 1 280px", padding: "22px", background: "var(--ifm-card-background-color)",
                 borderRadius: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                 transition: "0.3s"
               }}
@@ -66,14 +65,14 @@ export default function Tools() {
                 onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <h3 style={{ margin: 0, fontSize: "18px", color: "#222" }}>{item.name}</h3>
+                  <h3 style={{ margin: 0, fontSize: "18px", color: "var(--ifm-text-color)" }}>{item.name}</h3>
                   <span style={{
-                    padding: "4px 8px", background: "#e3f2fd", color: "#0277bd",
+                    padding: "4px 8px", background: "rgba(2,119,189,0.12)", color: "#0277bd",
                     borderRadius: "10px", fontSize: "12px"
                   }}>{item.tag}</span>
                 </div>
                 
-                <p style={{ color: "#666", fontSize: "14px", lineHeight: "1.6", margin: "12px 0 18px 0" }}>
+                <p style={{ color: "var(--ifm-color-emphasis-600)", fontSize: "14px", lineHeight: "1.6", margin: "12px 0 18px 0" }}>
                   {item.desc}
                 </p>
 
@@ -88,7 +87,7 @@ export default function Tools() {
 
           <div style={{ textAlign: "center", marginTop: "40px" }}>
             <Link to="/" style={{
-              padding: "10px 24px", background: "#f0f4ff", color: "#4285f4",
+              padding: "10px 24px", background: "rgba(66,133,244,0.12)", color: "#4285f4",
               borderRadius: "10px", textDecoration: "none", fontSize: "14px"
             }}>← 返回首页</Link>
           </div>

@@ -6,92 +6,115 @@
 @import "./navbar.css";
 @import "./components.css";
 
-/* 导航栏绿色聊天按钮 */
-.navbar-chat-btn {
-    background-color: #22c55e !important;
-    color: white !important;
-    border-radius: 6px;
-    padding: 4px 12px;
-    margin-left: 8px;
-    font-weight: 500;
+/* ========== 全局主题变量 最高优先级锁定 ========== */
+:root {
+  --ifm-color-primary: #2E7D9E !important;
+  --ifm-color-primary-dark: #29708e !important;
+  --ifm-color-primary-darker: #276a85 !important;
+  --ifm-color-primary-darkest: #20576d !important;
+  --ifm-color-primary-light: #338ab0 !important;
+  --ifm-color-primary-lighter: #3991b8 !important;
+  --ifm-color-primary-lightest: #4fa0c4 !important;
+
+  --ifm-color-secondary: #D32F2F !important;
+  --ifm-color-success: #22c55e !important;
+  --ifm-color-info: #4285f4 !important;
+  --ifm-color-warning: #f59e0b !important;
+  --ifm-color-danger: #dc2626 !important;
+
+  /* 浅色模式底色分层 */
+  --ifm-background-color: #FFF9E6 !important;
+  --ifm-card-background-color: #ffffff !important;
+  --ifm-background-surface-color: #f8f9fa !important;
+  --ifm-toc-border-color: #e0e0e0 !important;
 }
 
-.navbar-chat-btn:hover {
-    background-color: #16a34a !important;
-    color: white !important;
+/* 暗色模式柔和配色，解决卡片纯白刺眼 */
+[data-theme='dark'] {
+  --ifm-background-color: #121212 !important;
+  --ifm-card-background-color: #1e1e1e !important;
+  --ifm-background-surface-color: #2a2a2a !important;
+  --ifm-toc-border-color: #383838 !important;
+  --ifm-font-color-base: #eaeaea !important;
 }
 
-/* GitHub 按钮统一风格 */
-.navbar-github-btn {
-    background-color: #22c55e !important;
-    color: white !important;
-    border-radius: 6px;
-    padding: 4px 12px;
-    margin-left: 8px;
-    font-weight: 500;
+/* ========== 通用板块卡片样式（全站统一明暗） ========== */
+.stat-card {
+  background: var(--ifm-card-background-color) !important;
+  border: 1px solid var(--ifm-toc-border-color) !important;
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+.stat-card:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
 }
 
+/* ========== 导航栏按钮统一绿色样式 ========== */
+.navbar-chat-btn, .navbar-github-btn {
+  background-color: #22c55e !important;
+  color: white !important;
+  border-radius: 6px;
+  padding: 4px 12px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+.navbar-chat-btn:hover, .navbar-github-btn:hover {
+  background-color: #16a34a !important;
+  color: white !important;
+}
+
+/* ========== 文章点赞按钮配色 ========== */
+.like-btn-active {
+  background-color: #22c55e !important;
+}
+.like-btn-normal {
+  background-color: #4285f4 !important;
+}
+
+/* ========== 移动端代码块适配 ========== */
+@media (max-width: 768px) {
+  pre code {
+    font-size: 12px;
+    padding: 8px;
+    white-space: pre-wrap !important;
+    word-break: break-all;
+  }
+}
+
+/* ========== 全局动画 加:global 防止样式隔离失效 ========== */
 /* 跑马灯公告滚动 */
-@keyframes marquee {
-    0% {
-        transform: translateX(100%);
-    }
-
-    100% {
-        transform: translateX(-100%);
-    }
+:global(@keyframes marquee) {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
 }
 
 /* 卡片呼吸动画 */
-@keyframes breathe {
-
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.95;
-        transform: scale(1.01);
-    }
+:global(@keyframes breathe) {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.01); }
 }
 
 /* 像素图标弹跳 */
-@keyframes pixelBounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-4px);
-    }
+:global(@keyframes pixelBounce) {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 
 /* 时钟数字闪烁 */
-@keyframes digitPulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.9;
-    }
+:global(@keyframes digitPulse) {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.9; }
 }
 
-/* 渐入动画 */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
+/* 渐入加载动画 */
+:global(@keyframes fadeIn) {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* 像素时钟固定蓝色底色，不受明暗主题影响 */
+.pixel-clock-fixed {
+  background: rgba(75, 157, 205, 0.9) !important;
 }

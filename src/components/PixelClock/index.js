@@ -1,21 +1,21 @@
-import React from 'react';
+import React, { memo } from 'react';
 import styles from '../../pages/index.module.css';
 
-export default function PixelClock({
+const PixelClock = memo(({
     now = new Date(),
     weekJp = '水',
     weekEn = 'Wednesday',
     weekNum = 1
-}) {
-    // 打开日历的函数（固定正确路径）
+}) => {
     const openCalendar = () => {
         window.open('/calendar', '_blank');
     };
 
+    const padZero = (num) => String(num).padStart(2, '0');
+
     return (
-        <div style={{
-            padding: "12px 14px",
-            background: "rgba(75, 157, 205, 0.9)",
+        <div className="pixel-clock-fixed" style={{
+            padding: "12px 14px", // 还原原始内边距，恢复方框大小
             borderRadius: "16px",
             textAlign: "center",
             boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
@@ -23,7 +23,6 @@ export default function PixelClock({
             width: '100%',
             boxSizing: 'border-box',
         }}>
-            {/* 时钟标题 */}
             <p style={{
                 margin: '0 0 3px 0',
                 fontSize: 15,
@@ -33,7 +32,6 @@ export default function PixelClock({
                 标准北京时间
             </p>
 
-            {/* 时间显示 */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -47,11 +45,10 @@ export default function PixelClock({
                     color: '#1a1a1a',
                     letterSpacing: 2,
                 }}>
-                    {now.toLocaleTimeString()}
+                    {padZero(now.getHours())}:{padZero(now.getMinutes())}:{padZero(now.getSeconds())}
                 </div>
             </div>
 
-            {/* 日历按钮 → 新标签页打开老黄历 */}
             <button onClick={openCalendar} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3,
                 margin: '0 auto 5px auto', padding: '2px 8px',
@@ -63,17 +60,18 @@ export default function PixelClock({
                 <span>{weekJp}曜日 · {weekEn}</span>
             </button>
 
-            {/* 日期和周数 */}
             <div className={`pixel-font ${styles.dateText}`} style={{
                 fontSize: 13,
                 color: '#333',
                 fontWeight: 600
             }}>
                 {now.getFullYear()}-
-                {(now.getMonth() + 1 + '').padStart(2, '0')}-
-                {(now.getDate() + '').padStart(2, '0')}
+                {padZero(now.getMonth() + 1)}-
+                {padZero(now.getDate())}
                 第{weekNum}周
             </div>
         </div>
     );
-}
+});
+
+export default PixelClock;

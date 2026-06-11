@@ -7,7 +7,6 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 export const metadata = { ssr: false };
 
 export default function CodeSnippets() {
-  // ========== 状态扩展：新增编辑相关状态 ==========
   const [snippets, setSnippets] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,10 +14,8 @@ export default function CodeSnippets() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [copyTip, setCopyTip] = useState('');
-  // 编辑专用：当前正在编辑的片段，null = 新建模式
   const [currentSnippet, setCurrentSnippet] = useState(null);
 
-  // 表单（统一使用字符串存储标签，避免类型冲突）
   const [newSnippet, setNewSnippet] = useState({
     title: '',
     description: '',
@@ -28,7 +25,6 @@ export default function CodeSnippets() {
     is_public: true
   });
 
-  // 初始化：获取登录状态 + 加载数据
   useEffect(() => {
     const init = async () => {
       try {
@@ -44,29 +40,19 @@ export default function CodeSnippets() {
     init();
   }, []);
 
-  // 加载代码片段列表
   const fetchSnippets = async () => {
     try {
       let query = supabase.from('code_snippets').select('*');
-
-      // 权限：未登录仅看公开片段 / 登录看公开 + 自己私有片段
       if (user) {
         query = query.or(`is_public.eq.true,user_id.eq.${user.id}`);
       } else {
         query = query.eq('is_public', true);
       }
-
-      // 标签筛选
-      if (selectedTag) {
-        query = query.contains('tags', [selectedTag]);
-      }
-
-      // 关键词搜索
+      if (selectedTag) query = query.contains('tags', [selectedTag]);
       if (searchTerm.trim()) {
         const kw = searchTerm.trim();
         query = query.or(`title.ilike.%${kw}%,description.ilike.%${kw}%`);
       }
-
       const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
       setSnippets(data || []);
@@ -75,7 +61,6 @@ export default function CodeSnippets() {
     }
   };
 
-  // 复制代码（悬浮提示）
   const copyCode = async (code) => {
     try {
       await navigator.clipboard.writeText(code);
@@ -87,24 +72,14 @@ export default function CodeSnippets() {
     }
   };
 
-  // ========== 新增：打开【新建】弹窗 ==========
   const openCreateModal = () => {
-    setCurrentSnippet(null); // 清空编辑项 = 新建模式
-    setNewSnippet({
-      title: '',
-      description: '',
-      code: '',
-      language: 'javascript',
-      tags: '',
-      is_public: true
-    });
+    setCurrentSnippet(null);
+    setNewSnippet({ title: '', description: '', code: '', language: 'javascript', tags: '', is_public: true });
     setShowCreateModal(true);
   };
 
-  // ========== 新增：打开【编辑】弹窗 + 回显数据 ==========
   const openEditModal = (item) => {
-    setCurrentSnippet(item); // 绑定当前编辑项
-    // 数组标签 → 逗号分隔字符串
+    setCurrentSnippet(item);
     const tagStr = Array.isArray(item.tags) ? item.tags.join(',') : '';
     setNewSnippet({
       title: item.title || '',
@@ -117,7 +92,6 @@ export default function CodeSnippets() {
     setShowCreateModal(true);
   };
 
-  // ========== 新增：删除片段（二次确认） ==========
   const deleteSnippet = async (id) => {
     if (!window.confirm('确定要删除该代码片段？此操作不可恢复！')) return;
     try {
@@ -130,33 +104,15 @@ export default function CodeSnippets() {
     }
   };
 
-  // ========== 改造：统一 新增/编辑 保存逻辑 ==========
   const saveSnippet = async () => {
-    if (!user) {
-      alert('请先登录后再操作');
-      return;
-    }
-
-    // 表单必填校验
+    if (!user) { alert('请先登录后再操作'); return; }
     const title = newSnippet.title.trim();
     const code = newSnippet.code.trim();
-    if (!title) {
-      alert('请填写片段标题');
-      return;
-    }
-    if (!code) {
-      alert('代码内容不能为空');
-      return;
-    }
+    if (!title) { alert('请填写片段标题'); return; }
+    if (!code) { alert('代码内容不能为空'); return; }
 
     try {
-      // 字符串标签 → 数据库数组格式
-      const tagArr = newSnippet.tags
-        .split(',')
-        .map(t => t.trim())
-        .filter(t => t);
-
-      // 组装提交数据
+      const tagArr = newSnippet.tags.split(',').map(t => t.trim()).filter(t => t);
       const submitData = {
         title,
         description: newSnippet.description.trim() || null,
@@ -167,21 +123,12 @@ export default function CodeSnippets() {
       };
 
       if (currentSnippet) {
-        // 编辑模式：更新已有数据
-        const { error } = await supabase
-          .from('code_snippets')
-          .update(submitData)
-          .eq('id', currentSnippet.id);
+        const { error } = await supabase.from('code_snippets').update(submitData).eq('id', currentSnippet.id);
         if (error) throw error;
       } else {
-        // 新建模式：插入新数据
-        const { error } = await supabase
-          .from('code_snippets')
-          .insert([{ ...submitData, user_id: user.id }]);
+        const { error } = await supabase.from('code_snippets').insert([{ ...submitData, user_id: user.id }]);
         if (error) throw error;
       }
-
-      // 关闭弹窗 + 刷新列表
       setShowCreateModal(false);
       setCurrentSnippet(null);
       await fetchSnippets();
@@ -191,31 +138,23 @@ export default function CodeSnippets() {
     }
   };
 
-  // 提取所有标签（去重）
   const allTags = [...new Set(snippets.flatMap(item => item.tags || []))];
+  const resetFilter = () => { setSearchTerm(''); setSelectedTag(''); };
 
-  // 重置筛选条件
-  const resetFilter = () => {
-    setSearchTerm('');
-    setSelectedTag('');
-  };
-
-  // 空状态组件（全站统一样式）
   const EmptyTip = ({ text }) => (
     <div style={{
       textAlign: 'center',
       padding: '60px 20px',
-      color: '#94a3b8',
+      color: 'var(--ifm-color-emphasis-600)',
       fontSize: '15px',
-      background: '#ffffff',
+      background: 'var(--ifm-card-background-color)',
       borderRadius: '12px',
-      border: '1px dashed #e2e8f0'
+      border: '1px dashed var(--ifm-color-emphasis-300)'
     }}>
       📭 {text}
     </div>
   );
 
-  // 加载页面
   if (loading) {
     return (
       <Layout title="代码片段收藏库">
@@ -224,7 +163,7 @@ export default function CodeSnippets() {
           margin: '60px auto',
           padding: '0 20px',
           textAlign: 'center',
-          color: '#64748b',
+          color: 'var(--ifm-color-emphasis-600)',
           fontSize: '16px'
         }}>
           正在加载代码片段...
@@ -237,12 +176,11 @@ export default function CodeSnippets() {
     <Layout title="代码片段收藏库">
       <div style={{
         minHeight: 'calc(100vh - 120px)',
-        background: '#f8fafc',
+        background: 'var(--ifm-color-emphasis-100)',
         padding: '32px 20px',
         boxSizing: 'border-box'
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {/* 头部：标题 + 新建按钮 */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -253,13 +191,12 @@ export default function CodeSnippets() {
           }}>
             <h1 style={{
               fontSize: '32px',
-              color: '#1e293b',
+              color: 'var(--ifm-text-color)',
               margin: 0,
               fontWeight: 600
             }}>
               📝 代码片段收藏库
             </h1>
-
             {user && (
               <button
                 onClick={openCreateModal}
@@ -288,7 +225,6 @@ export default function CodeSnippets() {
             )}
           </div>
 
-          {/* 搜索 + 标签筛选栏 */}
           <div style={{
             display: 'flex',
             gap: '12px',
@@ -306,41 +242,41 @@ export default function CodeSnippets() {
                 minWidth: '220px',
                 padding: '14px 18px',
                 borderRadius: '12px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--ifm-color-emphasis-300)',
                 fontSize: '15px',
                 outline: 'none',
                 transition: 'border 0.25s ease, box-shadow 0.25s ease',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                background: 'var(--ifm-card-background-color)',
+                color: 'var(--ifm-text-color)'
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#2196f3';
                 e.target.style.boxShadow = '0 0 0 3px rgba(33, 150, 243, 0.15)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#e2e8f0';
+                e.target.style.borderColor = 'var(--ifm-color-emphasis-300)';
                 e.target.style.boxShadow = 'none';
               }}
             />
-
             <select
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
               style={{
                 padding: '14px 18px',
                 borderRadius: '12px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--ifm-color-emphasis-300)',
                 fontSize: '15px',
                 outline: 'none',
                 minWidth: '160px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                background: 'var(--ifm-card-background-color)',
+                color: 'var(--ifm-text-color)'
               }}
             >
               <option value="">🏷️ 全部标签</option>
-              {allTags.map(tag => (
-                <option key={tag} value={tag}>{tag}</option>
-              ))}
+              {allTags.map(tag => (<option key={tag} value={tag}>{tag}</option>))}
             </select>
-
             <button
               onClick={fetchSnippets}
               style={{
@@ -358,29 +294,27 @@ export default function CodeSnippets() {
             >
               搜索
             </button>
-
             {(searchTerm || selectedTag) && (
               <button
                 onClick={resetFilter}
                 style={{
                   padding: '14px 24px',
                   borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  background: '#ffffff',
-                  color: '#64748b',
+                  border: '1px solid var(--ifm-color-emphasis-300)',
+                  background: 'var(--ifm-card-background-color)',
+                  color: 'var(--ifm-color-emphasis-600)',
                   fontSize: '15px',
                   cursor: 'pointer',
                   transition: 'background 0.25s ease'
                 }}
-                onMouseOver={(e) => e.target.style.background = '#f1f5f9'}
-                onMouseOut={(e) => e.target.style.background = '#ffffff'}
+                onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
+                onMouseOut={(e) => e.target.style.background = 'var(--ifm-card-background-color)'}
               >
                 重置
               </button>
             )}
           </div>
 
-          {/* 复制成功/失败 悬浮提示 */}
           {copyTip && (
             <div style={{
               position: 'fixed',
@@ -398,7 +332,6 @@ export default function CodeSnippets() {
             </div>
           )}
 
-          {/* 代码片段列表 */}
           {snippets.length === 0 ? (
             <EmptyTip text={searchTerm || selectedTag ? '未匹配到相关代码片段' : '暂无代码片段，快去创建第一条吧'} />
           ) : (
@@ -411,9 +344,9 @@ export default function CodeSnippets() {
                 <div
                   key={snippet.id}
                   style={{
-                    background: '#ffffff',
+                    background: 'var(--ifm-card-background-color)',
                     borderRadius: '16px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
                     overflow: 'hidden',
                     transition: 'all 0.25s ease',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -427,20 +360,17 @@ export default function CodeSnippets() {
                     e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
                   }}
                 >
-                  {/* 卡片头部 */}
-                  <div style={{ padding: '20px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ padding: '20px', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       gap: '12px'
                     }}>
-                      <h3 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>
+                      <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--ifm-text-color)' }}>
                         {snippet.title}
                       </h3>
-
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        {/* 复制按钮 */}
                         <button
                           onClick={() => copyCode(snippet.code)}
                           style={{
@@ -459,8 +389,6 @@ export default function CodeSnippets() {
                         >
                           📋 复制代码
                         </button>
-
-                        {/* ========== 仅【创建者】显示 编辑/删除 按钮（权限控制） ========== */}
                         {user && user.id === snippet.user_id && (
                           <>
                             <button
@@ -501,10 +429,9 @@ export default function CodeSnippets() {
                         )}
                       </div>
                     </div>
-
                     {snippet.description && (
                       <p style={{
-                        color: '#64748b',
+                        color: 'var(--ifm-color-emphasis-600)',
                         fontSize: '14px',
                         margin: '10px 0 12px 0',
                         lineHeight: '1.6'
@@ -512,21 +439,20 @@ export default function CodeSnippets() {
                         {snippet.description}
                       </p>
                     )}
-
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       <span style={{
                         padding: '4px 10px',
-                        background: '#f1f5f9',
+                        background: 'var(--ifm-color-emphasis-100)',
                         borderRadius: '6px',
                         fontSize: '12px',
-                        color: '#334155'
+                        color: 'var(--ifm-color-emphasis-600)'
                       }}>
                         {snippet.language}
                       </span>
                       {snippet.tags?.map(tag => (
                         <span key={tag} style={{
                           padding: '4px 10px',
-                          background: '#e3f2fd',
+                          background: 'rgba(33,150,243,0.12)',
                           color: '#1976d2',
                           borderRadius: '6px',
                           fontSize: '12px'
@@ -537,7 +463,7 @@ export default function CodeSnippets() {
                       {!snippet.is_public && (
                         <span style={{
                           padding: '4px 10px',
-                          background: '#fff3e0',
+                          background: 'rgba(245,124,0,0.12)',
                           color: '#f57c00',
                           borderRadius: '6px',
                           fontSize: '12px'
@@ -547,8 +473,6 @@ export default function CodeSnippets() {
                       )}
                     </div>
                   </div>
-
-                  {/* 代码高亮区域 */}
                   <div style={{ maxHeight: '300px', overflow: 'auto' }}>
                     <SyntaxHighlighter
                       language={snippet.language}
@@ -559,13 +483,11 @@ export default function CodeSnippets() {
                       {snippet.code}
                     </SyntaxHighlighter>
                   </div>
-
-                  {/* 底部统计栏 */}
                   <div style={{
                     padding: '12px 20px',
-                    background: '#fafafa',
+                    background: 'var(--ifm-color-emphasis-100)',
                     fontSize: '12px',
-                    color: '#94a3b8',
+                    color: 'var(--ifm-color-emphasis-600)',
                     display: 'flex',
                     gap: '20px'
                   }}>
@@ -580,7 +502,6 @@ export default function CodeSnippets() {
             </div>
           )}
 
-          {/* ========== 共用弹窗：新建 / 编辑 片段 ========== */}
           {showCreateModal && (
             <div
               style={{
@@ -594,28 +515,23 @@ export default function CodeSnippets() {
                 padding: '20px',
                 boxSizing: 'border-box'
               }}
-              onClick={(e) => {
-                // 点击遮罩关闭弹窗
-                if (e.target === e.currentTarget) setShowCreateModal(false);
-              }}
+              onClick={(e) => { if (e.target === e.currentTarget) setShowCreateModal(false); }}
             >
               <div style={{
                 width: '100%',
                 maxWidth: '600px',
-                background: '#ffffff',
+                background: 'var(--ifm-card-background-color)',
                 borderRadius: '16px',
                 padding: '28px',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
               }}>
-                {/* 动态标题：区分 新增 / 编辑 */}
                 <h3 style={{
                   margin: '0 0 24px 0',
                   fontSize: '20px',
-                  color: '#1e293b'
+                  color: 'var(--ifm-text-color)'
                 }}>
                   {currentSnippet ? '✍️ 编辑代码片段' : '✍️ 新建代码片段'}
                 </h3>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <input
                     placeholder="片段标题 *"
@@ -624,15 +540,16 @@ export default function CodeSnippets() {
                     style={{
                       padding: '14px',
                       borderRadius: '10px',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid var(--ifm-color-emphasis-300)',
                       fontSize: '15px',
                       outline: 'none',
-                      transition: 'border 0.25s ease'
+                      transition: 'border 0.25s ease',
+                      background: 'var(--ifm-card-background-color)',
+                      color: 'var(--ifm-text-color)'
                     }}
                     onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                   />
-
                   <input
                     placeholder="片段描述（选填）"
                     value={newSnippet.description}
@@ -640,15 +557,16 @@ export default function CodeSnippets() {
                     style={{
                       padding: '14px',
                       borderRadius: '10px',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid var(--ifm-color-emphasis-300)',
                       fontSize: '15px',
                       outline: 'none',
-                      transition: 'border 0.25s ease'
+                      transition: 'border 0.25s ease',
+                      background: 'var(--ifm-card-background-color)',
+                      color: 'var(--ifm-text-color)'
                     }}
                     onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                   />
-
                   <textarea
                     placeholder="代码内容 *"
                     value={newSnippet.code}
@@ -656,18 +574,19 @@ export default function CodeSnippets() {
                     style={{
                       padding: '14px',
                       borderRadius: '10px',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid var(--ifm-color-emphasis-300)',
                       fontSize: '15px',
                       minHeight: '200px',
                       fontFamily: 'monospace',
                       outline: 'none',
                       transition: 'border 0.25s ease',
-                      resize: 'none'
+                      resize: 'none',
+                      background: 'var(--ifm-card-background-color)',
+                      color: 'var(--ifm-text-color)'
                     }}
                     onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                   />
-
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <select
                       value={newSnippet.language}
@@ -677,10 +596,12 @@ export default function CodeSnippets() {
                         minWidth: '160px',
                         padding: '14px',
                         borderRadius: '10px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         fontSize: '15px',
                         outline: 'none',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        background: 'var(--ifm-card-background-color)',
+                        color: 'var(--ifm-text-color)'
                       }}
                     >
                       <option value="javascript">JavaScript</option>
@@ -692,7 +613,6 @@ export default function CodeSnippets() {
                       <option value="html">HTML</option>
                       <option value="css">CSS</option>
                     </select>
-
                     <input
                       placeholder="标签（多个用英文逗号分隔）"
                       value={newSnippet.tags}
@@ -702,22 +622,23 @@ export default function CodeSnippets() {
                         minWidth: '160px',
                         padding: '14px',
                         borderRadius: '10px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         fontSize: '15px',
                         outline: 'none',
-                        transition: 'border 0.25s ease'
+                        transition: 'border 0.25s ease',
+                        background: 'var(--ifm-card-background-color)',
+                        color: 'var(--ifm-text-color)'
                       }}
                       onFocus={(e) => e.target.style.borderColor = '#2196f3'}
-                      onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                      onBlur={(e) => e.target.style.borderColor = 'var(--ifm-color-emphasis-300)'}
                     />
                   </div>
-
                   <label style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
                     fontSize: '15px',
-                    color: '#334155',
+                    color: 'var(--ifm-text-color)',
                     cursor: 'pointer'
                   }}>
                     <input
@@ -728,7 +649,6 @@ export default function CodeSnippets() {
                     />
                     公开可见（关闭则仅自己可见）
                   </label>
-
                   <div style={{
                     display: 'flex',
                     gap: '12px',
@@ -739,16 +659,16 @@ export default function CodeSnippets() {
                       onClick={() => setShowCreateModal(false)}
                       style={{
                         padding: '12px 24px',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--ifm-color-emphasis-300)',
                         borderRadius: '10px',
-                        background: '#ffffff',
-                        color: '#475569',
+                        background: 'var(--ifm-card-background-color)',
+                        color: 'var(--ifm-color-emphasis-600)',
                         fontSize: '15px',
                         cursor: 'pointer',
                         transition: 'background 0.25s ease'
                       }}
-                      onMouseOver={(e) => e.target.style.background = '#f1f5f9'}
-                      onMouseOut={(e) => e.target.style.background = '#ffffff'}
+                      onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
+                      onMouseOut={(e) => e.target.style.background = 'var(--ifm-card-background-color)'}
                     >
                       取消
                     </button>

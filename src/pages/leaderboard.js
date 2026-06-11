@@ -87,7 +87,7 @@ export default function Leaderboard() {
     <div style={{
       textAlign: 'center',
       padding: '48px 20px',
-      color: '#94a3b8',
+      color: 'var(--ifm-color-emphasis-600)',
       fontSize: '15px'
     }}>
       暂无数据，敬请期待
@@ -102,7 +102,7 @@ export default function Leaderboard() {
           margin: '40px auto',
           padding: '0 20px',
           textAlign: 'center',
-          color: '#64748b',
+          color: 'var(--ifm-color-emphasis-600)',
           fontSize: '16px'
         }}>
           正在加载排行榜数据...
@@ -116,7 +116,7 @@ export default function Leaderboard() {
       {/* 页面外层容器：统一背景、最大宽度、整体比例 */}
       <div style={{
         minHeight: 'calc(100vh - 120px)',
-        background: '#f8fafc',
+        background: 'var(--ifm-color-emphasis-100)',
         padding: '32px 20px',
         boxSizing: 'border-box'
       }}>
@@ -131,14 +131,14 @@ export default function Leaderboard() {
           }}>
             <h1 style={{
               fontSize: '32px',
-              color: '#1e293b',
+              color: 'var(--ifm-text-color)',
               margin: '0 0 8px 0',
               fontWeight: 600
             }}>
               🏆 全站排行榜
             </h1>
             <p style={{
-              color: '#64748b',
+              color: 'var(--ifm-color-emphasis-600)',
               fontSize: '14px',
               margin: 0
             }}>
@@ -170,8 +170,8 @@ export default function Leaderboard() {
                   cursor: 'pointer',
                   transition: 'all 0.25s ease',
                   // 选中/未选中样式区分
-                  background: activeTab === tab.key ? tab.color : '#ffffff',
-                  color: activeTab === tab.key ? '#ffffff' : '#334155',
+                  background: activeTab === tab.key ? tab.color : 'var(--ifm-card-background-color)',
+                  color: activeTab === tab.key ? '#ffffff' : 'var(--ifm-text-color)',
                   boxShadow: activeTab === tab.key
                     ? `0 4px 12px ${tab.color}40`
                     : '0 2px 6px rgba(0,0,0,0.06)',
@@ -195,7 +195,7 @@ export default function Leaderboard() {
 
           {/* 排行榜卡片主体：圆角、阴影、比例优化 */}
           <div style={{
-            background: '#ffffff',
+            background: 'var(--ifm-card-background-color)',
             borderRadius: '16px',
             boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
             overflow: 'hidden'
@@ -210,25 +210,25 @@ export default function Leaderboard() {
                     fontSize: '15px'
                   }}>
                     <thead>
-                      <tr style={{ background: '#f1f5f9' }}>
+                      <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           width: '120px'
                         }}>排名</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           flex: 1
                         }}>用户昵称</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'right',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           width: '140px'
                         }}>留言总数</th>
@@ -237,7 +237,7 @@ export default function Leaderboard() {
                     <tbody>
                       {commentRanking.map((item, index) => {
                         // 前三名特殊底色
-                        const rowBg = index === 0 ? '#fffbeb' : index === 1 ? '#f8fafc' : index === 2 ? '#fef2f2' : '#ffffff';
+                        const rowBg = index === 0 ? '#fffbeb' : index === 1 ? 'var(--ifm-color-emphasis-100)' : index === 2 ? '#fef2f2' : 'var(--ifm-card-background-color)';
                         return (
                           <tr
                             key={item.user_id}
@@ -245,31 +245,31 @@ export default function Leaderboard() {
                               background: rowBg,
                               transition: 'background 0.2s ease'
                             }}
-                            onMouseOver={(e) => e.target.style.background = '#f8fafc'}
+                            onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
                             onMouseOut={(e) => e.target.style.background = rowBg}
                           >
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
                               fontSize: '16px'
                             }}>
                               {index === 0 && '🥇'}
                               {index === 1 && '🥈'}
                               {index === 2 && '🥉'}
-                              {index > 2 && <span style={{ color: '#64748b' }}>{index + 1}</span>}
+                              {index > 2 && <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{index + 1}</span>}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
-                              color: '#1e293b'
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
+                              color: 'var(--ifm-text-color)'
                             }}>
                               {item.username}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
                               textAlign: 'right',
-                              color: '#1e293b',
+                              color: 'var(--ifm-text-color)',
                               fontWeight: 500
                             }}>
                               {item.count} 条
@@ -293,25 +293,25 @@ export default function Leaderboard() {
                     fontSize: '15px'
                   }}>
                     <thead>
-                      <tr style={{ background: '#f1f5f9' }}>
+                      <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           width: '120px'
                         }}>排名</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           flex: 1
                         }}>用户昵称</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'right',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           width: '140px'
                         }}>累计签到</th>
@@ -319,7 +319,7 @@ export default function Leaderboard() {
                     </thead>
                     <tbody>
                       {signInRanking.map((item, index) => {
-                        const rowBg = index === 0 ? '#fffbeb' : index === 1 ? '#f8fafc' : index === 2 ? '#fef2f2' : '#ffffff';
+                        const rowBg = index === 0 ? '#fffbeb' : index === 1 ? 'var(--ifm-color-emphasis-100)' : index === 2 ? '#fef2f2' : 'var(--ifm-card-background-color)';
                         return (
                           <tr
                             key={item.user_id}
@@ -327,31 +327,31 @@ export default function Leaderboard() {
                               background: rowBg,
                               transition: 'background 0.2s ease'
                             }}
-                            onMouseOver={(e) => e.target.style.background = '#f8fafc'}
+                            onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
                             onMouseOut={(e) => e.target.style.background = rowBg}
                           >
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
                               fontSize: '16px'
                             }}>
                               {index === 0 && '🥇'}
                               {index === 1 && '🥈'}
                               {index === 2 && '🥉'}
-                              {index > 2 && <span style={{ color: '#64748b' }}>{index + 1}</span>}
+                              {index > 2 && <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{index + 1}</span>}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
-                              color: '#1e293b'
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
+                              color: 'var(--ifm-text-color)'
                             }}>
                               {item.username}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
                               textAlign: 'right',
-                              color: '#1e293b',
+                              color: 'var(--ifm-text-color)',
                               fontWeight: 500
                             }}>
                               {item.total_days} 天
@@ -375,25 +375,25 @@ export default function Leaderboard() {
                     fontSize: '15px'
                   }}>
                     <thead>
-                      <tr style={{ background: '#f1f5f9' }}>
+                      <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           width: '120px'
                         }}>排名</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           flex: 1
                         }}>设备名称</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'right',
-                          color: '#334155',
+                          color: 'var(--ifm-text-color)',
                           fontWeight: 600,
                           width: '220px'
                         }}>最后在线时间</th>
@@ -401,7 +401,7 @@ export default function Leaderboard() {
                     </thead>
                     <tbody>
                       {deviceRanking.map((item, index) => {
-                        const rowBg = index === 0 ? '#fffbeb' : index === 1 ? '#f8fafc' : index === 2 ? '#fef2f2' : '#ffffff';
+                        const rowBg = index === 0 ? '#f9da61' : index === 1 ? 'var(--ifm-color-emphasis-100)' : index === 2 ? '#fef2f2' : 'var(--ifm-card-background-color)';
                         return (
                           <tr
                             key={item.device_name}
@@ -409,31 +409,31 @@ export default function Leaderboard() {
                               background: rowBg,
                               transition: 'background 0.2s ease'
                             }}
-                            onMouseOver={(e) => e.target.style.background = '#f8fafc'}
+                            onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
                             onMouseOut={(e) => e.target.style.background = rowBg}
                           >
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
                               fontSize: '16px'
                             }}>
                               {index === 0 && '🥇'}
                               {index === 1 && '🥈'}
                               {index === 2 && '🥉'}
-                              {index > 2 && <span style={{ color: '#64748b' }}>{index + 1}</span>}
+                              {index > 2 && <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{index + 1}</span>}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
-                              color: '#1e293b'
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
+                              color: 'var(--ifm-text-color)'
                             }}>
                               {item.device_name}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid #f1f5f9',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
                               textAlign: 'right',
-                              color: '#475569',
+                              color: 'var(--ifm-color-emphasis-600)',
                               fontSize: '14px'
                             }}>
                               {new Date(item.last_heartbeat).toLocaleString()}

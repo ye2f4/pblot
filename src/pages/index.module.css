@@ -6,8 +6,8 @@
 :global(body) {
   margin: 0;
   padding: 0;
-  background-color: #FFF9E6 !important;
-  /* 护眼淡黄色背景 */
+  /* 彻底移除硬编码 #FFF9E6，完全交给主题变量控制 */
+  background-color: var(--ifm-background-color);
 }
 
 /* 像素风字体 */
@@ -87,17 +87,6 @@
   100% {
     transform: translateX(-100%);
   }
-}
-
-:global(.scroll-text) {
-  display: inline-block;
-  white-space: nowrap;
-  animation: scrollText 18s linear infinite;
-  will-change: transform;
-}
-
-:global(.scroll-text:hover) {
-  animation-play-state: paused;
 }
 
 /* 按钮光效动画 */
@@ -189,15 +178,14 @@
   width: 100%;
   max-width: 1240px;
   margin: 16px auto;
-  border-radius: 8px;
-  height: 210px;
-  padding: 0 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-radius: 24px;
+  padding: 24px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
   animation: fadeIn 0.8s ease-out;
+  box-sizing: border-box;
 }
 
 .topRow {
@@ -214,7 +202,7 @@
 .topCol {
   flex: 1;
   min-width: 200px;
-  background: #fff;
+  background: var(--ifm-card-background-color);
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -252,7 +240,7 @@
 .statCircle {
   width: 82px;
   height: 82px;
-  background: #fff;
+  background: var(--ifm-card-background-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -302,14 +290,14 @@
 /* ====================== 小喇叭提示 ====================== */
 .tipWrap {
   padding: 12px 14px;
-  background: #f7f7f7;
+  background: var(--ifm-card-background-color);
   border-radius: 6px;
   margin-bottom: 22px;
 }
 
 /* ====================== 分区板块通用 ====================== */
 .sectionCard {
-  background: #fff;
+  background: var(--ifm-card-background-color);
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -323,7 +311,7 @@
   font-weight: bold;
   position: relative;
   padding-bottom: 8px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid var(--ifm-toc-border-color);
 }
 
 .subAdmin {
@@ -340,7 +328,7 @@
 }
 
 .colCard {
-  background: #f9f9f9;
+  background: var(--ifm-background-surface-color);
   padding: 14px 16px;
   border-radius: 5px;
   transition: 0.2s;
@@ -376,9 +364,9 @@
   padding: 15px;
   border-radius: 8px;
   text-decoration: none;
-  color: #333;
+  color: var(--ifm-font-color-base);
   transition: all 0.3s ease;
-  background-color: #f8f9fa;
+  background-color: var(--ifm-card-background-color);
   border-left: 4px solid transparent;
 }
 
@@ -408,7 +396,7 @@
   display: flex;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
   transition: all 0.3s ease;
 }
 
@@ -430,7 +418,7 @@
 
 .updateContent {
   font-size: 14px;
-  color: #333;
+  color: var(--ifm-font-color-base);
 }
 
 /* ====================== 标签云 ====================== */
@@ -448,6 +436,8 @@
   font-size: 13px;
   text-decoration: none;
   transition: all 0.3s ease;
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
 }
 
 .tagItem:hover {
@@ -470,23 +460,23 @@
 
 .friendLink {
   padding: 8px 16px;
-  background-color: #f8f9fa;
+  background-color: var(--ifm-background-surface-color);
   border-radius: 4px;
   text-decoration: none;
-  color: #333;
+  color: var(--ifm-font-color-base);
   font-size: 14px;
   transition: all 0.3s ease;
 }
 
 .friendLink:hover {
-  background-color: #e9ecef;
+  background-color: var(--ifm-toc-border-color);
   transform: translateY(-2px);
 }
 
 .aboutText {
   font-size: 14px;
   line-height: 1.6;
-  color: #666;
+  color: var(--ifm-color-emphasis-600);
   margin: 0;
 }
 
@@ -533,7 +523,7 @@
 .tagWrap,
 .rankWrap,
 .commentWrap {
-  background: #f9f9f9;
+  background: var(--ifm-background-surface-color);
   padding: 14px;
   border-radius: 5px;
   margin-bottom: 14px;
@@ -548,7 +538,7 @@
 
 .tagItem {
   padding: 3px 8px;
-  background: #e9ecef;
+  background: var(--ifm-toc-border-color);
   border-radius: 3px;
   font-size: 12px;
 }
@@ -556,7 +546,7 @@
 .rankItem {
   padding: 4px 0;
   font-size: 13px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
 }
 
 /* ====================== 底部赞助 ====================== */
@@ -577,7 +567,7 @@
   height: 32px;
 }
 
-/* ====================== 移动端自适应（完整保留） ====================== */
+/* ====================== 移动端自适应 ====================== */
 @media (max-width: 996px) {
   .pageWrap {
     flex-direction: column;
@@ -650,13 +640,11 @@
     justify-content: center !important;
   }
 
-  /* 移动端隐藏轮播箭头 */
   .slick-prev,
   .slick-next {
     display: none !important;
   }
 
-  /* 移动端下方板块响应式 */
   .navGrid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -692,38 +680,21 @@
   backface-visibility: hidden;
 }
 
-/* 滚动平滑 */
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 60px;
 }
 
-/* 禁止点击高亮 */
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 图片禁止拖动导致卡顿 */
 img {
   user-select: none;
   -webkit-user-drag: none;
 }
 
-/* 顶部外层容器 */
-.topBannerWrap {
-  box-sizing: border-box;
-  padding: 24px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  border-radius: 24px;
-  margin: 16px auto;
-  width: 100%;
-  max-width: 1200px;
-}
-
-/* 三列网格布局 + 响应式（修复行内媒体查询无效问题） */
+/* 三列网格布局 */
 .bannerGrid {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
@@ -732,19 +703,18 @@ img {
   align-items: stretch;
 }
 
-/* 移动端：网格改为单列 */
 @media (max-width: 992px) {
   .bannerGrid {
     grid-template-columns: 1fr;
   }
 }
 
-/* 头像容器 + hover 动画（替代行内JS动画） */
+/* 头像hover旋转 */
 .avatarWrap {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #f0f7ff;
+  background: var(--ifm-background-surface-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -760,7 +730,6 @@ img {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* 按钮基础hover样式（原有 .btn-hover 保留） */
 .btn-hover:hover {
   opacity: 0.9;
 }

@@ -66,7 +66,7 @@ export default function Login() {
                 <div style={{
                     width: '100%',
                     maxWidth: '420px',
-                    background: '#fff',
+                    background: 'var(--ifm-card-background-color)',
                     borderRadius: '16px',
                     padding: '32px',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
@@ -76,7 +76,7 @@ export default function Login() {
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: '#666',
+                            color: 'var(--ifm-color-emphasis-600)',
                             cursor: 'pointer',
                             marginBottom: '20px',
                             display: 'flex',
@@ -89,7 +89,7 @@ export default function Login() {
                         ← 返回首页
                     </Link>
 
-                    <h1 style={{ textAlign: 'center', margin: '0 0 24px', fontSize: '24px' }}>登录 Monoの小窝</h1>
+                    <h1 style={{ textAlign: 'center', margin: '0 0 24px', fontSize: '24px', color: 'var(--ifm-text-color)' }}>登录 Monoの小窝</h1>
 
                     {error && <div style={{ color: '#dc3545', textAlign: 'center', marginBottom: '16px' }}>{error}</div>}
 
@@ -103,10 +103,12 @@ export default function Login() {
                             disabled={loading}
                             style={{
                                 padding: '12px 16px',
-                                border: '1px solid #ddd',
+                                border: '1px solid var(--ifm-color-emphasis-300)',
                                 borderRadius: '8px',
                                 fontSize: '14px',
                                 minHeight: 48,
+                                background: 'var(--ifm-card-background-color)',
+                                color: 'var(--ifm-text-color)'
                             }}
                         />
                         <input
@@ -118,10 +120,12 @@ export default function Login() {
                             disabled={loading}
                             style={{
                                 padding: '12px 16px',
-                                border: '1px solid #ddd',
+                                border: '1px solid var(--ifm-color-emphasis-300)',
                                 borderRadius: '8px',
                                 fontSize: '14px',
                                 minHeight: 48,
+                                background: 'var(--ifm-card-background-color)',
+                                color: 'var(--ifm-text-color)'
                             }}
                         />
                         <button
@@ -143,7 +147,7 @@ export default function Login() {
                         </button>
                     </form>
 
-                    <div style={{ textAlign: 'center', margin: '20px 0', color: '#999' }}>或</div>
+                    <div style={{ textAlign: 'center', margin: '20px 0', color: 'var(--ifm-color-emphasis-600)' }}>或</div>
 
                     <button
                         onClick={handleGithubLogin}
@@ -169,7 +173,7 @@ export default function Login() {
                         GitHub 登录
                     </button>
 
-                    <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#666' }}>
+                    <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--ifm-color-emphasis-600)' }}>
                         还没有账号？<Link to="/register" style={{ color: '#4285f4', textDecoration: 'none' }}>立即注册</Link>
                     </div>
                 </div>

@@ -31,7 +31,8 @@ const config = {
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "",
-  deploymentBranch: "gh-pages",
+  // ========== 移除废弃gh-pages部署分支配置 ==========
+  // deploymentBranch: "gh-pages",
 
   headTags: [
     {
@@ -99,11 +100,11 @@ const config = {
         'http-equiv': 'Content-Security-Policy',
         content: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://xwhwcmorcmgpfpocmgez.supabase.co",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://xwhwcmorcmgpfpocmgez.supabase.co https://va.vercel-scripts.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "img-src 'self' data: https: blob:",
           "font-src 'self' https://fonts.gstatic.com",
-          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co",
+          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com",
           "frame-src 'self'",
           "object-src 'none'",
           "base-uri 'self'",
@@ -183,7 +184,15 @@ const config = {
   ],
 
   themeConfig: {
-    respectPrefersColorScheme: true,
+    // 强制跟随系统+记忆手动切换
+    colorMode: {
+      defaultMode: 'light',
+      respectPrefersColorScheme: true,
+      disableSwitch: false,
+    },
+    // 全局品牌主色覆盖
+    primaryColor: '#2E7D9E',
+    secondaryColor: '#D32F2F',
     docs: { sidebar: { autoCollapseCategories: true } },
     navbar: {
       hideOnScroll: false,
@@ -224,14 +233,15 @@ const config = {
           position: "left",
           items: [
             { label: "更新日志", to: "/changelog/" },
+            { label: "系列项目", to: "/series" }, // 新增系列聚合页入口
             { label: "隐私政策", to: "/privacy/" },
             { label: "用户协议", to: "/terms/" },
-            { label: "RSS订阅", to: "/rss.xml" },
+            { label: "RSS订阅", to: "/blog/rss.xml" }, // 修正rss真实路径
           ],
         },
         { label: "关于", to: "/about/", position: "left" },
         {
-          label: "聊天",
+          label: "留言", // 聊天改留言，更贴合互动定位
           to: "/chat/",
           position: "right",
           className: "navbar-chat-btn",
@@ -245,18 +255,23 @@ const config = {
       ],
     },
     footer: {
-      copyright: `Powered by Docusaurus & GitHub Pages © ${new Date().getFullYear()} Monoの小窝`,
+      // 修正旧GitHub Pages版权文案
+      copyright: `Powered by Docusaurus + Vercel © ${new Date().getFullYear()} Monoの小窝`,
     },
-    colorMode: { respectPrefersColorScheme: true },
+    colorMode: {
+      respectPrefersColorScheme: true,
+      defaultMode: 'light',
+      disableSwitch: false
+    },
     mermaid: {
       theme: { light: "base", dark: "base" },
       options: {
         themeVariables: {
-          primaryColor: "#67EA94",
+          primaryColor: "#2E7D9E", // 统一复古蓝品牌主色
           primaryTextColor: "#1a1a1a",
           primaryBorderColor: "#4D4D4D",
           lineColor: "#EAD67E",
-          secondaryColor: "#EA67BD",
+          secondaryColor: "#D32F2F", // 红辅助色
           tertiaryColor: "#67CEA9",
         },
       },
@@ -267,9 +282,8 @@ const config = {
     image: "img/og-image.png",
   },
 
-  // 只保留唯一一段plugins数组，删除重复段落，移除错误的faster插件注册
   plugins: [
-    // 自动生成CNAME插件
+    // 自动生成CNAME插件（保留兼容旧域名缓存）
     function AutoGenerateCNAMEPlugin() {
       return {
         name: "auto-generate-cname",
@@ -309,7 +323,6 @@ const config = {
     }),
   ],
 
-  // faster仅靠future开关开启，不要手动注册插件
   future: {
     faster: true,
     v4: true,
@@ -321,22 +334,23 @@ const config = {
       {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/ye2f4/edit/master/",
+          editUrl: "https://github.com/ye2f4/pblot/edit/master/", // 修复仓库地址
           breadcrumbs: true,
           showLastUpdateAuthor: true,
           remarkPlugins: [remarkDefList],
         },
         blog: {
-          blogTitle: "Monoの小窝",
-          blogDescription: "个人随笔、技术分享、开源教程",
+          blogTitle: 'Monoの小窝',
+          blogDescription: '个人随笔、技术分享、开源教程',
           postsPerPage: 10,
           blogSidebarCount: 5,
-          onUntruncatedBlogPosts: "ignore",
+          onUntruncatedBlogPosts: 'ignore',
           feedOptions: {
-            type: 'rss',
-            copyright: `© ${new Date().getFullYear()} Monoの小窝`,
-            language: 'zh-CN',
-          },
+            type: 'all',
+            copyright: '© 2026 Monoの小窝',
+            language: 'zh-CN'
+            // 彻底删除 feedPath / rssPath / atomPath 全部路径配置
+          }
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
