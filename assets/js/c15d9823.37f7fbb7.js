@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkMono_=self.webpackChunkMono_||[]).push([["6431"],{9328(e){e.exports=JSON.parse('{"metadata":{"permalink":"/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":7,"blogDescription":"\u4E2A\u4EBA\u968F\u7B14\u3001\u6280\u672F\u5206\u4EAB\u3001\u5F00\u6E90\u6559\u7A0B","blogTitle":"Mono\u306E\u5C0F\u7A9D"}}')}}]);
