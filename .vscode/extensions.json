@@ -1,5 +1,5 @@
 {
-  "recommendations": ["biomejs.biome", "unifiedjs.vscode-mdx"]
+  "recommendations": [
+    "denoland.vscode-deno"
+  ]
 }
-
-

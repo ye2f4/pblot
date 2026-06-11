@@ -1,22 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from '@docusaurus/Link';
-// 样式文件：向上 2 级到 pages
 import styles from '../../pages/index.module.css';
-// 【修复路径】向上 2 级 → src/supabase
 import { supabase, AVATAR_CACHE_KEY, AVATAR_CACHE_EXPIRE } from '../../supabase/supabaseClient';
-// 【修复路径】向上 2 级 → src/utils
 import { isBrowser } from '../../utils/env';
 import { storage } from '../../utils/storage';
-// 同目录层级，向上 1 级即可
 import MiddleStatsCard from '../MiddleStatsCard';
 
 const SCROLL_MODE = false;
 
-/**
- * 解析用户昵称（多层兜底，加固判空）
- * @param {object|null} user Supabase 用户对象
- * @returns {string} 展示昵称
- */
 const getUserName = (user = null) => {
   if (!user || !user.user_metadata) return "用户";
   return (
@@ -28,49 +19,45 @@ const getUserName = (user = null) => {
   );
 };
 
+// ========== 1. 函数参数明确接收 timeEpoch、locationName ==========
 export default function TopBanner({
   siteData = {},
   base = '',
-  user = null,          // 直接使用父组件传入的user，不再本地初始化state
-  loading = false,     // GitHub登录加载态
-  signOutLoading = false, // 退出登录加载态
+  user = null,
+  loading = false,
+  signOutLoading = false,
   isSessionChecked = false,
   userCount = 0,
   latestUser = '新用户',
   now = new Date(),
   handleGitHubLogin = () => { },
-  handleSignOut = () => { }
+  handleSignOut = () => { },
+  // 时钟参数，带默认兜底
+  timeEpoch = Math.floor(Date.now() / 1000),
+  locationName = "北京"
 }) {
+  console.log("【TopBanner中间层】接收 timeEpoch =", timeEpoch, "城市 =", locationName);
   const noticeRef = useRef(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const announcement = siteData?.texts?.announcement || '本站持续更新技术教程和资源分享';
   const [avatarEmoji, setAvatarEmoji] = useState('');
 
-  // 1. 全局会话监听
   useEffect(() => {
     if (!isBrowser || !supabase.auth) return;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      // 仅同步状态，不再本地维护user
-    });
-
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => { });
     return () => subscription.unsubscribe();
   }, []);
 
-  // 2. 带本地缓存的头像拉取（修复single()错误区分、统一存储工具）
   useEffect(() => {
     if (!isBrowser || !user) {
       setAvatarEmoji('');
       return;
     }
-
     const userId = user.id;
     const fetchUserAvatar = async () => {
-      // 读取本地缓存
       const cacheStr = storage.get(AVATAR_CACHE_KEY);
       let cachedAvatar = '';
       let cacheValid = false;
-
       if (cacheStr) {
         try {
           const cacheData = JSON.parse(cacheStr);
@@ -82,57 +69,40 @@ export default function TopBanner({
           storage.remove(AVATAR_CACHE_KEY);
         }
       }
-
-      // 缓存有效，直接使用
       if (cacheValid) {
         setAvatarEmoji(cachedAvatar);
         return;
       }
-
-      // 缓存失效，请求数据库
       try {
         const { data, error } = await supabase
           .from('profiles')
           .select('avatar_url')
           .eq('id', userId)
           .single();
-
-        // 区分：查询结果为空(正常) / 真实接口错误
         if (error) {
-          // PGRST116 = 无匹配数据（用户未设置头像）
           if (error.code === 'PGRST116') {
             setAvatarEmoji('');
             return;
           }
           throw error;
         }
-
         const avatar = data?.avatar_url || '';
         setAvatarEmoji(avatar);
-
-        // 写入缓存
-        storage.set(
-          AVATAR_CACHE_KEY,
-          JSON.stringify({ userId, avatar, timestamp: Date.now() })
-        );
+        storage.set(AVATAR_CACHE_KEY, JSON.stringify({ userId, avatar, timestamp: Date.now() }));
       } catch (err) {
         console.warn("获取用户头像失败：", err);
         setAvatarEmoji('');
       }
     };
-
     fetchUserAvatar();
   }, [user]);
 
-  // 3. 公告滚动（修复：RAF延迟读取DOM尺寸，解决SSR水合警告）
   useEffect(() => {
     if (!SCROLL_MODE || !noticeRef.current || !isBrowser) return;
-
     const rafId = requestAnimationFrame(() => {
       const noticeElement = noticeRef.current;
       const containerWidth = noticeElement.offsetWidth;
       const contentWidth = noticeElement.scrollWidth;
-
       if (contentWidth > containerWidth) {
         setIsScrolling(true);
         const duration = contentWidth * 0.03;
@@ -143,8 +113,6 @@ export default function TopBanner({
         setIsScrolling(false);
       }
     });
-
-    // 组件卸载取消动画帧
     return () => cancelAnimationFrame(rafId);
   }, [SCROLL_MODE, announcement]);
 
@@ -161,9 +129,7 @@ export default function TopBanner({
       width: '100%',
       maxWidth: '1200px',
     }}>
-      {/* 使用CSS类实现响应式网格，删除行内媒体查询 */}
       <div className={styles.bannerGrid}>
-        {/* 左侧公告卡片 */}
         <div style={{
           borderRadius: '18px',
           background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%)',
@@ -188,8 +154,11 @@ export default function TopBanner({
           </div>
         </div>
 
-        {/* 中间统计卡片 */}
+        {/* ========== 2. 原样转发 props：timeEpoch、locationName ========== */}
         <MiddleStatsCard
+          key={`${locationName}-${timeEpoch}`}
+          timeEpoch={timeEpoch}
+          locationName={locationName}
           siteData={siteData}
           isSessionChecked={isSessionChecked}
           userCount={userCount}
@@ -197,7 +166,6 @@ export default function TopBanner({
           now={now}
         />
 
-        {/* 右侧登录面板 */}
         <div style={{
           borderRadius: '18px',
           background: 'rgba(255,255,255,0.95)',
@@ -212,10 +180,8 @@ export default function TopBanner({
         }}>
           {user ? (
             <>
-              {/* ========== 【修改区域】头像兼容 URL / Emoji ========== */}
               {avatarEmoji ? (
                 avatarEmoji.startsWith('http://') || avatarEmoji.startsWith('https://') ? (
-                  // 网络图片链接 → 使用 img 标签渲染
                   <img
                     className={styles.avatarWrap}
                     src={avatarEmoji}
@@ -229,13 +195,11 @@ export default function TopBanner({
                     }}
                   />
                 ) : (
-                  // 纯 Emoji 表情 → 文本渲染
                   <div className={styles.avatarWrap}>
                     {avatarEmoji}
                   </div>
                 )
               ) : (
-                // 无头像数据 → 默认头像
                 <img
                   className={styles.avatarWrap}
                   src={`${base}avatar.png`}
@@ -249,7 +213,6 @@ export default function TopBanner({
                   }}
                 />
               )}
-              {/* ===================================================== */}
 
               <span style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>
                 {getUserName(user)}
@@ -268,7 +231,6 @@ export default function TopBanner({
                 {siteData?.texts?.buttons?.profile || '个人中心'}
               </Link>
 
-              {/* 退出登录按钮：独立加载态 */}
               <button
                 onClick={handleSignOut}
                 disabled={signOutLoading}

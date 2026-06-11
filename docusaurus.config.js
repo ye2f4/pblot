@@ -19,7 +19,6 @@ const config = {
   baseUrl: "/",
   trailingSlash: false,
 
-  // 断链告警规范写法（消除弃用警告）
   onBrokenLinks: "warn",
   markdown: {
     mermaid: true,
@@ -31,8 +30,6 @@ const config = {
   favicon: "img/logo.svg",
   organizationName: "ye2f4",
   projectName: "",
-  // ========== 移除废弃gh-pages部署分支配置 ==========
-  // deploymentBranch: "gh-pages",
 
   headTags: [
     {
@@ -103,8 +100,9 @@ const config = {
           "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://xwhwcmorcmgpfpocmgez.supabase.co https://va.vercel-scripts.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "img-src 'self' data: https: blob:",
-          "font-src 'self' https://fonts.gstatic.com",
-          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com",
+          "font-src 'self' https://fonts.gstatic.com data:",
+          // 新增 https://api.open-meteo.com 放开气象接口请求
+          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com https://api.open-meteo.com",
           "frame-src 'self'",
           "object-src 'none'",
           "base-uri 'self'",
@@ -112,13 +110,7 @@ const config = {
         ].join('; '),
       },
     },
-    {
-      tagName: 'meta',
-      attributes: {
-        'http-equiv': 'X-Frame-Options',
-        content: 'DENY',
-      },
-    },
+    // 已删除无效 X-Frame-Options meta 标签
     {
       tagName: 'meta',
       attributes: {
@@ -184,13 +176,11 @@ const config = {
   ],
 
   themeConfig: {
-    // 强制跟随系统+记忆手动切换
     colorMode: {
       defaultMode: 'light',
       respectPrefersColorScheme: true,
       disableSwitch: false,
     },
-    // 全局品牌主色覆盖
     primaryColor: '#2E7D9E',
     secondaryColor: '#D32F2F',
     docs: { sidebar: { autoCollapseCategories: true } },
@@ -233,15 +223,15 @@ const config = {
           position: "left",
           items: [
             { label: "更新日志", to: "/changelog/" },
-            { label: "系列项目", to: "/series" }, // 新增系列聚合页入口
+            { label: "系列项目", to: "/series" },
             { label: "隐私政策", to: "/privacy/" },
             { label: "用户协议", to: "/terms/" },
-            { label: "RSS订阅", to: "/blog/rss.xml" }, // 修正rss真实路径
+            { label: "RSS订阅", to: "/blog/rss.xml" },
           ],
         },
         { label: "关于", to: "/about/", position: "left" },
         {
-          label: "留言", // 聊天改留言，更贴合互动定位
+          label: "留言",
           to: "/chat/",
           position: "right",
           className: "navbar-chat-btn",
@@ -255,23 +245,17 @@ const config = {
       ],
     },
     footer: {
-      // 修正旧GitHub Pages版权文案
       copyright: `Powered by Docusaurus + Vercel © ${new Date().getFullYear()} Monoの小窝`,
-    },
-    colorMode: {
-      respectPrefersColorScheme: true,
-      defaultMode: 'light',
-      disableSwitch: false
     },
     mermaid: {
       theme: { light: "base", dark: "base" },
       options: {
         themeVariables: {
-          primaryColor: "#2E7D9E", // 统一复古蓝品牌主色
+          primaryColor: "#2E7D9E",
           primaryTextColor: "#1a1a1a",
           primaryBorderColor: "#4D4D4D",
           lineColor: "#EAD67E",
-          secondaryColor: "#D32F2F", // 红辅助色
+          secondaryColor: "#D32F2F",
           tertiaryColor: "#67CEA9",
         },
       },
@@ -283,7 +267,6 @@ const config = {
   },
 
   plugins: [
-    // 自动生成CNAME插件（保留兼容旧域名缓存）
     function AutoGenerateCNAMEPlugin() {
       return {
         name: "auto-generate-cname",
@@ -334,7 +317,7 @@ const config = {
       {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/ye2f4/pblot/edit/master/", // 修复仓库地址
+          editUrl: "https://github.com/ye2f4/pblot/edit/master/",
           breadcrumbs: true,
           showLastUpdateAuthor: true,
           remarkPlugins: [remarkDefList],
@@ -349,7 +332,6 @@ const config = {
             type: 'all',
             copyright: '© 2026 Monoの小窝',
             language: 'zh-CN'
-            // 彻底删除 feedPath / rssPath / atomPath 全部路径配置
           }
         },
         theme: {

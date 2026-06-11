@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
@@ -21,16 +23,17 @@ import UpdatesList from '../components/UpdatesList';
 import TagCloud from '../components/TagCloud';
 import FriendsAndAbout from '../components/FriendsAndAbout';
 import RankList from '../components/RankList';
+// 已删除 import PixelClock from '../components/PixelClock';
 
-// ========== 核心优化：像素时钟懒加载 ==========
-// 首页首屏不加载时钟组件，滚动到可视区域再渲染
-const PixelClock = lazy(() => import('../components/PixelClock'));
+// 全局常量
+const LOCATION_STORAGE_KEY = 'weather_selected_location';
 
-// 懒加载非首屏组件
+// 懒加载组件
+const WeatherWidget = lazy(() => import('../components/WeatherWidget'));
 const CommentSection = lazy(() => import('../components/CommentSection'));
 const AdSection = lazy(() => import('../components/AdSection'));
 
-// ========== 全局特效组件 ==========
+// 全局特效组件
 import BackToTop from '../components/BackToTop';
 import PageLoading from '../components/PageLoading';
 import ClickLove from '../components/ClickLove';
@@ -41,7 +44,7 @@ import NavScroll from '../components/NavScroll';
 import SiteTimer from '../components/SiteTimer';
 import VisitorTimer from '../components/VisitorTimer';
 import VisitorCount from '../components/VisitorCount';
-import MobileOptimization from '../components/MobileOptimization';
+import MobileAdapt from '../components/MobileOptimization';
 import PWA from '../components/PWA';
 
 export const metadata = { ssr: false };
@@ -63,10 +66,20 @@ export default function Home() {
   const [errModalText, setErrModalText] = useState('');
   const realNow = new Date(realTs);
 
-  // Auth钩子
+  // 时钟数据源（传给MiddleStatsCard）
+  const [clockTimeEpoch, setClockTimeEpoch] = useState(Math.floor(Date.now() / 1000));
+  const [clockLocationName, setClockLocationName] = useState('北京');
+
+  // 删掉这个！！外面不属于Home组件体内
+  useEffect(() => {
+    const handler = (e) => setClockTimeEpoch(e.detail);
+    window.addEventListener('forceClockTs', handler);
+    return () => window.removeEventListener('forceClockTs', handler);
+  }, [])
+
   const { user, loading, isSessionChecked, handleGitHubLogin: rawGithubLogin, handleSignOut: rawHandleSignOut } = useAuth();
 
-  // 包装退出登录
+  // 退出登录
   const handleSignOut = async () => {
     if (signOutLoading) return;
     setSignOutLoading(true);
@@ -80,12 +93,11 @@ export default function Home() {
     }
   };
 
-  // 包装GitHub登录：弹窗结束强制刷新会话
+  // GitHub登录
   const handleGitHubLogin = async () => {
     if (loading) return;
     try {
       await rawGithubLogin();
-      // 弹窗授权完毕，手动拉取最新会话
       const { data } = await supabase.auth.getSession();
       console.log('弹窗后手动拉取会话', data.session);
     } catch (err) {
@@ -103,25 +115,80 @@ export default function Home() {
     commentsLoaded,
     setCommentsLoaded,
     fetchComments,
-    handleSubmitComment
+    submitComment
   } = useComments(isClient, user, base);
 
-  // 初始化客户端、时间同步
+  const syncClockData = () => {
+    if (!isMountedRef.current) return;
+    try {
+      const locStr = localStorage.getItem(LOCATION_STORAGE_KEY);
+      if (!locStr) return;
+      const location = JSON.parse(locStr);
+      setClockLocationName(location.name);
+      const cacheKey = `blog_weather_cache_${location.code}`;
+      const cacheRaw = localStorage.getItem(cacheKey);
+      if (cacheRaw) {
+        const cacheObj = JSON.parse(cacheRaw);
+        console.log("【完整OM返回结构】", JSON.stringify(cacheObj, null, 2));
+
+        // 关键：真实气象数据在 cacheObj.data 里面
+        const realData = cacheObj.data;
+        let offsetSec = realData.utc_offset_seconds;
+        const localTimeStr = realData.current?.time;
+        const tzAbbr = realData.timezone_abbreviation;
+
+        console.log("提取值 offsetSec =", offsetSec, " localTimeStr =", localTimeStr, "缩写", tzAbbr);
+
+        // 兜底时区对照表
+        if (!offsetSec && tzAbbr) {
+          const tzMap = {
+            "GMT-4": -14400,
+            "GMT+8": 28800,
+            "GMT+1": 3600,
+            "GMT+9": 32400,
+            "GMT-5": -18000,
+            "GMT+0": 0
+          };
+          offsetSec = tzMap[tzAbbr] ?? 0;
+          console.log("靠缩写匹配 offsetSec =", offsetSec, tzAbbr);
+        }
+
+        if (offsetSec && localTimeStr) {
+          const [datePart, timePart] = localTimeStr.split('T');
+          const [y, m, d] = datePart.split('-').map(Number);
+          const [h, mi] = timePart.split(':').map(Number);
+          // 标准UTC时间戳计算
+          const utcMs = Date.UTC(y, m - 1, d, h, mi) - offsetSec * 1000;
+          const timeStamp = Math.floor(utcMs / 1000);
+          console.log("✅ 计算成功 城市Unix秒戳", timeStamp);
+          setClockTimeEpoch(timeStamp);
+        } else {
+          console.warn("❌ 无有效时区时间，使用本机时间", offsetSec, localTimeStr);
+          setClockTimeEpoch(Math.floor(Date.now() / 1000));
+        }
+      } else {
+        setClockTimeEpoch(Math.floor(Date.now() / 1000));
+      }
+    } catch (e) {
+      console.error('解析报错', e);
+      setClockTimeEpoch(Math.floor(Date.now() / 1000));
+    }
+  };
+
+  // 初始化生命周期
   useEffect(() => {
     isMountedRef.current = true;
     setIsClient(true);
+    syncClockData();
 
     const cacheOffset = localStorage.getItem('time_offset_cache');
     if (cacheOffset) setTimeOffset(Number(cacheOffset));
 
-    // 网络时间同步
+    // 服务器时间同步
     const fetchNetworkTime = async () => {
       try {
-        const res = await fetch("https://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp", {
-          signal: AbortSignal.timeout(5000),
-        });
-        const data = await res.json();
-        const serverTimestamp = +data.data.t;
+        const { data } = await supabase.rpc('get_current_timestamp');
+        const serverTimestamp = +data;
         const offset = serverTimestamp - Date.now();
         setTimeOffset(offset);
         localStorage.setItem('time_offset_cache', offset);
@@ -129,6 +196,8 @@ export default function Home() {
       } catch (e) {
         setTimeOffset(0);
         localStorage.removeItem('time_offset_cache');
+        setShowTimeErrModal(true);
+        setErrModalText("无法同步服务器时间，使用本地系统时间");
       }
     };
 
@@ -138,7 +207,7 @@ export default function Home() {
       if (isMountedRef.current) setRealTs(Date.now() + timeOffset);
     }, 10);
 
-    // 滚动加载评论 + 懒加载时钟
+    // 滚动加载评论
     const handleScroll = throttle(() => {
       if (window.scrollY > 600 && !commentsLoaded && isMountedRef.current) {
         setCommentsLoaded(true);
@@ -147,11 +216,26 @@ export default function Home() {
     }, 200);
     window.addEventListener("scroll", handleScroll, { passive: true });
 
+    // 监听本地存储切换城市
+    const handleStorageChange = (e) => {
+      if (e.key === LOCATION_STORAGE_KEY) syncClockData();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // 劫持localStorage赋值
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function (key, value) {
+      originalSetItem.call(this, key, value);
+      if (key === LOCATION_STORAGE_KEY) syncClockData();
+    };
+
     return () => {
       isMountedRef.current = false;
       clearInterval(reSyncTimer);
       clearInterval(renderTimer);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('storage', handleStorageChange);
+      localStorage.setItem = originalSetItem;
     };
   }, [commentsLoaded]);
 
@@ -169,17 +253,16 @@ export default function Home() {
           const u = data[0];
           setLatestUser(u.nickname || u.full_name || u.email?.split('@')[0] || '新用户');
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     fetchUserStats();
-    const timer = setInterval(fetchUserStats, 300000);
-    return () => clearInterval(timer);
+    const userTimer = setInterval(fetchUserStats, 300000);
+    return () => clearInterval(userTimer);
   }, [isClient]);
 
-  // ====================== 核心修复1：监听URL哈希变化，自动解析token ======================
+  // 解析登录哈希token
   useEffect(() => {
     if (!isClient) return;
-    // 页面加载时先执行一次
     const parseHashToken = async () => {
       if (window.location.hash.includes('access_token')) {
         console.log('检测到授权令牌哈希，开始解析');
@@ -189,13 +272,12 @@ export default function Home() {
       }
     };
     parseHashToken();
-    // 监听哈希切换
     const hashHandler = () => parseHashToken();
     window.addEventListener('hashchange', hashHandler);
     return () => window.removeEventListener('hashchange', hashHandler);
   }, [isClient]);
 
-  // ====================== 核心修复2：全局Auth状态打印监控 ======================
+  // Auth状态监听
   useEffect(() => {
     if (!isClient) return;
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
@@ -213,7 +295,7 @@ export default function Home() {
   if (!isClient) return null;
 
   return (
-    <Layout title={siteData.siteTitle}>
+    <Layout title={siteData.siteName}>
       <BackToTop />
       <PageLoading />
       <ClickLove />
@@ -221,9 +303,10 @@ export default function Home() {
       <MouseFollower />
       <SmoothScroll />
       <NavScroll />
-      <MobileOptimization />
+      <MobileAdapt />
       <PWA />
 
+      {/* TopBanner 彻底移除clockTimeEpoch、clockLocationName两个参数 */}
       <TopBanner
         siteData={siteData}
         base={base}
@@ -239,6 +322,9 @@ export default function Home() {
         showTimeErrModal={showTimeErrModal}
         errModalText={errModalText}
         onCloseModal={() => setShowTimeErrModal(false)}
+        // 核心时钟参数
+        timeEpoch={clockTimeEpoch}
+        locationName={clockLocationName}
       />
 
       <div ref={mainContentRef} className="main-content fadeIn" style={{
@@ -258,11 +344,11 @@ export default function Home() {
             <FriendsAndAbout siteData={siteData} />
           </div>
           <div className="sidebar-container" style={{ flex: 3, minWidth: 0 }}>
-            {/* ========== 时钟懒加载：滚动到可视区域再渲染 ========== */}
-            <Suspense fallback={<div className="stat-card" style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载中...</div>}>
-              <PixelClock now={realNow} />
+            {/* 侧边栏早已删除PixelClock渲染块 */}
+            <Suspense fallback={<div className="stat-card" style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载天气...</div>}>
+              <WeatherWidget />
             </Suspense>
-            
+
             <div className="stat-card">
               <RankList siteData={siteData} />
             </div>
@@ -273,7 +359,7 @@ export default function Home() {
                   commentContent={commentContent}
                   setCommentContent={setCommentContent}
                   commentLoading={commentLoading}
-                  handleSubmitComment={handleSubmitComment}
+                  submitComment={submitComment}
                   user={user}
                   base={base}
                   siteData={siteData}
@@ -309,4 +395,8 @@ export default function Home() {
       )}
     </Layout>
   );
+  useEffect(() => {
+    console.log("【Home顶层】clockTimeEpoch =", clockTimeEpoch, "城市 =", clockLocationName);
+  }, [clockTimeEpoch, clockLocationName]);
+
 }
