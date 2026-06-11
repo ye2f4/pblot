@@ -8,7 +8,7 @@
 monoblog.cc.cd
 ```
 或者
-···bash
+```bash
 www.monoblog.cc.cd
 ```
 来访问。默认开启https.
