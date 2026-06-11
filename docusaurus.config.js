@@ -104,7 +104,7 @@ const config = {
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "img-src 'self' data: https: blob:",
           "font-src 'self' https://fonts.gstatic.com",
-          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com",
+          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com https://vitals.vercel-insights.com",
           "frame-src 'self'",
           "object-src 'none'",
           "base-uri 'self'",
