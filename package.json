@@ -6,7 +6,6 @@
   {
   "name": "pblot",
   "version": "1.0.0",
-  // 新增下面这一段
   "engines": {
     "node": "22.x",
     "pnpm": ">=11.5.0"
@@ -15,8 +14,7 @@
     "start": "docusaurus start",
     "build": "docusaurus build"
   },
-  // 下面原有dependencies、devDependencies不动
-},
+  },
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
