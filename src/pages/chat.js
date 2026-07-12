@@ -21,20 +21,20 @@ export default function ChatPage() {
 
   // ========== 好友/私聊相关 ==========
   const [userList, setUserList] = useState([]);
-  const [targetUser, setTargetUser] = useState(null); // 当前私聊对象
+  const [targetUser, setTargetUser] = useState(null);
   const [privateMsgList, setPrivateMsgList] = useState([]);
-  const [privateTopIds, setPrivateTopIds] = useState([]); // 私聊置顶ID
+  const [privateTopIds, setPrivateTopIds] = useState([]);
 
-  // ========== 群聊相关（新增） ==========
-  const [activeTab, setActiveTab] = useState('friend'); // friend / group
-  const [groupList, setGroupList] = useState([]); // 我的群聊列表
-  const [currentGroup, setCurrentGroup] = useState(null); // 当前选中群聊
-  const [groupMsgList, setGroupMsgList] = useState([]); // 群聊消息
-  const [groupTopIds, setGroupTopIds] = useState([]); // 群聊置顶ID
-  const [showGroupSetting, setShowGroupSetting] = useState(false); // 群聊设置面板
-  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false); // 创建群聊弹窗
-  const [newGroupName, setNewGroupName] = useState(''); // 新建群名
-  const [selectedMemberIds, setSelectedMemberIds] = useState([]); // 新建群选中成员
+  // ========== 群聊相关 ==========
+  const [activeTab, setActiveTab] = useState('friend');
+  const [groupList, setGroupList] = useState([]);
+  const [currentGroup, setCurrentGroup] = useState(null);
+  const [groupMsgList, setGroupMsgList] = useState([]);
+  const [groupTopIds, setGroupTopIds] = useState([]);
+  const [showGroupSetting, setShowGroupSetting] = useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [selectedMemberIds, setSelectedMemberIds] = useState([]);
 
   // ========== 输入/表情/@ 相关 ==========
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -83,7 +83,6 @@ export default function ChatPage() {
     );
   };
 
-  // 群聊头像渲染
   const renderGroupAvatar = (avatarUrl, size = 42) => {
     const emoji = avatarUrl || DEFAULT_GROUP_AVATAR;
     return (
@@ -98,71 +97,6 @@ export default function ChatPage() {
       </div>
     );
   };
-
-  // ===================== 初始化用户信息 =====================
-  useEffect(() => {
-    const init = async () => {
-      setError(null);
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError) throw authError;
-
-        if (!user) {
-          setCurrentUser(null);
-          setLoading(false);
-          return;
-        }
-        setCurrentUser(user);
-        const uid = user.id;
-
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, avatar_url, nickname')
-          .eq('id', uid)
-          .maybeSingle();
-
-        if (profileError) throw profileError;
-        setMyProfile(profile || { avatar_url: DEFAULT_EMOJI_AVATAR });
-
-        await fetchAllUsers(uid);
-        await fetchMyGroups(uid);
-
-      } catch (err) {
-        console.error("初始化失败：", err);
-        setError("加载用户信息失败，请刷新重试");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    init();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_, session) => {
-      const user = session?.user || null;
-      setCurrentUser(user);
-      if (user) {
-        try {
-          const { data } = await supabase
-            .from('profiles')
-            .select('avatar_url')
-            .eq('id', user.id)
-            .maybeSingle();
-          setMyProfile(data || { avatar_url: DEFAULT_EMOJI_AVATAR });
-          await fetchAllUsers(user.id);
-          await fetchMyGroups(user.id);
-        } catch (err) {
-          console.error("头像加载失败：", err);
-          setMyProfile({ avatar_url: DEFAULT_EMOJI_AVATAR });
-        }
-      } else {
-        setMyProfile(null);
-        setUserList([]);
-        setGroupList([]);
-      }
-    });
-
-    return () => listener.subscription.unsubscribe();
-  }, []);
 
   // ===================== 数据请求方法 =====================
   const fetchAllUsers = async (selfUid) => {
@@ -295,7 +229,6 @@ export default function ChatPage() {
     }
   };
 
-  // ===================== 置顶操作 =====================
   const togglePrivateTop = async (userId) => {
     const isTop = privateTopIds.includes(userId);
     if (isTop) {
@@ -312,7 +245,6 @@ export default function ChatPage() {
     fetchMyGroups(currentUser.id);
   };
 
-  // ===================== 群聊操作 =====================
   const createGroup = async () => {
     if (!newGroupName.trim() || selectedMemberIds.length === 0) {
       setError("群名和成员不能为空");
@@ -358,7 +290,6 @@ export default function ChatPage() {
     fetchMyGroups(currentUser.id);
   };
 
-  // ===================== 工具方法 =====================
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
       messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -381,6 +312,72 @@ export default function ChatPage() {
     inputRef.current.focus();
   };
 
+  // ========== 【修复订阅销毁BUG】登录监听初始化 ==========
+  useEffect(() => {
+    let isMounted = true;
+    let authSubObj = null;
+
+    const initPageData = async () => {
+      if (!isMounted) return;
+      setError(null);
+      setLoading(true);
+
+      // 强制清空所有旧数据，彻底解决退出重登残留
+      setUserList([]);
+      setGroupList([]);
+      setPrivateMsgList([]);
+      setGroupMsgList([]);
+      setTargetUser(null);
+      setCurrentGroup(null);
+      setMyProfile(null);
+
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+
+        if (!user) {
+          setCurrentUser(null);
+          setLoading(false);
+          return;
+        }
+
+        setCurrentUser(user);
+        const uid = user.id;
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, avatar_url, nickname')
+          .eq('id', uid)
+          .maybeSingle();
+        setMyProfile(profile || { avatar_url: DEFAULT_EMOJI_AVATAR });
+
+        await fetchAllUsers(uid);
+        await fetchMyGroups(uid);
+      } catch (err) {
+        console.error("初始化失败：", err);
+        setError("加载用户信息失败，请刷新重试");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initPageData();
+
+    authSubObj = supabase.auth.onAuthStateChange(async (_, session) => {
+      if (!isMounted) return;
+      const user = session?.user || null;
+      if (user?.id !== currentUser?.id) {
+        await initPageData();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      if (authSubObj?.data?.subscription) {
+        authSubObj.data.subscription.unsubscribe();
+      }
+    };
+  }, [currentUser?.id]);
+
   // 实时消息监听
   useEffect(() => {
     if (!currentUser) return;
@@ -395,7 +392,9 @@ export default function ChatPage() {
         }
       }).subscribe();
 
-    return () => channel.unsubscribe();
+    return () => {
+      channel?.unsubscribe();
+    };
   }, [currentUser, targetUser, currentGroup]);
 
   useEffect(() => {
@@ -431,7 +430,6 @@ export default function ChatPage() {
         height: 'calc(100vh - 180px)', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '16px',
         overflow: 'hidden', background: 'var(--ifm-card-background-color)'
       }}>
-        {/* 左侧栏 */}
         <div style={{ width: '340px', borderRight: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-color-emphasis-100)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', borderBottom: '1px solid var(--ifm-color-emphasis-300)' }}>
             <div
@@ -525,7 +523,6 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* 右侧聊天区 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           {error && (
             <div style={{
@@ -688,7 +685,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* 创建群聊弹窗 */}
       {showCreateGroupModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,

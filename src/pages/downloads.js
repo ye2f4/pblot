@@ -130,31 +130,50 @@ export default function DownloadPage() {
                                             <span>📅 {item.date}</span>
                                         </div>
 
-                                        <Link
-                                            to={item.url}
-                                            target={item.url.startsWith("http") ? "_blank" : "_self"}
-                                            style={{
+                                        {item.url ? (
+                                            <a
+                                                href={item.url}
+                                                target={item.url.startsWith("http") ? "_blank" : "_self"}
+                                                rel="noopener noreferrer"
+                                                data-no-routing
+                                                style={{
+                                                    display: "block",
+                                                    width: "100%",
+                                                    textAlign: "center",
+                                                    padding: "10px 0",
+                                                    background: "#4285f4",
+                                                    color: "#fff",
+                                                    borderRadius: "10px",
+                                                    textDecoration: "none",
+                                                    fontSize: "14px",
+                                                    fontWeight: 500,
+                                                    transition: "background 0.2s ease"
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = "#1976d2";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = "#4285f4";
+                                                }}
+                                            >
+                                                📥 立即下载
+                                            </a>
+                                        ) : (
+                                            <div style={{
                                                 display: "block",
                                                 width: "100%",
                                                 textAlign: "center",
                                                 padding: "10px 0",
-                                                background: "#4285f4",
-                                                color: "#fff",
+                                                background: "var(--ifm-color-emphasis-200)",
+                                                color: "var(--ifm-color-emphasis-600)",
                                                 borderRadius: "10px",
-                                                textDecoration: "none",
                                                 fontSize: "14px",
                                                 fontWeight: 500,
-                                                transition: "background 0.2s ease"
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = "#1976d2";
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = "#4285f4";
-                                            }}
-                                        >
-                                            📥 立即下载
-                                        </Link>
+                                                cursor: "not-allowed"
+                                            }}>
+                                                🔒 暂无资源
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

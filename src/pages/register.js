@@ -237,7 +237,7 @@ export default function Register() {
     };
 
     return (
-        <Layout title="Monoの小窝 - 注册">
+        <Layout title="注册 - Monoの小窝" description="注册 Monoの小窝账号，三步完成注册，支持用户名注册，无需邮箱手机号">
             <style>{`
                 @keyframes fadeSlideUp {
                     from { opacity: 0; transform: translateY(24px); }

@@ -10,15 +10,32 @@ const statColors = [
   { bg: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)', shadow: 'rgba(236, 72, 153, 0.25)' }
 ];
 
+// 复用全局昵称获取逻辑
+const getUserName = (user = null, nickName = '') => {
+  if (nickName && nickName.trim()) return nickName.trim();
+  if (!user || !user.user_metadata) return "用户";
+  return (
+    user.user_metadata.full_name ||
+    user.user_metadata.preferred_username ||
+    user.raw_user_meta_data?.name ||
+    user.email ||
+    "用户"
+  );
+};
+
 export default function MiddleStatsCard({
   siteData = {},
   isSessionChecked = false,
   userCount = 0,
   latestUser = '新用户',
   timeEpoch = Math.floor(Date.now() / 1000),
-  locationName = "北京"
+  locationName = "北京",
+  // 接收父组件穿透的最新资料
+  currentNickname = "",
+  currentAvatar = "",
+  user = null
 }) {
-  console.log("【MiddleStatsCard最终层】timeEpoch =", timeEpoch, "城市 =", locationName);
+  console.log("【MiddleStatsCard最终层】timeEpoch =", timeEpoch, "城市 =", locationName, "最新昵称 =", currentNickname);
   const [visitStats, setVisitStats] = useState({
     online: 0,
     today: 0,
@@ -47,7 +64,8 @@ export default function MiddleStatsCard({
     weekNum: 1,
     year: 2026,
     month: 1,
-    day: 1
+    day: 1,
+    second: 0
   });
   const weekJpMap = ['日', '月', '火', '水', '木', '金', '土'];
   const weekEnMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -81,18 +99,19 @@ export default function MiddleStatsCard({
       weekNum: getISOWeekNumber(ts),
       year: date.getFullYear(),
       month: date.getMonth() + 1,
-      day: date.getDate()
+      day: date.getDate(),
+      second: date.getSeconds()
     };
     console.log("【refresh组装时间】", newDisplay.time, "时间戳", ts);
     setDisplay(newDisplay);
   };
 
-  // 监听父组件传入时间戳变化
+  // 监听父组件传入时间戳、最新昵称变化，强制刷新
   useEffect(() => {
-    console.log("=== 触发timeEpoch更新钩子 ===", timeEpoch);
+    console.log("=== 触发timeEpoch/昵称更新钩子 ===", timeEpoch, currentNickname);
     setBaseTs(timeEpoch);
     refreshDisplay(timeEpoch);
-  }, [timeEpoch]);
+  }, [timeEpoch, currentNickname]);
 
   // 每秒自动+1秒走时
   useEffect(() => {
@@ -249,6 +268,8 @@ export default function MiddleStatsCard({
 
   const maxHourCount = Math.max(...hourData, 1);
   const currentHour = new Date().getHours();
+  // 核心：优先使用父组件传递的最新自定义昵称
+  const finalUserName = getUserName(user, currentNickname);
 
   return (
     <div style={{
@@ -265,7 +286,7 @@ export default function MiddleStatsCard({
     }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* A区 顶部5个图标统计 */}
+      {/* A区 顶部5个图标统计 - 修复最新昵称展示 */}
       <div style={{ gridColumn: 1, gridRow: 1 }}>
         <div style={{
           display: 'grid',
@@ -276,12 +297,13 @@ export default function MiddleStatsCard({
           {isSessionChecked ? (siteData?.stats || []).map((item, i) => {
             let showVal = item.value;
             if (item.label === "会") showVal = userCount;
+            // 【终极修复】优先展示数据库最新自定义昵称
             if (item.label === "新") {
-              showVal = latestUser && latestUser.trim() !== '' ? latestUser : '新用户';
+              showVal = finalUserName || '新用户';
             }
             const color = statColors[i] || statColors[0];
             return (
-              <div key={i} style={{ textAlign: 'center', transition: 'all 0.3s ease' }}
+              <div key={`${i}-${currentNickname}`} style={{ textAlign: 'center', transition: 'all 0.3s ease' }}
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px) scale(1.04)'}
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
               >
@@ -425,20 +447,7 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* E区 时钟面板 */}
-      <div className="pixel-clock-fixed" style={{
-        padding: "12px 14px",
-        borderRadius: "16px",
-        textAlign: "center",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-        position: "relative",
-        width: '100%',
-        height: '100%',
-        boxSizing: 'border-box',
-        // 新增：动态透明度 + 微小位移，强制浏览器重绘
-        opacity: 0.98 + (display.second || 0) * 0.0001,
-        transform: `translateY(${(display.second || 0) % 2 === 0 ? 0 : 0.01}px)`
-      }}></div>
+      {/* E区 时钟面板 - 修复DOM嵌套bug */}
       <div style={{ gridColumn: 2, gridRow: '1 / span 3', height: '100%' }}>
         <div className="pixel-clock-fixed" style={{
           padding: "12px 14px",
@@ -472,16 +481,6 @@ export default function MiddleStatsCard({
               color: '#1a1a1a',
               letterSpacing: 2,
             }}>
-              {/* 新增 key={display.time} 内容变化则重建DOM */}
-              <div
-                key={display.time}
-                className={`pixel-font ${styles.clockText}`}
-                style={{
-                  fontSize: 19,
-                  color: '#1a1a1a',
-                  letterSpacing: 2,
-                }}
-              ></div>
               {display.time}
             </div>
           </div>
@@ -510,16 +509,6 @@ export default function MiddleStatsCard({
             color: '#333',
             fontWeight: 600
           }}>
-            {/* 新增 key={`${display.year}${display.month}${display.day}${display.weekNum}`} */}
-            <div
-              key={`${display.year}${display.month}${display.day}${display.weekNum}`}
-              className={`pixel-font ${styles.dateText}`}
-              style={{
-                fontSize: 13,
-                color: '#333',
-                fontWeight: 600
-              }}
-            ></div>
             {display.year}-
             {padZero(display.month)}-
             {padZero(display.day)}

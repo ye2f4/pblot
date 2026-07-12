@@ -43,7 +43,7 @@
 .navbar__inner {
   max-inline-size: 80rem;
   margin-inline: auto;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .navbar__logo {

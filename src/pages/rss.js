@@ -4,8 +4,8 @@ import Link from '@docusaurus/Link';
 
 export default function RSSPage() {
   useEffect(() => {
-    // 自动跳转到RSS feed
-    window.location.href = '/rss.xml';
+    // 自动跳转到RSS feed（Docusaurus blog 插件生成）
+    window.location.replace('/blog/rss.xml');
   }, []);
 
   return (

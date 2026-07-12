@@ -8,7 +8,10 @@ import MiddleStatsCard from '../MiddleStatsCard';
 
 const SCROLL_MODE = false;
 
-const getUserName = (user = null) => {
+// 【重写】优先读取数据库 nickname，兜底旧逻辑
+const getUserName = (user = null, nickName = '') => {
+  // 数据库昵称非空优先展示
+  if (nickName && nickName.trim()) return nickName.trim();
   if (!user || !user.user_metadata) return "用户";
   return (
     user.user_metadata.full_name ||
@@ -19,7 +22,6 @@ const getUserName = (user = null) => {
   );
 };
 
-// ========== 1. 函数参数明确接收 timeEpoch、locationName ==========
 export default function TopBanner({
   siteData = {},
   base = '',
@@ -32,7 +34,6 @@ export default function TopBanner({
   now = new Date(),
   handleGitHubLogin = () => { },
   handleSignOut = () => { },
-  // 时钟参数，带默认兜底
   timeEpoch = Math.floor(Date.now() / 1000),
   locationName = "北京"
 }) {
@@ -41,6 +42,46 @@ export default function TopBanner({
   const [isScrolling, setIsScrolling] = useState(false);
   const announcement = siteData?.texts?.announcement || '本站持续更新技术教程和资源分享';
   const [avatarEmoji, setAvatarEmoji] = useState('');
+  const [dbNickname, setDbNickname] = useState('');
+
+  // 【对外暴露：强制刷新用户资料】给个人中心保存后调用，彻底解决重置问题
+  window.refreshUserProfile = async () => {
+    if (!user?.id || !isBrowser) return;
+    // 强制清空缓存
+    storage.remove(AVATAR_CACHE_KEY);
+    // 重新拉取最新数据
+    await fetchUserProfileData(user.id);
+  };
+
+  // 纯抽离：拉取数据库最新资料
+  const fetchUserProfileData = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('avatar_url,nickname')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      const avatar = data?.avatar_url || '';
+      const nick = data?.nickname || '';
+      setAvatarEmoji(avatar);
+      setDbNickname(nick);
+
+      // 重写全新缓存
+      storage.set(AVATAR_CACHE_KEY, JSON.stringify({
+        userId,
+        avatar,
+        nickname: nick,
+        timestamp: Date.now()
+      }));
+
+      console.log("✅ 资料已强制刷新：", { nick, avatar });
+    } catch (err) {
+      console.warn("❌ 刷新资料失败：", err);
+    }
+  };
 
   useEffect(() => {
     if (!isBrowser || !supabase.auth) return;
@@ -48,53 +89,43 @@ export default function TopBanner({
     return () => subscription.unsubscribe();
   }, []);
 
+  // 初始化加载用户资料
   useEffect(() => {
     if (!isBrowser || !user) {
       setAvatarEmoji('');
+      setDbNickname('');
       return;
     }
+
     const userId = user.id;
-    const fetchUserAvatar = async () => {
-      const cacheStr = storage.get(AVATAR_CACHE_KEY);
-      let cachedAvatar = '';
-      let cacheValid = false;
-      if (cacheStr) {
-        try {
-          const cacheData = JSON.parse(cacheStr);
-          if (cacheData.userId === userId && Date.now() - cacheData.timestamp < AVATAR_CACHE_EXPIRE) {
-            cachedAvatar = cacheData.avatar;
-            cacheValid = true;
-          }
-        } catch (e) {
+    const cacheStr = storage.get(AVATAR_CACHE_KEY);
+
+    // 旧缓存不包含昵称 → 直接作废
+    if (cacheStr) {
+      try {
+        const cacheData = JSON.parse(cacheStr);
+        if (!cacheData.nickname || cacheData.userId !== userId) {
           storage.remove(AVATAR_CACHE_KEY);
         }
+      } catch (e) {
+        storage.remove(AVATAR_CACHE_KEY);
       }
-      if (cacheValid) {
-        setAvatarEmoji(cachedAvatar);
+    }
+
+    // 读取有效缓存
+    const newCacheStr = storage.get(AVATAR_CACHE_KEY);
+    if (newCacheStr) {
+      const cacheData = JSON.parse(newCacheStr);
+      if (cacheData.userId === userId && Date.now() - cacheData.timestamp < AVATAR_CACHE_EXPIRE) {
+        setAvatarEmoji(cacheData.avatar || '');
+        setDbNickname(cacheData.nickname || '');
         return;
       }
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .eq('id', userId)
-          .single();
-        if (error) {
-          if (error.code === 'PGRST116') {
-            setAvatarEmoji('');
-            return;
-          }
-          throw error;
-        }
-        const avatar = data?.avatar_url || '';
-        setAvatarEmoji(avatar);
-        storage.set(AVATAR_CACHE_KEY, JSON.stringify({ userId, avatar, timestamp: Date.now() }));
-      } catch (err) {
-        console.warn("获取用户头像失败：", err);
-        setAvatarEmoji('');
-      }
-    };
-    fetchUserAvatar();
+    }
+
+    // 无缓存，拉取新数据
+    fetchUserProfileData(userId);
+
   }, [user]);
 
   useEffect(() => {
@@ -154,9 +185,9 @@ export default function TopBanner({
           </div>
         </div>
 
-        {/* ========== 2. 原样转发 props：timeEpoch、locationName ========== */}
+        {/* 【终极修复】把最新昵称、头像强制传给子组件，彻底消灭旧名称 */}
         <MiddleStatsCard
-          key={`${locationName}-${timeEpoch}`}
+          key={`${locationName}-${timeEpoch}-${dbNickname}-${avatarEmoji}`}
           timeEpoch={timeEpoch}
           locationName={locationName}
           siteData={siteData}
@@ -164,6 +195,9 @@ export default function TopBanner({
           userCount={userCount}
           latestUser={latestUser}
           now={now}
+          currentNickname={dbNickname}
+          currentAvatar={avatarEmoji}
+          user={user}
         />
 
         <div style={{
@@ -215,7 +249,7 @@ export default function TopBanner({
               )}
 
               <span style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>
-                {getUserName(user)}
+                {getUserName(user, dbNickname)}
               </span>
 
               <Link

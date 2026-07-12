@@ -295,7 +295,7 @@ export default function Home() {
   if (!isClient) return null;
 
   return (
-    <Layout title={siteData.siteName}>
+    <Layout title={siteData.siteName} description="Monoの小窝 - 专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、全栈技术分享的个人博客">
       <BackToTop />
       <PageLoading />
       <ClickLove />

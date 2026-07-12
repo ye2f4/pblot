@@ -119,9 +119,15 @@ export default function Profile() {
 
             // 自己无资料时新建默认档案
             if (error && !isViewOther) {
-                const defaultNick = authUser.email.split('@')[0];
+                // 优先从 user_metadata 取用户名，其次从邮箱解析，兜底用"新用户"
+                const metaUsername = authUser.user_metadata?.username;
+                const emailMatch = authUser.email.match(/^[0-9a-f-]+_(.+)@internal-no-mail\.local$/i);
+                const parsedUsername = emailMatch ? emailMatch[1] : null;
+                const defaultNick = metaUsername || parsedUsername || '新用户';
+
                 await supabase.from('profiles').upsert({
                     id: authUser.id,
+                    username: metaUsername || parsedUsername || null,
                     nickname: defaultNick,
                     signature: '这家伙很懒~',
                     gender: 'unknown',
@@ -141,6 +147,7 @@ export default function Profile() {
 
             setProfile({
                 ...profileData,
+                birthday: profileData.birthday ?? "",
                 email: targetUid ? '保密' : authUser.email
             });
             setNickAvailable(true);
@@ -308,7 +315,7 @@ export default function Profile() {
         setTimeout(() => setMsg(''), 2000);
     };
 
-    // 保存个人资料
+    // 保存个人资料【增强日志调试版】
     const handleSaveProfile = async (e) => {
         e.preventDefault();
         if (isViewOther) return;
@@ -319,16 +326,31 @@ export default function Profile() {
         }
 
         setLoading(true);
-        await supabase.from('profiles').update({
+        const submitPayload = {
+            id: currentUser.id, // upsert必须带上主键！
             nickname: profile.nickname,
             signature: profile.signature,
             gender: profile.gender,
-            birthday: profile.birthday,
             address: profile.address,
-        }).eq('id', currentUser.id);
-        setMsg('✅ 个人资料保存成功！');
+        };
+        console.log("【保存资料】待提交payload:", submitPayload);
+        console.log("【保存资料】当前登录用户ID:", currentUser.id);
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .upsert(submitPayload, { onConflict: 'id' });
+
+        console.log("【保存资料】update 返回data:", data);
+        console.log("【保存资料】update 返回error:", error);
+
+        if (error) {
+            setMsg(`❌ 保存失败：${error.message}`);
+        } else {
+            setMsg('✅ 个人资料保存成功！');
+        }
+        window.refreshUserProfile && window.refreshUserProfile();
         setLoading(false);
-        setTimeout(() => setMsg(''), 2000);
+        setTimeout(() => setMsg(''), 2500);
     };
 
     if (!currentUser) return null;
@@ -459,7 +481,23 @@ export default function Profile() {
                                 {msg}
                             </div>
                         )}
-
+                        <button
+                            onClick={async () => {
+                                const testPayload = {
+                                    id: currentUser.id,
+                                    nickname: "强制测试昵称_" + Date.now(),
+                                };
+                                console.log("测试写入payload", testPayload);
+                                const { data, error } = await supabase
+                                    .from("profiles")
+                                    .upsert(testPayload, { onConflict: "id" });
+                                console.log("测试结果data", data, "error", error);
+                                alert("执行完毕，打开控制台看日志");
+                            }}
+                            style={{ background: "green", color: "#fff", padding: "6px 12px", margin: "10px 0" }}
+                        >
+                            【临时测试】强制写入昵称
+                        </button>
                         <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div>
                                 <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>昵称</label>

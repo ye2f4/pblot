@@ -173,6 +173,19 @@ const config = {
     },
     { tagName: "meta", attributes: { name: "author", content: "Mono" } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
+    // Open Graph
+    { tagName: "meta", attributes: { property: "og:type", content: "website" } },
+    { tagName: "meta", attributes: { property: "og:title", content: "Monoの小窝 - 技术分享与开源硬件" } },
+    { tagName: "meta", attributes: { property: "og:description", content: "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享" } },
+    { tagName: "meta", attributes: { property: "og:url", content: "https://monoblog.cc.cd" } },
+    { tagName: "meta", attributes: { property: "og:image", content: "https://monoblog.cc.cd/img/og-image.png" } },
+    { tagName: "meta", attributes: { property: "og:site_name", content: "Monoの小窝" } },
+    { tagName: "meta", attributes: { property: "og:locale", content: "zh_CN" } },
+    // Twitter Card
+    { tagName: "meta", attributes: { name: "twitter:card", content: "summary_large_image" } },
+    { tagName: "meta", attributes: { name: "twitter:title", content: "Monoの小窝 - 技术分享与开源硬件" } },
+    { tagName: "meta", attributes: { name: "twitter:description", content: "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享" } },
+    { tagName: "meta", attributes: { name: "twitter:image", content: "https://monoblog.cc.cd/img/og-image.png" } },
   ],
 
   themeConfig: {
@@ -193,8 +206,8 @@ const config = {
         srcDark: "img/logo.svg",
       },
       items: [
-        { label: "文章", to: "/docs/introduction/", position: "left" },
         { label: "博客", to: "/blog/", position: "left" },
+        { label: "文章", to: "/docs/introduction/", position: "left" },
         {
           type: "dropdown",
           label: "资源",
@@ -217,6 +230,7 @@ const config = {
             { label: "排行榜", to: "/leaderboard/" },
           ],
         },
+        { label: "关于", to: "/about/", position: "left" },
         {
           type: "dropdown",
           label: "更多",
@@ -229,7 +243,6 @@ const config = {
             { label: "RSS订阅", to: "/blog/rss.xml" },
           ],
         },
-        { label: "关于", to: "/about/", position: "left" },
         {
           label: "留言",
           to: "/chat/",

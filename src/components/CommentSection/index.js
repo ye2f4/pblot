@@ -101,7 +101,7 @@ export default function CommentSection({
                 <button
                     type="submit"
                     disabled={commentLoading || !user}
-                    style={{ padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, marginTop:8 }}
+                    style={{ padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, marginTop: 8 }}
                 >
                     {commentLoading ? "发布中..." : siteData.texts.comments.submit}
                 </button>
@@ -119,11 +119,11 @@ export default function CommentSection({
                                     {item.avatar_url}
                                 </div>
                             ) : (
-                                <img 
-                                    src={item.avatar_url || defaultAvatar} 
-                                    style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover' }} 
+                                <img
+                                    src={item.avatar_url || defaultAvatar}
+                                    style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover' }}
                                     alt="avatar"
-                                    onError={(e)=>e.target.src=defaultAvatar}
+                                    onError={(e) => e.target.src = defaultAvatar}
                                 />
                             )}
                             <div style={{ flex: 1 }}>
