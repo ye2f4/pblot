@@ -248,10 +248,10 @@ export default function Home() {
         setUserCount(count || 0);
       } catch (e) { setUserCount(0); }
       try {
-        const { data } = await supabase.from("profiles").select("nickname,full_name,email").order("id", { ascending: false }).limit(1);
+        const { data } = await supabase.from("profiles").select("nickname,real_name,email").order("id", { ascending: false }).limit(1);
         if (data?.[0]) {
           const u = data[0];
-          setLatestUser(u.nickname || u.full_name || u.email?.split('@')[0] || '新用户');
+          setLatestUser(u.nickname || u.real_name || u.email?.split('@')[0] || '新用户');
         }
       } catch (e) { }
     };

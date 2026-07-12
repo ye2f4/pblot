@@ -96,7 +96,7 @@ export const useAuth = () => {
                     {
                         id: uid,
                         nickname: userMeta?.preferred_username || '',
-                        full_name: userMeta?.full_name || '',
+                        real_name: userMeta?.full_name || '',
                         avatar_url: userMeta?.avatar_url || '',
                         email: email || ''
                     }
