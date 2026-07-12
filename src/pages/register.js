@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
-import { supabase, AVATAR_CACHE_KEY, AVATAR_CACHE_EXPIRE } from '@/supabase/supabaseClient';
+import { supabase } from '@/supabase/supabaseClient';
 
 export const metadata = {
     ssr: false,
@@ -72,16 +72,13 @@ function getPasswordStrength(pwd) {
     return { level: 3, label: '强', color: '#34a853' };
 }
 
-// 替换成你 user-register 的线上链接
-const EDGE_REGISTER_URL = "https://xwhwcmorcmgpfpocmgez.supabase.co/functions/v1/user-register";
-const QR_IMAGE_URL = '';
-
 export default function Register() {
     const [step, setStep] = useState(1);
     const [animKey, setAnimKey] = useState(1);
 
     const [username, setUsername] = useState('');
     const [nickname, setNickname] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [nicknameChecking, setNicknameChecking] = useState(false);
@@ -96,6 +93,7 @@ export default function Register() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [currentUser, setCurrentUser] = useState(null);
     const isSubmitting = useRef(false);
 
     const strength = getPasswordStrength(password);
@@ -127,6 +125,24 @@ export default function Register() {
         return () => clearTimeout(timer);
     }, [nickname]);
 
+    // 用户名查重
+    useEffect(() => {
+        if (!username || username.length < 3) return;
+        const timer = setTimeout(async () => {
+            const { data } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('username', username.toLowerCase())
+                .limit(1);
+            if (data?.length > 0) {
+                setError('用户名已存在');
+            } else {
+                setError('');
+            }
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [username]);
+
     const goStep = (n) => {
         setStep(n);
         setAnimKey(Date.now());
@@ -138,15 +154,39 @@ export default function Register() {
         if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { setError('用户名需 3-20 位，仅支持字母、数字、下划线'); return false; }
         if (!nickname.trim()) { setError('请输入昵称'); return false; }
         if (nicknameError) { setError(nicknameError); return false; }
+        if (!email.trim()) { setError('请填写电子邮箱'); return false; }
+        if (!/^\S+@\S+\.\S+$/.test(email)) { setError('邮箱格式不正确'); return false; }
         if (password.length < 6) { setError('密码至少 6 位'); return false; }
         if (password !== confirmPassword) { setError('两次输入的密码不一致'); return false; }
         return true;
     };
 
-    const handleNextStep = (e) => {
+    // Step1 执行原生注册 signUp
+    const handleNextStep = async (e) => {
         e.preventDefault();
-        if (!validateStep1()) return;
-        goStep(2);
+        if (!validateStep1() || loading) return;
+        setLoading(true);
+        setError('');
+        try {
+            const lowerName = username.toLowerCase();
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        username: lowerName
+                    }
+                }
+            });
+            if (error) throw error;
+            if (!data?.user) throw new Error('注册失败');
+            setCurrentUser(data.user);
+            goStep(2);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSelectEmoji = (emoji) => {
@@ -154,42 +194,33 @@ export default function Register() {
         setShowEmojiPicker(false);
     };
 
-    const handleRegister = async (skipFillInfo = false) => {
-        if (loading || isSubmitting.current) return;
-
+    // Step2 更新profile资料
+    const handleRegisterFinish = async (skipFillInfo = false) => {
+        if (loading || isSubmitting.current || !currentUser) return;
         setLoading(true);
         isSubmitting.current = true;
         setError('');
-
         try {
             const payload = {
                 username: username.toLowerCase(),
-                password,
                 nickname,
                 avatar_url: skipFillInfo ? '😀' : avatar_url,
                 signature: skipFillInfo ? '这家伙很懒~' : signature,
                 gender: skipFillInfo ? 'unknown' : gender,
                 birthday: skipFillInfo ? null : birthday || null,
-                real_name: skipFillInfo ? '' : real_name
+                real_name: skipFillInfo ? '' : real_name,
+                email
             };
 
-            const res = await fetch(EDGE_REGISTER_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-            const result = await res.json();
+            const { error } = await supabase
+                .from('profiles')
+                .update(payload)
+                .eq('id', currentUser.id);
 
-            if (!res.ok) {
-                throw new Error(result.error || "注册失败");
-            }
-
+            if (error) throw error;
             goStep(3);
-
         } catch (err) {
-            console.error("完整注册错误：", err);
+            console.error(err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -237,7 +268,7 @@ export default function Register() {
     };
 
     return (
-        <Layout title="注册 - Monoの小窝" description="注册 Monoの小窝账号，三步完成注册，支持用户名注册，无需邮箱手机号">
+        <Layout title="注册 - Monoの小窝" description="注册 Monoの小窝账号">
             <style>{`
                 @keyframes fadeSlideUp {
                     from { opacity: 0; transform: translateY(24px); }
@@ -333,6 +364,17 @@ export default function Register() {
                                     {nicknameError && <span style={{ color: '#dc3545' }}>{nicknameError}</span>}
                                 </div>
                             </div>
+
+                            <input
+                                type="email"
+                                placeholder="电子邮箱（必填，用于找回密码）"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={loading}
+                                style={inputStyle}
+                            />
+
                             <div>
                                 <input
                                     type="password"
@@ -491,11 +533,11 @@ export default function Register() {
                                 <button onClick={() => goStep(1)} style={btnGhost} disabled={loading}>
                                     上一步
                                 </button>
-                                <button onClick={() => handleRegister(false)} style={btnPrimary} disabled={loading}>
-                                    {loading ? '注册中...' : '完成注册'}
+                                <button onClick={() => handleRegisterFinish(false)} style={btnPrimary} disabled={loading}>
+                                    {loading ? '保存中...' : '完成注册'}
                                 </button>
                             </div>
-                            <button onClick={() => handleRegister(true)} style={{ ...btnGhost, border: 'none', color: 'var(--ifm-color-emphasis-500)' }} disabled={loading}>
+                            <button onClick={() => handleRegisterFinish(true)} style={{ ...btnGhost, border: 'none', color: 'var(--ifm-color-emphasis-500)' }} disabled={loading}>
                                 跳过，先去逛逛
                             </button>
                         </div>
@@ -521,18 +563,13 @@ export default function Register() {
                             <div style={{
                                 width: '160px', height: '160px',
                                 borderRadius: '12px',
-                                border: QR_IMAGE_URL ? 'none' : '2px dashed var(--ifm-color-emphasis-300)',
+                                border: '2px dashed var(--ifm-color-emphasis-300)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 color: 'var(--ifm-color-emphasis-500)',
                                 fontSize: '12px', textAlign: 'center',
                                 flexShrink: 0,
-                                overflow: 'hidden'
                             }}>
-                                {QR_IMAGE_URL ? (
-                                    <img src={QR_IMAGE_URL} alt="二维码" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                ) : (
-                                    <>二维码<br />预留位</>
-                                )}
+                                二维码预留位
                             </div>
                         </div>
                     )}

@@ -9,7 +9,7 @@ export const useAuth = () => {
     const [isSessionChecked, setIsSessionChecked] = useState(false);
     const isMountedRef = useRef(true);
 
-    // 清理URL中所有错误参数和哈希（核心修复）
+    // 清理URL中所有错误参数和哈希
     const clearUrlParams = () => {
         if (window.location.search || window.location.hash) {
             window.history.replaceState(null, document.title, window.location.pathname);
@@ -26,7 +26,7 @@ export const useAuth = () => {
                 options: {
                     popup: true,
                     redirectTo: redirectUrl,
-                    scopes: "user:email,read:user" // 必须包含read:user
+                    scopes: "user:email,read:user"
                 }
             });
             if (error) {
@@ -41,7 +41,7 @@ export const useAuth = () => {
         }
     };
 
-    // 备用页面跳转登录（推荐优先测试）
+    // 备用页面跳转登录
     const handleGitHubLoginPageMode = async () => {
         setLoading(true);
         try {
@@ -58,6 +58,55 @@ export const useAuth = () => {
         } catch (err) {
             alert(`${siteData.texts.loginTips.loginError}${err.message}`);
             console.error('GitHub登录捕获异常', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ====================== 【新增】邮箱注册 ======================
+    const handleEmailSignUp = async (email, password) => {
+        setLoading(true);
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password
+            });
+            if (error) throw error;
+
+            // 后台关闭Confirm Email后，data.session存在代表直接登录成功
+            if (data.session?.user && isMountedRef.current) {
+                setUser({ ...data.session.user });
+                await syncGitHubProfile(data.session);
+            }
+            return data;
+        } catch (err) {
+            alert(`注册失败：${err.message}`);
+            console.error('邮箱注册异常', err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ====================== 【新增】邮箱密码登录 ======================
+    const handleEmailSignIn = async (email, password) => {
+        setLoading(true);
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+            if (error) throw error;
+
+            if (data.session?.user && isMountedRef.current) {
+                setUser({ ...data.session.user });
+                await syncGitHubProfile(data.session);
+            }
+            return data;
+        } catch (err) {
+            alert(`登录失败：${err.message}`);
+            console.error('邮箱登录异常', err);
+            throw err;
         } finally {
             setLoading(false);
         }
@@ -80,7 +129,7 @@ export const useAuth = () => {
         }
     };
 
-    // 手动同步GitHub用户资料到public.profiles（核心新增）
+    // 同步用户资料到public.profiles
     const syncGitHubProfile = async (session) => {
         if (!session?.user) return;
         
@@ -89,13 +138,12 @@ export const useAuth = () => {
             const uid = session.user.id;
             const email = session.user.email;
 
-            // 写入/更新用户资料（upsert：存在则更新，不存在则插入）
             const { error } = await supabase
                 .from('profiles')
                 .upsert([
                     {
                         id: uid,
-                        nickname: userMeta?.preferred_username || '',
+                        nickname: userMeta?.preferred_username || userMeta?.name || '',
                         real_name: userMeta?.full_name || '',
                         avatar_url: userMeta?.avatar_url || '',
                         email: email || ''
@@ -104,8 +152,6 @@ export const useAuth = () => {
 
             if (error) {
                 console.error('同步用户资料失败', error);
-            } else {
-                console.log('✅ 用户资料已成功同步到public.profiles');
             }
         } catch (err) {
             console.error('同步用户资料捕获异常', err);
@@ -115,18 +161,14 @@ export const useAuth = () => {
     // 初始化认证状态
     useEffect(() => {
         isMountedRef.current = true;
-
-        // 1. 页面加载时先清理错误参数
         clearUrlParams();
 
-        // 2. 读取当前会话
         const fetchUser = async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session?.user && isMountedRef.current) {
                     setUser({ ...session.user });
-                    console.log('初始化读取已有会话', session.user.email);
-                    await syncGitHubProfile(session); // 同步资料
+                    await syncGitHubProfile(session);
                 } else {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (isMountedRef.current) setUser(user ? { ...user } : null);
@@ -141,11 +183,9 @@ export const useAuth = () => {
 
         fetchUser();
 
-        // 3. 监听URL哈希变化（授权跳转后触发）
         const hashHandler = async () => {
             const hash = window.location.hash;
             if (hash.includes('access_token')) {
-                console.log('检测到授权令牌，开始解析会话');
                 const { data: { session }, error } = await supabase.auth.getSession();
                 if (error) {
                     console.error('令牌解析失败', error);
@@ -154,21 +194,19 @@ export const useAuth = () => {
                 }
                 if (session?.user && isMountedRef.current) {
                     setUser({ ...session.user });
-                    await syncGitHubProfile(session); // 同步资料
-                    console.log('✅ 登录成功', session.user.email);
+                    await syncGitHubProfile(session);
                 }
                 clearUrlParams();
             }
         };
         window.addEventListener('hashchange', hashHandler);
 
-        // 4. 监听全局认证状态变更
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth状态变更事件：', event, session?.user?.email);
             if (isMountedRef.current) {
                 if (session?.user) {
                     setUser({ ...session.user });
-                    await syncGitHubProfile(session); // 同步资料
+                    await syncGitHubProfile(session);
                     clearUrlParams();
                 } else {
                     setUser(null);
@@ -189,6 +227,8 @@ export const useAuth = () => {
         isSessionChecked,
         handleGitHubLogin,
         handleGitHubLoginPageMode,
-        handleSignOut
+        handleSignOut,
+        handleEmailSignUp,    // 对外暴露注册
+        handleEmailSignIn     // 对外暴露登录
     };
 };

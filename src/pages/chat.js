@@ -2,11 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import Layout from '@theme/Layout';
 import { supabase } from '@site/src/supabase/supabaseClient';
+import { triggerGlobalProfileRefresh } from '@site/src/utils/globalProfileUtil';
 
 // 固定常量
 const PROFILE_PAGE = '/profile';
 const DEFAULT_EMOJI_AVATAR = '😀';
 const DEFAULT_GROUP_AVATAR = '👥';
+
+// ========== 【重点！！你只需修改这里】站长用户ID，空=未配置，自行填写数据库UUID ==========
+// 填写方法：复制 supabase profiles 表中站长账号的 id 字符串粘贴到引号内
+const WEBMASTER_UID = "31452874-c41a-4e2e-a497-8b67e42ccafa";
+// 站长展示名称（固定）
+const WEBMASTER_NAME = "联系站长";
 
 export const metadata = {
   ssr: false
@@ -47,8 +54,32 @@ export default function ChatPage() {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // 组装固定站长对象（永久置顶）
+  const webmasterUser = {
+    id: WEBMASTER_UID,
+    nickname: WEBMASTER_NAME,
+    avatar_url: '',
+    isWebmaster: true // 自定义标记：站长专属
+  };
+
   // ===================== 头像渲染 =====================
-  const renderAvatar = (avatarUrl, userId, size = 42) => {
+  const renderAvatar = (avatarUrl, userId, size = 42, isWebmaster = false) => {
+    // 站长强制使用默认头像
+    if (isWebmaster) {
+      return (
+        <div
+          style={{
+            width: size, height: size, borderRadius: '50%', background: 'var(--ifm-color-emphasis-100)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: size * 0.6, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            cursor: 'pointer', userSelect: 'none'
+          }}
+        >
+          {DEFAULT_EMOJI_AVATAR}
+        </div>
+      );
+    }
+
     const isNetImage = avatarUrl && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'));
 
     if (isNetImage) {
@@ -144,6 +175,11 @@ export default function ChatPage() {
 
   const fetchPrivateMessages = async (toUserId) => {
     if (!currentUser || !toUserId) return;
+    // 空ID不请求（站长未配置时）
+    if (!toUserId) {
+      setPrivateMsgList([]);
+      return;
+    }
     try {
       const { data: msgData, error: msgError } = await supabase
         .from('messages')
@@ -196,6 +232,12 @@ export default function ChatPage() {
     const txt = inputValue.trim();
     if (!txt || sending) return;
 
+    // 禁止未配置站长ID时发送
+    if (targetUser?.isWebmaster && !WEBMASTER_UID) {
+      setError("站长ID未配置，无法发送消息，请管理员配置站长UID");
+      return;
+    }
+
     setSending(true);
     setError(null);
     try {
@@ -230,6 +272,8 @@ export default function ChatPage() {
   };
 
   const togglePrivateTop = async (userId) => {
+    // 禁止置顶/取消置顶站长
+    if (userId === WEBMASTER_UID) return;
     const isTop = privateTopIds.includes(userId);
     if (isTop) {
       setPrivateTopIds(privateTopIds.filter(id => id !== userId));
@@ -312,7 +356,7 @@ export default function ChatPage() {
     inputRef.current.focus();
   };
 
-  // ========== 【修复订阅销毁BUG】登录监听初始化 ==========
+  // ========== 初始化 + 全局资料刷新监听 ==========
   useEffect(() => {
     let isMounted = true;
     let authSubObj = null;
@@ -322,7 +366,6 @@ export default function ChatPage() {
       setError(null);
       setLoading(true);
 
-      // 强制清空所有旧数据，彻底解决退出重登残留
       setUserList([]);
       setGroupList([]);
       setPrivateMsgList([]);
@@ -370,11 +413,16 @@ export default function ChatPage() {
       }
     });
 
+    const handleProfileUpdate = async () => {
+      if (!currentUser) return;
+      await fetchAllUsers(currentUser.id);
+    };
+    window.addEventListener('globalProfileUpdated', handleProfileUpdate);
+
     return () => {
       isMounted = false;
-      if (authSubObj?.data?.subscription) {
-        authSubObj.data.subscription.unsubscribe();
-      }
+      authSubObj?.data?.subscription.unsubscribe();
+      window.removeEventListener('globalProfileUpdated', handleProfileUpdate);
     };
   }, [currentUser?.id]);
 
@@ -405,17 +453,23 @@ export default function ChatPage() {
     if (currentGroup) fetchGroupMessages(currentGroup.id);
   }, [currentGroup]);
 
+  // 筛选好友列表 + 【固定置顶站长在最顶部】
   const filteredUsers = userList.filter(u =>
     u.nickname?.toLowerCase().includes(searchKeyword.toLowerCase())
   );
   const filteredGroups = groupList.filter(g =>
     g.group_name?.toLowerCase().includes(searchKeyword.toLowerCase())
   );
+
+  // 排序：站长永久第一，其余按置顶排序
   const sortedFriends = [...filteredUsers].sort((a, b) => {
     const aTop = privateTopIds.includes(a.id) ? 1 : 0;
     const bTop = privateTopIds.includes(b.id) ? 1 : 0;
     return bTop - aTop;
   });
+
+  // 最终列表 = 首位站长 + 普通好友
+  const finalFriendList = [webmasterUser, ...sortedFriends];
 
   const myAvatar = myProfile?.avatar_url || DEFAULT_EMOJI_AVATAR;
   const myId = currentUser?.id;
@@ -477,25 +531,36 @@ export default function ChatPage() {
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {activeTab === 'friend' && sortedFriends.map(user => (
+            {activeTab === 'friend' && finalFriendList.map(user => (
               <div
-                key={user.id}
+                key={user.isWebmaster ? 'webmaster-fixed' : user.id}
                 onClick={() => setTargetUser(user)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 18px',
-                  cursor: 'pointer', background: targetUser?.id === user.id ? 'var(--ifm-color-emphasis-300)' : 'transparent',
-                  color:'var(--ifm-text-color)'
+                  cursor: 'pointer', 
+                  background: targetUser?.id === user.id ? 'var(--ifm-color-emphasis-300)' : 'transparent',
+                  color:'var(--ifm-text-color)',
+                  // 站长增加浅色背景区分
+                  ...(user.isWebmaster ? {background:'rgba(7,193,96,0.08)'} : {})
                 }}
               >
-                {renderAvatar(user.avatar_url, user.id, 42)}
-                <span style={{ flex: 1 }}>{user.nickname}</span>
-                <span style={{ color: '#f53f3f', fontSize: '12px', marginRight: '6px' }}>
-                  {privateTopIds.includes(user.id) && '置顶'}
-                </span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); togglePrivateTop(user.id); }}
-                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '14px', color:'var(--ifm-text-color)' }}
-                >{privateTopIds.includes(user.id) ? '取消' : '置顶'}</button>
+                {renderAvatar(user.avatar_url, user.id, 42, user.isWebmaster)}
+                <span style={{ flex: 1, fontWeight: user.isWebmaster ? 600 : 400 }}>{user.nickname}</span>
+                
+                {/* 站长永久置顶标签、禁止操作按钮 */}
+                {user.isWebmaster ? (
+                  <span style={{ color: '#07c160', fontSize: '12px' }}>永久置顶</span>
+                ) : (
+                  <>
+                    <span style={{ color: '#f53f3f', fontSize: '12px', marginRight: '6px' }}>
+                      {privateTopIds.includes(user.id) && '置顶'}
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); togglePrivateTop(user.id); }}
+                      style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '14px', color:'var(--ifm-text-color)' }}
+                    >{privateTopIds.includes(user.id) ? '取消' : '置顶'}</button>
+                  </>
+                )}
               </div>
             ))}
 
@@ -535,13 +600,14 @@ export default function ChatPage() {
             <>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--ifm-color-emphasis-300)', fontWeight: 600, color:'var(--ifm-text-color)' }}>
                 {targetUser.nickname}
+                {targetUser.isWebmaster && <span style={{ color:'#07c160',marginLeft:10,fontSize:12 }}>网站管理员</span>}
               </div>
               <div style={{ flex: 1, padding: '24px', background: 'var(--ifm-color-emphasis-100)', overflowY: 'auto' }}>
                 {privateMsgList.map(msg => {
                   const isSelf = msg.from_user_id === myId;
                   return (
                     <div key={msg.id} style={{ display: 'flex', justifyContent: isSelf ? 'flex-end' : 'flex-start', marginBottom: '16px', gap: '10px', alignItems: 'flex-end' }}>
-                      {!isSelf && renderAvatar(targetUser.avatar_url, targetUser.id, 34)}
+                      {!isSelf && renderAvatar(targetUser.avatar_url, targetUser.id, 34, targetUser.isWebmaster)}
                       <div style={{
                         maxWidth: '65%', padding: '9px 14px', borderRadius: '20px',
                         background: isSelf ? '#07c160' : 'var(--ifm-card-background-color)',
@@ -552,6 +618,13 @@ export default function ChatPage() {
                   );
                 })}
                 <div ref={messageEndRef} />
+
+                {/* 站长未配置提示 */}
+                {targetUser.isWebmaster && !WEBMASTER_UID && (
+                  <div style={{textAlign:'center',color:'#ff4d4f',padding:20}}>
+                    管理员尚未配置站长ID，暂时无法收发消息
+                  </div>
+                )}
               </div>
 
               <div style={{ padding: '16px 20px', borderTop: '1px solid var(--ifm-color-emphasis-300)', position: 'relative' }}>

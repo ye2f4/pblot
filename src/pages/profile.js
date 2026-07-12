@@ -25,7 +25,6 @@ const renderAvatarContent = (avatarStr, baseUrl = '') => {
             />
         );
     }
-    // 判断是否为网络图片链接
     if (avatarStr.startsWith('http://') || avatarStr.startsWith('https://')) {
         return (
             <img
@@ -40,7 +39,6 @@ const renderAvatarContent = (avatarStr, baseUrl = '') => {
             />
         );
     }
-    // Emoji表情文本
     return (
         <div style={{
             width: '80px',
@@ -66,8 +64,6 @@ export default function Profile() {
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    // 头像状态，完全复用TopBanner缓存拉取逻辑
-    const [avatarEmoji, setAvatarEmoji] = useState('');
 
     // 昵称校验
     const [checkingNick, setCheckingNick] = useState(false);
@@ -88,7 +84,9 @@ export default function Profile() {
         '🐶', '🐱', '🐭', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐷', '🐸', '🐵', '🦄', '🐝'
     ];
 
+    // 完整对齐注册页面所有字段
     const [profile, setProfile] = useState({
+        username: '',
         nickname: '',
         email: '',
         signature: '',
@@ -96,6 +94,7 @@ export default function Profile() {
         birthday: '',
         address: '',
         avatar_url: '',
+        real_name: ''
     });
 
     const genderMap = { unknown: '保密', male: '男', female: '女' };
@@ -117,28 +116,32 @@ export default function Profile() {
                 .eq('id', targetId)
                 .single();
 
-            // 自己无资料时新建默认档案
+            // 不存在资料则新建
             if (error && !isViewOther) {
-                // 优先从 user_metadata 取用户名，其次从邮箱解析，兜底用"新用户"
                 const metaUsername = authUser.user_metadata?.username;
-                const emailMatch = authUser.email.match(/^[0-9a-f-]+_(.+)@internal-no-mail\.local$/i);
-                const parsedUsername = emailMatch ? emailMatch[1] : null;
-                const defaultNick = metaUsername || parsedUsername || '新用户';
+                const defaultNick = metaUsername || '新用户';
 
                 await supabase.from('profiles').upsert({
                     id: authUser.id,
-                    username: metaUsername || parsedUsername || null,
-                    nickname: defaultNick,
-                    signature: '这家伙很懒~',
-                    gender: 'unknown',
-                    avatar_url: '😀'
-                });
-                profileData = {
+                    username: metaUsername || null,
                     nickname: defaultNick,
                     signature: '这家伙很懒~',
                     gender: 'unknown',
                     avatar_url: '😀',
-                    id: authUser.id
+                    real_name: '',
+                    birthday: null,
+                    address: ''
+                });
+                profileData = {
+                    id: authUser.id,
+                    username: metaUsername || null,
+                    nickname: defaultNick,
+                    signature: '这家伙很懒~',
+                    gender: 'unknown',
+                    avatar_url: '😀',
+                    real_name: '',
+                    birthday: null,
+                    address: ''
                 };
             } else if (error) {
                 setMsg('❌ 用户不存在');
@@ -147,7 +150,10 @@ export default function Profile() {
 
             setProfile({
                 ...profileData,
+                username: profileData.username || '',
+                real_name: profileData.real_name || '',
                 birthday: profileData.birthday ?? "",
+                address: profileData.address || '',
                 email: targetUid ? '保密' : authUser.email
             });
             setNickAvailable(true);
@@ -155,85 +161,23 @@ export default function Profile() {
         initUser();
     }, [targetUid, isViewOther]);
 
-    // 完全复刻TopBanner头像缓存读取逻辑
-    useEffect(() => {
-        if (!isBrowser || !currentUser) {
-            setAvatarEmoji('');
-            return;
-        }
-        const userId = targetUid || currentUser.id;
+    // 头像缓存读取
+    const avatarEmoji = profile.avatar_url;
 
-        const fetchUserAvatar = async () => {
-            // 读取本地缓存
-            const cacheStr = localStorage.getItem(AVATAR_CACHE_KEY);
-            let cachedAvatar = '';
-            let cacheValid = false;
-
-            if (cacheStr) {
-                try {
-                    const cacheData = JSON.parse(cacheStr);
-                    if (cacheData.userId === userId && Date.now() - cacheData.timestamp < AVATAR_CACHE_EXPIRE) {
-                        cachedAvatar = cacheData.avatar;
-                        cacheValid = true;
-                    }
-                } catch (e) {
-                    localStorage.removeItem(AVATAR_CACHE_KEY);
-                }
-            }
-
-            if (cacheValid) {
-                setAvatarEmoji(cachedAvatar);
-                return;
-            }
-
-            // 缓存失效请求数据库
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('avatar_url')
-                    .eq('id', userId)
-                    .single();
-
-                if (error) {
-                    // PGRST116=无数据
-                    if (error.code === 'PGRST116') {
-                        setAvatarEmoji('');
-                        return;
-                    }
-                    throw error;
-                }
-                const avatar = data?.avatar_url || '';
-                setAvatarEmoji(avatar);
-
-                // 写入缓存
-                localStorage.setItem(
-                    AVATAR_CACHE_KEY,
-                    JSON.stringify({ userId, avatar, timestamp: Date.now() })
-                );
-            } catch (err) {
-                console.warn("头像拉取失败", err);
-                setAvatarEmoji('');
-            }
-        };
-        fetchUserAvatar();
-    }, [currentUser, targetUid]);
-
-    // 昵称查重
+    // 昵称查重（防抖独立逻辑，不干扰表单值）
     const checkNickname = async (value) => {
         if (isViewOther) return;
-        if (value === profile.nickname) {
-            setNickError('✅ 当前昵称');
-            setNickAvailable(true);
-            return;
-        }
         if (!value || value.length < 2) {
             setNickError('❌ 昵称长度不能小于2位');
             setNickAvailable(false);
             return;
         }
+        if (value === profile.nickname) {
+            setNickError('✅ 当前昵称');
+            setNickAvailable(true);
+            return;
+        }
         setCheckingNick(true);
-        setNickError('');
-
         const { data } = await supabase
             .from('profiles')
             .select('nickname')
@@ -249,6 +193,51 @@ export default function Profile() {
             setNickAvailable(true);
         }
         setCheckingNick(false);
+    };
+
+    // =====【重大修复】Emoji选择：仅修改本地state，不再单独调用数据库！！=====
+    const handleSelectEmoji = (emoji) => {
+        if (isViewOther) return;
+        setProfile(prev => ({ ...prev, avatar_url: emoji }));
+        setShowEmojiPicker(false);
+    };
+
+    // 表单统一保存【唯一一处写入profiles的主函数】
+    const handleSaveProfile = async (e) => {
+        e.preventDefault();
+        if (isViewOther) return;
+        setMsg('');
+        if (!nickAvailable) {
+            setMsg('❌ 昵称不可用，请修改');
+            return;
+        }
+
+        setLoading(true);
+        const submitPayload = {
+            id: currentUser.id,
+            nickname: profile.nickname,
+            signature: profile.signature,
+            gender: profile.gender,
+            birthday: profile.birthday || null,
+            address: profile.address,
+            real_name: profile.real_name,
+            avatar_url: profile.avatar_url
+        };
+
+        const { error } = await supabase
+            .from('profiles')
+            .upsert(submitPayload, { onConflict: 'id' });
+
+        if (error) {
+            setMsg(`❌ 保存失败：${error.message}`);
+        } else {
+            setMsg('✅ 个人资料保存成功！');
+            // =====【新增】保存成功触发全局刷新 =====
+            const { triggerGlobalProfileRefresh } = require('@site/src/utils/globalProfileUtil');
+            await triggerGlobalProfileRefresh();
+        }
+        setLoading(false);
+        setTimeout(() => setMsg(''), 2500);
     };
 
     // 修改密码
@@ -290,69 +279,6 @@ export default function Profile() {
         setLoading(false);
     };
 
-    // 选中Emoji头像，同步更新缓存（和TopBanner缓存体系一致）
-    const handleSelectEmoji = async (emoji) => {
-        if (isViewOther) return;
-        setProfile(prev => ({ ...prev, avatar_url: emoji }));
-        setShowEmojiPicker(false);
-
-        // 入库
-        await supabase.from('profiles')
-            .update({ avatar_url: emoji })
-            .eq('id', currentUser.id);
-
-        // 同步更新本地缓存
-        localStorage.setItem(
-            AVATAR_CACHE_KEY,
-            JSON.stringify({
-                userId: currentUser.id,
-                avatar: emoji,
-                timestamp: Date.now()
-            })
-        );
-        setAvatarEmoji(emoji);
-        setMsg('✅ 头像设置成功！');
-        setTimeout(() => setMsg(''), 2000);
-    };
-
-    // 保存个人资料【增强日志调试版】
-    const handleSaveProfile = async (e) => {
-        e.preventDefault();
-        if (isViewOther) return;
-        setMsg('');
-        if (!nickAvailable) {
-            setMsg('❌ 昵称不可用，请修改');
-            return;
-        }
-
-        setLoading(true);
-        const submitPayload = {
-            id: currentUser.id, // upsert必须带上主键！
-            nickname: profile.nickname,
-            signature: profile.signature,
-            gender: profile.gender,
-            address: profile.address,
-        };
-        console.log("【保存资料】待提交payload:", submitPayload);
-        console.log("【保存资料】当前登录用户ID:", currentUser.id);
-
-        const { data, error } = await supabase
-            .from('profiles')
-            .upsert(submitPayload, { onConflict: 'id' });
-
-        console.log("【保存资料】update 返回data:", data);
-        console.log("【保存资料】update 返回error:", error);
-
-        if (error) {
-            setMsg(`❌ 保存失败：${error.message}`);
-        } else {
-            setMsg('✅ 个人资料保存成功！');
-        }
-        window.refreshUserProfile && window.refreshUserProfile();
-        setLoading(false);
-        setTimeout(() => setMsg(''), 2500);
-    };
-
     if (!currentUser) return null;
 
     return (
@@ -384,13 +310,11 @@ export default function Profile() {
                         marginTop: '20px',
                         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                     }}>
-                        {/* 头像区域，渲染逻辑完全对齐TopBanner */}
+                        {/* 头像区域 */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
                             <div style={{ position: 'relative' }}>
-                                {/* 复用统一渲染函数 */}
                                 {renderAvatarContent(avatarEmoji, '/')}
 
-                                {/* 仅自己可编辑头像 */}
                                 {!isViewOther && (
                                     <button
                                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -415,7 +339,6 @@ export default function Profile() {
                                     </button>
                                 )}
 
-                                {/* Emoji选择弹窗，高z-index防遮挡 */}
                                 {showEmojiPicker && (
                                     <div style={{
                                         position: 'absolute',
@@ -461,6 +384,9 @@ export default function Profile() {
                                     {profile.nickname}
                                 </h2>
                                 <p style={{ margin: '4px 0', color: 'var(--ifm-color-emphasis-600)' }}>
+                                    用户名：{profile.username || '未设置'}
+                                </p>
+                                <p style={{ margin: '4px 0', color: 'var(--ifm-color-emphasis-600)' }}>
                                     {profile.email}
                                 </p>
                                 <p style={{ margin: '4px 0', color: 'var(--ifm-color-emphasis-600)' }}>
@@ -469,7 +395,6 @@ export default function Profile() {
                             </div>
                         </div>
 
-                        {/* 提示消息 */}
                         {msg && (
                             <div style={{
                                 padding: '12px',
@@ -481,32 +406,19 @@ export default function Profile() {
                                 {msg}
                             </div>
                         )}
-                        <button
-                            onClick={async () => {
-                                const testPayload = {
-                                    id: currentUser.id,
-                                    nickname: "强制测试昵称_" + Date.now(),
-                                };
-                                console.log("测试写入payload", testPayload);
-                                const { data, error } = await supabase
-                                    .from("profiles")
-                                    .upsert(testPayload, { onConflict: "id" });
-                                console.log("测试结果data", data, "error", error);
-                                alert("执行完毕，打开控制台看日志");
-                            }}
-                            style={{ background: "green", color: "#fff", padding: "6px 12px", margin: "10px 0" }}
-                        >
-                            【临时测试】强制写入昵称
-                        </button>
+
                         <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {/* 昵称 */}
                             <div>
                                 <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>昵称</label>
                                 <input
                                     type="text"
                                     value={profile.nickname}
                                     onChange={(e) => {
-                                        setProfile(prev => ({ ...prev, nickname: e.target.value }));
-                                        checkNickname(e.target.value);
+                                        const val = e.target.value;
+                                        setProfile(prev => ({ ...prev, nickname: val }));
+                                        clearTimeout(window.nickCheckTimer);
+                                        window.nickCheckTimer = setTimeout(() => checkNickname(val), 600);
                                     }}
                                     disabled={isViewOther}
                                     style={{
@@ -526,26 +438,72 @@ export default function Profile() {
                                 )}
                             </div>
 
+                            {/* 真实姓名 */}
                             <div>
-                                <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>个性签名</label>
-                                <textarea
-                                    value={profile.signature}
-                                    onChange={(e) => setProfile(prev => ({ ...prev, signature: e.target.value }))}
+                                <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>真实姓名</label>
+                                <input
+                                    type="text"
+                                    value={profile.real_name}
+                                    onChange={(e) => setProfile(prev => ({ ...prev, real_name: e.target.value }))}
                                     disabled={isViewOther}
+                                    placeholder="选填，可随时修改"
                                     style={{
                                         width: '100%',
                                         padding: '12px',
                                         borderRadius: '8px',
                                         border: '1px solid var(--ifm-color-emphasis-300)',
-                                        minHeight: '80px',
+                                        marginTop: '4px',
                                         backgroundColor: isViewOther ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-card-background-color)',
                                         color: 'var(--ifm-text-color)'
                                     }}
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', gap: '16px' }}>
-                                <div style={{ flex: 1 }}>
+                            {/* 头像链接（关键：修改后同步profile.avatar_url） */}
+                            <div>
+                                <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>头像图片链接（覆盖Emoji头像）</label>
+                                <input
+                                    type="text"
+                                    value={profile.avatar_url}
+                                    onChange={(e) => setProfile(prev => ({ ...prev, avatar_url: e.target.value }))}
+                                    disabled={isViewOther}
+                                    placeholder="输入网络图片链接，为空则使用Emoji头像"
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--ifm-color-emphasis-300)',
+                                        marginTop: '4px',
+                                        backgroundColor: isViewOther ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-card-background-color)',
+                                        color: 'var(--ifm-text-color)'
+                                    }}
+                                />
+                            </div>
+
+                            {/* 个性签名 */}
+                            <div>
+                                <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>个性签名</label>
+                                <textarea
+                                    value={profile.signature}
+                                    onChange={(e) => setProfile(prev => ({ ...prev, signature: e.target.value }))}
+                                    disabled={isViewOther}
+                                    maxLength={80}
+                                    placeholder="最多80字"
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--ifm-color-emphasis-300)',
+                                        minHeight: '80px',
+                                        marginTop: '4px',
+                                        backgroundColor: isViewOther ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-card-background-color)',
+                                        color: 'var(--ifm-text-color)'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1, minWidth: '180px' }}>
                                     <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>性别：{genderMap[profile.gender]}</label>
                                     <select
                                         value={profile.gender}
@@ -556,6 +514,7 @@ export default function Profile() {
                                             padding: '12px',
                                             borderRadius: '8px',
                                             border: '1px solid var(--ifm-color-emphasis-300)',
+                                            marginTop: '4px',
                                             backgroundColor: isViewOther ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-card-background-color)',
                                             color: 'var(--ifm-text-color)'
                                         }}
@@ -565,7 +524,7 @@ export default function Profile() {
                                         <option value="female">女</option>
                                     </select>
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1, minWidth: '180px' }}>
                                     <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>生日</label>
                                     <input
                                         type="date"
@@ -577,23 +536,26 @@ export default function Profile() {
                                             padding: '12px',
                                             borderRadius: '8px',
                                             border: '1px solid var(--ifm-color-emphasis-300)',
+                                            marginTop: '4px',
                                             backgroundColor: isViewOther ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-card-background-color)',
                                             color: 'var(--ifm-text-color)'
                                         }}
                                     />
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1, minWidth: '180px' }}>
                                     <label style={{ fontWeight: '600', color: 'var(--ifm-text-color)' }}>地区</label>
                                     <input
                                         type="text"
                                         value={profile.address}
                                         onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
                                         disabled={isViewOther}
+                                        placeholder="选填"
                                         style={{
                                             width: '100%',
                                             padding: '12px',
                                             borderRadius: '8px',
                                             border: '1px solid var(--ifm-color-emphasis-300)',
+                                            marginTop: '4px',
                                             backgroundColor: isViewOther ? 'var(--ifm-color-emphasis-100)' : 'var(--ifm-card-background-color)',
                                             color: 'var(--ifm-text-color)'
                                         }}
@@ -621,7 +583,7 @@ export default function Profile() {
                             )}
                         </form>
 
-                        {/* 修改密码区域 */}
+                        {/* 修改密码 */}
                         {!isViewOther && (
                             <div style={{ marginTop: '32px', borderTop: '1px solid var(--ifm-color-emphasis-300)', paddingTop: '20px' }}>
                                 <button

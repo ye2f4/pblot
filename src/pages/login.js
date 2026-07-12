@@ -8,9 +8,6 @@ export const metadata = {
     ssr: false,
 };
 
-// 替换成你 get-email-by-username 的线上链接
-const EDGE_GET_EMAIL_URL = "https://xwhwcmorcmgpfpocmgez.supabase.co/functions/v1/get-email-by-username";
-
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -27,22 +24,23 @@ export default function Login() {
             const userNameTrim = username.trim();
             if (!userNameTrim || !password) {
                 setError('用户名和密码不能为空');
+                setLoading(false);
                 return;
             }
 
-            const res = await fetch(EDGE_GET_EMAIL_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: userNameTrim })
-            });
-            const data = await res.json();
+            // 前端直接查询 profiles 通过用户名拿到邮箱（不再调用Edge）
+            const { data: profile, error: findErr } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('username', userNameTrim.toLowerCase())
+                .single();
 
-            if (!res.ok) {
+            if (findErr || !profile?.email) {
                 throw new Error('');
             }
 
             const { error } = await supabase.auth.signInWithPassword({
-                email: data.email,
+                email: profile.email,
                 password,
             });
             if (error) throw error;

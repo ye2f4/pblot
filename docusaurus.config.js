@@ -244,7 +244,7 @@ const config = {
           ],
         },
         {
-          label: "留言",
+          label: "聊天",
           to: "/chat/",
           position: "right",
           className: "navbar-chat-btn",
