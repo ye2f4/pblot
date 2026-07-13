@@ -54,11 +54,14 @@ export default function ChatPage() {
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // 站长真实头像 URL
+  const WEBMASTER_AVATAR = 'https://github.com/ye2f4.png';
+
   // 组装固定站长对象（永久置顶）
   const webmasterUser = {
     id: WEBMASTER_UID,
     nickname: WEBMASTER_NAME,
-    avatar_url: '',
+    avatar_url: WEBMASTER_AVATAR,
     isWebmaster: true // 自定义标记：站长专属
   };
 
@@ -132,10 +135,12 @@ export default function ChatPage() {
   // ===================== 数据请求方法 =====================
   const fetchAllUsers = async (selfUid) => {
     try {
+      // 排除自己 + 排除站长（站长已在"联系站长"固定位置）
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nickname, avatar_url')
-        .neq('id', selfUid);
+        .neq('id', selfUid)
+        .neq('id', WEBMASTER_UID);
 
       if (error) throw error;
       setUserList(data || []);

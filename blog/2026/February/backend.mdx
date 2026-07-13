@@ -1,28 +1,219 @@
-
----
-
-### 3. backend.mdx
-```mdx
 ---
 title: Node.js + Express 快速搭建后端接口
 date: 2025-06-06
 slug: backend
-tags: [Node.js, Express, 后端, API]
-excerpt: 使用 Node.js + Express 快速搭建轻量后端服务，实现基础接口开发与跨域配置。
+authors: [mono]
+tags: [Node.js, Express, 后端, API, RESTful]
+excerpt: 使用 Node.js + Express 快速搭建轻量后端服务，实现 RESTful 接口开发、中间件配置与跨域处理。
 ---
 
 # Node.js + Express 快速搭建后端接口
 
-对于前端开发者而言，使用 Node.js 可以快速搭建简易后端，实现前后端联调。本文使用 Express 框架演示接口开发。
+对于前端开发者而言，使用 Node.js 可以快速搭建简易后端，实现前后端联调。本文使用 Express 框架演示完整的 API 开发流程。
+
+{/* truncate */}
 
 ## 一、项目初始化
+
 ```bash
-# 新建文件夹
 mkdir node-api && cd node-api
-
-# 初始化包管理
 npm init -y
+npm install express cors dotenv
+npm install -D nodemon
+```
 
-# 安装依赖
-npm install express cors
+`package.json` 添加脚本：
 
+```json
+{
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  }
+}
+```
+
+## 二、基础服务器搭建
+
+```js
+// server.js
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// 中间件
+app.use(cors());
+app.use(express.json());
+
+// 路由
+app.get('/', (req, res) => {
+  res.json({ message: 'API 服务运行正常', version: '1.0.0' });
+});
+
+app.listen(PORT, () => {
+  console.log(`服务器启动：http://localhost:${PORT}`);
+});
+```
+
+## 三、RESTful 路由设计
+
+```js
+// 模拟数据库
+let posts = [
+  { id: 1, title: 'Node.js 入门', content: '...', createdAt: new Date() },
+  { id: 2, title: 'Express 框架', content: '...', createdAt: new Date() },
+];
+
+// GET - 获取所有文章
+app.get('/api/posts', (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const start = (page - 1) * limit;
+  const paged = posts.slice(start, start + Number(limit));
+  res.json({
+    total: posts.length,
+    page: Number(page),
+    data: paged
+  });
+});
+
+// GET - 获取单篇文章
+app.get('/api/posts/:id', (req, res) => {
+  const post = posts.find(p => p.id === Number(req.params.id));
+  if (!post) return res.status(404).json({ error: '文章不存在' });
+  res.json(post);
+});
+
+// POST - 创建文章
+app.post('/api/posts', (req, res) => {
+  const { title, content } = req.body;
+  if (!title?.trim()) {
+    return res.status(400).json({ error: '标题不能为空' });
+  }
+  const newPost = {
+    id: posts.length + 1,
+    title: title.trim(),
+    content: content || '',
+    createdAt: new Date()
+  };
+  posts.push(newPost);
+  res.status(201).json(newPost);
+});
+
+// PUT - 更新文章
+app.put('/api/posts/:id', (req, res) => {
+  const idx = posts.findIndex(p => p.id === Number(req.params.id));
+  if (idx === -1) return res.status(404).json({ error: '文章不存在' });
+  posts[idx] = { ...posts[idx], ...req.body };
+  res.json(posts[idx]);
+});
+
+// DELETE - 删除文章
+app.delete('/api/posts/:id', (req, res) => {
+  const idx = posts.findIndex(p => p.id === Number(req.params.id));
+  if (idx === -1) return res.status(404).json({ error: '文章不存在' });
+  posts.splice(idx, 1);
+  res.status(204).send();
+});
+```
+
+## 四、中间件模式
+
+```js
+// 日志中间件
+function logger(req, res, next) {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+}
+
+// 认证中间件
+function authMiddleware(req, res, next) {
+  const token = req.headers.authorization;
+  if (!token || token !== 'Bearer my-secret-token') {
+    return res.status(401).json({ error: '未授权访问' });
+  }
+  next();
+}
+
+// 错误处理中间件
+function errorHandler(err, req, res, next) {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    error: err.message || '服务器内部错误'
+  });
+}
+
+// 注册中间件
+app.use(logger);
+app.use('/api/admin', authMiddleware);
+app.use(errorHandler);
+```
+
+## 五、文件路由模块化
+
+```js
+// routes/posts.js
+const express = require('express');
+const router = express.Router();
+
+router.get('/', getAllPosts);
+router.get('/:id', getPostById);
+router.post('/', createPost);
+
+module.exports = router;
+
+// server.js
+app.use('/api/posts', require('./routes/posts'));
+app.use('/api/users', require('./routes/users'));
+```
+
+## 六、数据库集成（Supabase）
+
+```js
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
+app.get('/api/db/posts', async (req, res) => {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+```
+
+## 七、部署到 Vercel
+
+```json
+// vercel.json
+{
+  "version": 2,
+  "builds": [
+    { "src": "server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "server.js" }
+  ]
+}
+```
+
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+## 总结
+
+Express 适合快速搭建 API 原型和微服务。生产环境建议配合 TypeScript、数据库 ORM（如 Prisma）、输入校验（如 Zod）和自动化测试来构建更健壮的后端系统。

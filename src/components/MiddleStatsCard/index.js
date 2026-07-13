@@ -297,9 +297,9 @@ export default function MiddleStatsCard({
           {isSessionChecked ? (siteData?.stats || []).map((item, i) => {
             let showVal = item.value;
             if (item.label === "会") showVal = userCount;
-            // 【终极修复】优先展示数据库最新自定义昵称
+            // 显示最新注册用户的昵称（而非当前用户）
             if (item.label === "新") {
-              showVal = finalUserName || '新用户';
+              showVal = latestUser || '新用户';
             }
             const color = statColors[i] || statColors[0];
             return (

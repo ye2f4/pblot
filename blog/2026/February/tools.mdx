@@ -1,41 +1,175 @@
-
 ---
-
-### 4. tools.mdx
-```mdx
----
-title: 提升开发效率的 VSCode 常用插件
+title: 提升开发效率的 VSCode 必备插件
 date: 2025-06-05
 slug: tools
-tags: [开发工具, VSCode, 效率工具]
-excerpt: 分享日常开发高频使用的 VSCode 插件，覆盖代码格式化、语法检查、Git 管理等场景。
+authors: [mono]
+tags: [开发工具, VSCode, 效率工具, IDE]
+excerpt: 分享日常开发高频使用的 VSCode 插件和配置，覆盖代码格式化、语法检查、Git 管理、AI 辅助等全场景。
 ---
 
-# 提升开发效率的 VSCode 常用插件
+# 提升开发效率的 VSCode 必备插件
 
-VSCode 是主流代码编辑器，搭配插件可以极大提升开发效率，下面分享我日常必备的插件。
+VSCode 凭借开放的插件生态成为最受欢迎的代码编辑器。本文分享我的日常必备插件和配置方案。
 
-## 1. Prettier
-代码自动格式化工具，支持 JS/CSS/MDX 等几乎所有文件，保存文件即可自动统一代码风格。
+{/* truncate */}
 
-## 2. ESLint
-代码语法检查，排查语法错误、不规范写法，团队协作必备。
+## 1. 代码格式化
 
-## 3. GitLens
-Git 增强插件，在行内直接查看代码提交记录、作者、时间，追溯代码变更非常方便。
+### Prettier（必装）
 
-## 4. Auto Rename Tag
-自动同步修改 HTML/JSX 标签，修改开始标签时，闭合标签自动同步修改。
+自动格式化代码，支持 JS/TS/CSS/HTML/MDX 等几乎所有前端文件。
 
-## 5. Path Intellisense
-文件路径自动补全，导入模块、引用资源时自动提示路径，减少手动输入错误。
+```json
+// .prettierrc
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "printWidth": 100
+}
+```
 
-## 6. REST Client
-在编辑器内直接测试 HTTP 接口，无需额外安装 Postman。
+配置保存自动格式化：`settings.json` 中添加 `"editor.formatOnSave": true`
 
-## 7. Markdown All in One
-Markdown/MDX 增强插件，优化文档编写、预览、表格/列表快捷操作。
+### ESLint
+
+代码质量检查，排查语法错误和不规范写法：
+
+```json
+// .eslintrc.json
+{
+  "extends": ["react-app", "plugin:react-hooks/recommended"],
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": "error"
+  }
+}
+```
+
+## 2. Git 与协作
+
+### GitLens
+
+行内查看代码提交记录、作者、时间，`git blame` 可视化。
+
+### Git Graph
+
+可视化展示分支历史和合并路径，比命令行 `git log` 更直观。
+
+### Conventional Commits
+
+规范化 commit 信息格式：
+
+```bash
+feat: 新增用户登录功能
+fix: 修复导航栏移动端布局问题
+docs: 更新 API 文档
+refactor: 重构评论组件
+```
+
+## 3. AI 辅助
+
+### GitHub Copilot / Codeium
+
+AI 代码补全工具，能根据上下文自动生成代码片段。特别适合：
+- 编写重复性代码（CRUD、映射逻辑）
+- 自动补全函数文档注释
+- 生成单元测试用例
+
+## 4. 视觉增强
+
+### Material Icon Theme
+
+为文件管理器添加精美图标，快速识别文件类型。
+
+### One Dark Pro / Tokyo Night
+
+护眼暗色主题，适合长时间编码。
+
+### Better Comments
+
+高亮不同类型的注释：
+
+```js
+// ! 重要提示：此处需手动配置
+// ? 疑问：这块逻辑是否正确？
+// TODO: 后续需要实现分页功能
+// * 已优化：添加了缓存层
+```
+
+## 5. 效率工具
+
+### Auto Rename Tag
+
+修改 HTML/JSX 开始标签时，闭合标签自动同步修改。
+
+### Path Intellisense
+
+文件路径自动补全，导入模块时自动提示。
+
+### REST Client
+
+在编辑器内直接测试 HTTP 接口：
+
+```http
+### 获取文章列表
+GET http://localhost:3000/api/posts
+
+### 创建新文章
+POST http://localhost:3000/api/posts
+Content-Type: application/json
+
+{
+  "title": "新文章",
+  "content": "内容..."
+}
+```
+
+### Thunder Client
+
+图形化 API 测试工具，类似 Postman 但内置在 VSCode 中。
+
+## 6. 项目管理
+
+### Todo Tree
+
+自动扫描代码中的 `TODO`、`FIXME` 等标记，生成待办列表。
+
+### Project Manager
+
+管理多个项目，快速切换工作区。
+
+## 7. Markdown/MDX
+
+### Markdown All in One
+
+- 快捷键生成目录
+- 表格自动对齐
+- 列表自动补全
+- 实时预览
+
+### MDX Preview
+
+预览 MDX 文件的渲染效果。
+
+## 8. 推荐 settings.json 配置
+
+```json
+{
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "editor.wordWrap": "on",
+  "editor.minimap.enabled": false,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.autoSave": "onFocusChange",
+  "terminal.integrated.fontSize": 13,
+  "workbench.colorTheme": "One Dark Pro",
+  "workbench.iconTheme": "material-icon-theme"
+}
+```
 
 ## 总结
-以上插件覆盖了编码、格式化、版本管理、接口测试等全流程，推荐前端/全栈开发者安装使用。
 
+以上插件覆盖了编码、格式化、版本管理、AI 辅助、接口测试等全流程。核心原则：**格式化用 Prettier，质量检查用 ESLint，AI 辅助用 Copilot，Git 看 GraphLens**，其他按需选择即可。

@@ -1,31 +1,486 @@
 ---
-title: Minecraft 模组开发入门
+title: Minecraft 模组开发从入门到发布
 date: 2025-06-04
 slug: minecraft
-tags: [Minecraft, 游戏模组, Java]
-excerpt: 介绍我的世界 Forge 模组开发环境搭建、基础物品注册，适合零基础模组爱好者入门。
+authors: [mono]
+tags: [Minecraft, 游戏模组, Java, Forge, 物品注册]
+excerpt: 系统讲解 Minecraft Forge 模组开发全流程，涵盖环境搭建、物品方块注册、合成配方、事件监听到最终打包发布。
 ---
 
-# Minecraft 模组开发入门
+# Minecraft 模组开发从入门到发布
 
-Minecraft 拥有庞大的模组生态，本文基于 Forge 加载器，讲解模组开发入门流程。
+Minecraft 拥有游戏界最庞大的模组生态。本文基于 Forge 加载器，带你从零开始开发第一个模组。
 
-## 一、环境准备
-1. 安装 **Java Development Kit (JDK)**（对应游戏版本要求）
-2. 下载对应游戏版本的 **Forge MDK**（模组开发包）
-3. 使用 IDEA / Eclipse 导入开发工程
+{/* truncate */}
 
-## 二、模组主类
-模组入口主类，负责初始化、注册各类游戏内容：
-```java
+## 一、开发环境搭建
+
+### 1.1 JDK 选择
+
+不同 MC 版本要求的 Java 版本不同：
+
+| MC 版本 | Java 版本 | Forge 推荐 |
+|---|---|---|
+| 1.12.2 | JDK 8 | Forge 14.23.5.x |
+| 1.16.5 | JDK 8 / 11 | Forge 36.x |
+| 1.18.2 | JDK 17 | Forge 40.x |
+| 1.19.4 | JDK 17 | Forge 45.x |
+| 1.20.1 | JDK 17 | Forge 47.x |
+
+本文以 **1.20.1 + JDK 17 + Forge 47.3.0** 为例。
+
+### 1.2 下载 Forge MDK
+
+1. 访问 [files.minecraftforge.net](https://files.minecraftforge.net/)
+2. 选择对应版本，下载 **MDK**（Mod Development Kit）
+3. 解压到工作目录
+
+### 1.3 导入 IDE
+
+**IntelliJ IDEA（推荐）：**
+
+```bash
+# 解压后进入目录，生成 IDE 配置
+./gradlew genIntellijRuns
+
+# 或直接打开 build.gradle 作为项目导入
+```
+
+**关键目录结构：**
+
+```
+src/
+├── main/
+│   ├── java/com/example/examplemod/
+│   │   └── ExampleMod.java       # 主类
+│   └── resources/
+│       ├── META-INF/mods.toml     # 模组元数据
+│       └── assets/                # 纹理、模型、语言文件
+└── test/
+build.gradle
+gradle.properties
+```
+
+## 二、模组元数据配置
+
+```toml title="src/main/resources/META-INF/mods.toml"
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "MIT"
+
+[[mods]]
+modId = "demo_mod"
+version = "1.0.0"
+displayName = "Demo Mod"
+description = "我的第一个 Minecraft 模组"
+authors = ["Mono"]
+
+[[dependencies.demo_mod]]
+  modId = "forge"
+  mandatory = true
+  versionRange = "[47,)"
+  ordering = "NONE"
+  side = "BOTH"
+```
+
+## 三、模组主类
+
+```java title="src/main/java/com/example/examplemod/ExampleMod.java"
+package com.example.examplemod;
+
+import com.mojang.logging.LogUtils;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.slf4j.Logger;
 
-@Mod("demo_mod")
-public class DemoMod {
+@Mod(ExampleMod.MOD_ID)
+public class ExampleMod {
     public static final String MOD_ID = "demo_mod";
+    private static final Logger LOGGER = LogUtils.getLogger();
 
-    public DemoMod() {
-        // 执行注册、初始化逻辑
+    public ExampleMod() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get()
+            .getModEventBus();
+
+        // 注册物品
+        ModItems.register(modEventBus);
+        // 注册方块
+        ModBlocks.register(modEventBus);
+        // 注册创造模式物品栏
+        ModCreativeTabs.register(modEventBus);
+
+        // 注册事件监听器
+        MinecraftForge.EVENT_BUS.register(this);
+
+        LOGGER.info("Demo Mod 加载完成！");
     }
 }
+```
 
+## 四、注册第一个物品
+
+### 4.1 创建物品注册类
+
+```java title="ModItems.java"
+package com.example.examplemod.item;
+
+import com.example.examplemod.ExampleMod;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+public class ModItems {
+    public static final DeferredRegister<Item> ITEMS =
+        DeferredRegister.create(ForgeRegistries.ITEMS, ExampleMod.MOD_ID);
+
+    // 注册一个自定义物品
+    public static final RegistryObject<Item> RUBY =
+        ITEMS.register("ruby",
+            () -> new Item(new Item.Properties()));
+
+    // 注册食物
+    public static final RegistryObject<Item> MAGIC_APPLE =
+        ITEMS.register("magic_apple",
+            () -> new Item(new Item.Properties()
+                .food(new FoodProperties.Builder()
+                    .nutrition(8)
+                    .saturationMod(0.8f)
+                    .alwaysEat()
+                    .build())));
+
+    public static void register(IEventBus eventBus) {
+        ITEMS.register(eventBus);
+    }
+}
+```
+
+### 4.2 添加物品纹理
+
+```
+src/main/resources/assets/demo_mod/
+├── textures/
+│   └── item/
+│       ├── ruby.png          # 16×16
+│       └── magic_apple.png
+├── models/
+│   └── item/
+│       ├── ruby.json
+│       └── magic_apple.json
+└── lang/
+    └── zh_cn.json
+```
+
+`ruby.json` 模型文件：
+
+```json
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "demo_mod:item/ruby"
+  }
+}
+```
+
+`zh_cn.json` 本地化：
+
+```json
+{
+  "item.demo_mod.ruby": "红宝石",
+  "item.demo_mod.magic_apple": "§d魔法苹果",
+  "itemGroup.demo_mod_tab": "Demo 模组"
+}
+```
+
+## 五、注册方块
+
+```java title="ModBlocks.java"
+package com.example.examplemod.block;
+
+import com.example.examplemod.ExampleMod;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+import java.util.function.Supplier;
+
+public class ModBlocks {
+    public static final DeferredRegister<Block> BLOCKS =
+        DeferredRegister.create(ForgeRegistries.BLOCKS, ExampleMod.MOD_ID);
+
+    public static final RegistryObject<Block> RUBY_BLOCK =
+        registerBlock("ruby_block",
+            () -> new Block(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
+    // 同时注册方块物品
+    private static <T extends Block> RegistryObject<T> registerBlock(
+            String name, Supplier<T> block) {
+        RegistryObject<T> registered = BLOCKS.register(name, block);
+        ModItems.ITEMS.register(name,
+            () -> new BlockItem(registered.get(), new Item.Properties()));
+        return registered;
+    }
+
+    public static void register(IEventBus eventBus) {
+        BLOCKS.register(eventBus);
+    }
+}
+```
+
+## 六、合成配方
+
+### 6.1 有序合成
+
+```json title="recipes/ruby_from_block.json"
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "demo_mod:ruby_block" }
+  ],
+  "result": {
+    "item": "demo_mod:ruby",
+    "count": 9
+  }
+}
+```
+
+### 6.2 熔炼配方
+
+```json title="recipes/ruby_from_smelting.json"
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "item": "minecraft:redstone"
+  },
+  "result": "demo_mod:ruby",
+  "experience": 0.7,
+  "cookingtime": 200
+}
+```
+
+## 七、创造模式物品栏
+
+```java title="ModCreativeTabs.java"
+package com.example.examplemod;
+
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
+
+public class ModCreativeTabs {
+    public static final DeferredRegister<CreativeModeTab> TABS =
+        DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ExampleMod.MOD_ID);
+
+    public static final RegistryObject<CreativeModeTab> DEMO_TAB =
+        TABS.register("demo_mod_tab", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.demo_mod_tab"))
+            .icon(() -> ModItems.RUBY.get().getDefaultInstance())
+            .displayItems((params, output) -> {
+                // 按顺序添加物品到物品栏
+                output.accept(ModItems.RUBY.get());
+                output.accept(ModItems.MAGIC_APPLE.get());
+                output.accept(ModBlocks.RUBY_BLOCK.get());
+            })
+            .build());
+
+    public static void register(IEventBus eventBus) {
+        TABS.register(eventBus);
+    }
+}
+```
+
+## 八、自定义工具和武器
+
+```java
+// 注册剑
+public static final RegistryObject<SwordItem> RUBY_SWORD =
+    ITEMS.register("ruby_sword",
+        () -> new SwordItem(
+            ModTiers.RUBY,     // 工具等级
+            3,                 // 基础伤害加成
+            -2.4f,             // 攻击速度修正
+            new Item.Properties()
+        ));
+
+// 注册镐
+public static final RegistryObject<PickaxeItem> RUBY_PICKAXE =
+    ITEMS.register("ruby_pickaxe",
+        () -> new PickaxeItem(
+            ModTiers.RUBY, 1, -2.8f,
+            new Item.Properties()
+        ));
+```
+
+自定义工具等级：
+
+```java title="ModTiers.java"
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.crafting.Ingredient;
+
+public enum ModTiers implements Tier {
+    RUBY(3, 1561, 8.0f, 3.0f, 10,
+         () -> Ingredient.of(ModItems.RUBY.get()));
+
+    private final int level;
+    private final int uses;
+    private final float speed;
+    private final float damage;
+    private final int enchantmentValue;
+    private final Supplier<Ingredient> repairIngredient;
+
+    // constructor and getters...
+}
+```
+
+## 九、事件监听
+
+### 9.1 玩家登录事件
+
+```java
+@Mod.EventBusSubscriber(modid = ExampleMod.MOD_ID)
+public class ModEvents {
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        Player player = event.getEntity();
+        player.sendSystemMessage(
+            Component.literal("§a欢迎 " + player.getName().getString() + "！Demo Mod v1.0.0"));
+    }
+
+    // 实体掉落修改
+    @SubscribeEvent
+    public static void onEntityDrop(LivingDropsEvent event) {
+        if (event.getEntity() instanceof Zombie) {
+            // 僵尸额外掉落红宝石
+            ItemEntity drop = new ItemEntity(
+                event.getEntity().level(),
+                event.getEntity().getX(),
+                event.getEntity().getY(),
+                event.getEntity().getZ(),
+                new ItemStack(ModItems.RUBY.get())
+            );
+            event.getDrops().add(drop);
+        }
+    }
+}
+```
+
+### 9.2 右键交互
+
+```java
+// 自定义物品右键效果
+public class MagicWandItem extends Item {
+    public MagicWandItem(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    public InteractionResultHolder<ItemStack> use(
+            Level level, Player player, InteractionHand hand) {
+        if (!level.isClientSide()) {
+            // 服务端：发射火球
+            Vec3 look = player.getLookAngle();
+            SmallFireball fireball = new SmallFireball(
+                level, player, look.x, look.y, look.z);
+            fireball.setPos(player.getX() + look.x,
+                          player.getEyeY() + look.y,
+                          player.getZ() + look.z);
+            level.addFreshEntity(fireball);
+        }
+        return InteractionResultHolder.success(player.getItemInHand(hand));
+    }
+}
+```
+
+## 十、打包与发布
+
+### 10.1 构建模组
+
+```bash
+./gradlew build
+```
+
+构建产物位于 `build/libs/`，JAR 文件即可直接放入游戏 `mods/` 文件夹。
+
+### 10.2 发布到 CurseForge
+
+1. 注册 [CurseForge](https://www.curseforge.com/) 账号
+2. 创建项目，填写模组信息
+3. 上传 JAR 文件，填写更新日志
+4. 等待审核通过
+
+### 10.3 Gradle 配置优化
+
+```gradle title="build.gradle"
+// 为 JAR 添加模组版本信息
+jar {
+    manifest {
+        attributes([
+            "Specification-Title"     : "demo_mod",
+            "Specification-Version"   : "1",
+            "Implementation-Title"    : project.name,
+            "Implementation-Version"  : project.jar.archiveVersion,
+        ])
+    }
+}
+```
+
+## 十一、调试技巧
+
+### 11.1 日志输出
+
+```java
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
+
+private static final Logger LOGGER = LogUtils.getLogger();
+
+LOGGER.info("普通信息");
+LOGGER.warn("警告信息");
+LOGGER.error("错误信息：{}", exception.getMessage());
+LOGGER.debug("调试信息 - 物品：{}", itemStack);
+```
+
+### 11.2 热重载
+
+IntelliJ IDEA 中运行 `runClient` 配置，代码修改后可热交换：
+
+```
+Run → runClient
+修改代码 → Build → Recompile
+游戏中 F3 + T 重载资源包
+```
+
+### 11.3 常见问题
+
+| 问题 | 原因 | 解决 |
+|---|---|---|
+| 物品无纹理 | 模型/纹理路径不对 | 检查 `assets/demo_mod/textures/item/` |
+| 物品名称显示 raw | 缺少语言文件 | 添加 `zh_cn.json` |
+| 方块不显示 | 忘记注册 BlockItem | `registerBlock` 方法中同时注册 |
+| 配方无效 | JSON 格式错误 | 在游戏中使用 `/reload` 验证 |
+| Gradle 构建失败 | JDK 版本不匹配 | 确认 JDK 版本与 MC 版本对应 |
+
+## 总结
+
+本文覆盖了 Minecraft Forge 模组开发的核心流程：
+
+1. **环境搭建** → JDK + Forge MDK + IDEA
+2. **模组配置** → mods.toml + 主类注册
+3. **物品系统** → 普通物品、食物、工具、武器
+4. **方块系统** → 方块注册 + BlockItem
+5. **合成配方** → 有序/无序/熔炼
+6. **事件系统** → 玩家事件、实体事件、右键交互
+7. **打包发布** → Gradle 构建 + CurseForge 发布
+
+掌握这些基础后，你可以进一步探索：自定义实体、GUI 界面、网络通信、维度生成等高级功能。Minecraft 模组生态极为丰富，官方 Forge 文档和开源模组源码是最好的学习资源。

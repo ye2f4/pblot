@@ -44,10 +44,13 @@
 }
 
 .navbar__inner {
-  max-inline-size: 80rem;
+  max-inline-size: 90rem;
   margin-inline: auto;
-  /* 垂直padding微调：上下1rem，舒展不臃肿；左右保持不变 */
-  padding: 1.2rem 1.5rem 1.25rem;
+  /* 垂直padding调整：更宽敞、更居中 */
+  padding: 0.8rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .navbar__logo {
@@ -141,11 +144,15 @@ a+.navbar__link {
 }
 
 .navbar__items--left {
-  gap: 2rem;
+  gap: 2.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .navbar__items--right {
-  gap: .3rem;
+  gap: 0.5rem;
+  display: flex;
+  align-items: center;
 }
 
 @media (width < 997px) {

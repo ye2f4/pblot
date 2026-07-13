@@ -1,26 +1,194 @@
 ---
-title: React 入门实战
+title: React 入门到进阶实战教程
 date: 2025-06-08
 slug: react
-authors: [mono, niccellular]
-tags: [React, 前端框架, JavaScript]
-excerpt: 从零开始讲解 React 基础用法，包含组件、状态、事件等核心知识点。
+authors: [mono]
+tags: [React, 前端框架, JavaScript, JSX, Hooks]
+excerpt: 从零开始系统讲解 React 核心概念，包含组件化开发、Hooks、状态管理、路由配置等完整知识体系。
 ---
 
-# React 入门实战
+# React 入门到进阶实战教程
 
-React 是目前主流的前端 UI 框架，采用组件化思想开发，具备高效、灵活、易复用的特点。本文带你从零入门 React。
+React 是 Meta（原 Facebook）开源的前端 UI 库，采用组件化、声明式编程思想，是当今 Web 开发最主流的技术栈之一。
 
-## 一、环境准备
-使用官方脚手架快速创建 React 项目：
+{/* truncate */}
+
+## 一、React 核心哲学
+
+React 基于三个核心理念：
+
+1. **声明式**：描述 UI 应该是什么样，而非逐步操作 DOM
+2. **组件化**：将 UI 拆分为独立、可复用的组件
+3. **单向数据流**：数据从父组件流向子组件，状态可预测
+
+## 二、环境搭建
+
+使用 Vite 快速创建项目（推荐）：
+
 ```bash
-# 安装脚手架
-npm install -g create-react-app
+npm create vite@latest my-app -- --template react
+cd my-app
+npm install
+npm run dev
+```
 
-# 创建项目
-create-react-app my-react-demo
+## 三、JSX 语法基础
 
-# 启动项目
-cd my-react-demo
-npm start
+JSX 是 JavaScript 的语法扩展，允许在 JS 中编写类似 HTML 的标记：
 
+```jsx
+function Welcome({ name }) {
+  const greeting = `你好，${name}！`;
+  return (
+    <div className="welcome-card">
+      <h1>{greeting}</h1>
+      <p>欢迎来到 React 世界</p>
+    </div>
+  );
+}
+```
+
+**关键规则**：
+- 必须有一个根元素（可用 `<>...</>` 空标签包裹）
+- 使用 `className` 而非 `class`
+- 花括号 `{}` 内可嵌入任意 JS 表达式
+
+## 四、组件与 Props
+
+```jsx
+function UserCard({ name, avatar, bio }) {
+  return (
+    <div className="user-card">
+      <img src={avatar} alt={name} />
+      <h3>{name}</h3>
+      <p>{bio}</p>
+    </div>
+  );
+}
+
+// 组件组合
+function UserList() {
+  const users = [
+    { id: 1, name: 'Alice', role: '前端开发' },
+    { id: 2, name: 'Bob', role: '后端开发' },
+  ];
+  return (
+    <div>
+      {users.map(user => <UserCard key={user.id} {...user} />)}
+    </div>
+  );
+}
+```
+
+## 五、Hooks 核心 API
+
+### useState - 状态管理
+
+```jsx
+function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <div>
+      <p>点击次数：{count}</p>
+      <button onClick={() => setCount(prev => prev + 1)}>+1</button>
+    </div>
+  );
+}
+```
+
+### useEffect - 副作用处理
+
+```jsx
+function DataFetcher() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch('https://api.example.com/data');
+        setData(await res.json());
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []); // 空依赖 = 仅挂载时执行
+
+  if (loading) return <div>加载中...</div>;
+  return <div>{JSON.stringify(data)}</div>;
+}
+```
+
+### useRef - DOM 引用
+
+```jsx
+function AutoFocusInput() {
+  const inputRef = useRef(null);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+  return <input ref={inputRef} placeholder="自动聚焦" />;
+}
+```
+
+### useMemo / useCallback - 性能优化
+
+```jsx
+function ExpensiveList({ items, filter }) {
+  const filteredItems = useMemo(
+    () => items.filter(item => item.includes(filter)),
+    [items, filter]
+  );
+  return <ul>{filteredItems.map(item => <li key={item}>{item}</li>)}</ul>;
+}
+```
+
+## 六、条件渲染与列表
+
+```jsx
+function Notification({ count }) {
+  return (
+    <div>
+      <span>🔔</span>
+      {count > 0 && <span className="badge">{count > 99 ? '99+' : count}</span>}
+    </div>
+  );
+}
+```
+
+## 七、React Router 路由
+
+```bash
+npm install react-router-dom
+```
+
+```jsx
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <nav>
+        <Link to="/">首页</Link>
+        <Link to="/blog">博客</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/blog/:id" element={<BlogDetail />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+## 八、最佳实践
+
+1. **单一职责**：每个组件只做一件事
+2. **状态提升**：共享状态放到最近的公共祖先
+3. **不可变更新**：使用 `setState(prev => ...)`
+4. **Key 稳定性**：列表 key 不要用 index
+5. **懒加载**：大组件用 `React.lazy()` + `Suspense`
+
+## 总结
+
+本项目（MonoBlog）就是一个完整的 Docusaurus + React + Supabase 实践案例，欢迎参考源码学习。

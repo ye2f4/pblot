@@ -29,10 +29,20 @@ export const useComments = (isClient, user, base) => {
 
         setCommentLoading(true);
         try {
+            // 从 profiles 表读取最新 nickName 和 avatar_url，统一使用数据库键名
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('nickname, avatar_url')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            const displayName = profile?.nickname || user.user_metadata?.full_name || user.email?.split('@')[0] || '用户';
+            const avatar = profile?.avatar_url || user.user_metadata?.avatar_url || `${base}avatar.png`;
+
             await supabase.from('comments').insert([{
                 user_id: user.id,
-                username: user.user_metadata?.full_name || user.email,
-                avatar_url: user.user_metadata?.avatar_url || `${base}avatar.png`,
+                username: displayName,
+                avatar_url: avatar,
                 content: commentContent.trim()
             }]);
 

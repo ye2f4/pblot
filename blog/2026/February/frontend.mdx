@@ -1,32 +1,268 @@
-
----
-
-### 2. frontend.mdx
-```mdx
 ---
 title: 前端响应式布局实战指南
 date: 2025-06-07
 slug: frontend
-tags: [CSS, 响应式, 前端开发]
-excerpt: 讲解移动端、PC端适配方案，包含Flex、Grid、媒体查询等常用布局技巧。
+authors: [mono]
+tags: [CSS, 响应式, 前端开发, Flex, Grid]
+excerpt: 讲解移动端、PC端适配方案，包含Flex、Grid、媒体查询、容器查询等现代布局技巧。
 ---
 
 # 前端响应式布局实战指南
 
-现在网站需要同时兼容电脑、平板、手机等设备，响应式布局是前端必备技能。
+现代网站需要同时兼容电脑、平板、手机等设备，响应式布局是前端开发的核心技能。本文系统讲解从传统到现代的各种布局方案。
 
-## 一、弹性布局 Flex
-Flex 布局是移动端首选布局方案，简单易用、兼容性优秀：
+{/* truncate */}
+
+## 一、Flexbox 弹性布局
+
+Flex 是移动端首选布局方案，简单易用、兼容性优秀：
+
 ```css
+/* 水平居中 + 垂直居中 */
 .container {
   display: flex;
-  /* 自动换行 */
-  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 16px; /* 子元素间距 */
+  flex-wrap: wrap; /* 自动换行 */
+}
+
+/* 自适应卡片布局 */
+.card {
+  flex: 1 1 280px; /* 最小280px，自动伸展 */
+}
+```
+
+### 常见 Flex 模式
+
+```css
+/* 导航栏：两端对齐 */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+}
+
+/* 圣杯布局：头-内容-脚 */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1; /* 撑满剩余空间 */
+}
+
+/* 等分布局 */
+.grid-3 {
+  display: flex;
+  gap: 20px;
+}
+.grid-3 > * {
+  flex: 1; /* 三等分 */
+}
+```
+
+## 二、CSS Grid 网格布局
+
+Grid 更适合二维布局（行 + 列同时控制）：
+
+```css
+/* 基础网格 */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* 命名区域布局 */
+.page-layout {
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "sidebar main aside"
+    "footer footer footer";
+  grid-template-columns: 250px 1fr 250px;
   gap: 16px;
 }
 
-.item {
-  /* 自适应宽度，最小宽度 240px */
-  flex: 1 1 240px;
+.header  { grid-area: header; }
+.sidebar { grid-area: sidebar; }
+.main    { grid-area: main; }
+.aside   { grid-area: aside; }
+.footer  { grid-area: footer; }
+```
+
+## 三、媒体查询 Media Queries
+
+```css
+/* 移动优先策略 */
+.element {
+  width: 100%; /* 移动端默认 */
+  font-size: 14px;
 }
 
+/* 平板 (>= 768px) */
+@media (min-width: 768px) {
+  .element {
+    width: 50%;
+    font-size: 16px;
+  }
+}
+
+/* 桌面 (>= 1024px) */
+@media (min-width: 1024px) {
+  .element {
+    width: 33.333%;
+    font-size: 18px;
+  }
+}
+
+/* 暗色模式 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #1a1a2e;
+    color: #eaeaea;
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+## 四、容器查询 Container Queries
+
+比媒体查询更精准，基于父容器尺寸：
+
+```css
+.card-wrapper {
+  container-type: inline-size;
+}
+
+@container (min-width: 400px) {
+  .card {
+    display: flex;
+    gap: 16px;
+  }
+  .card-image { width: 150px; }
+}
+
+@container (max-width: 399px) {
+  .card {
+    display: block;
+  }
+  .card-image { width: 100%; }
+}
+```
+
+## 五、现代单位与函数
+
+```css
+/* 视口单位 */
+.hero {
+  height: 100vh;
+  height: 100dvh; /* 动态视口（Safari支持） */
+  font-size: clamp(1rem, 5vw, 3rem); /* 根据视口缩放字体 */
+}
+
+/* 数学函数 */
+.sidebar {
+  width: max(250px, 20vw); /* 最小250px */
+}
+
+.content {
+  width: min(1200px, 90%); /* 最大1200px */
+}
+
+/* 相对单位 */
+.text { font-size: clamp(1rem, 2vw + 0.5rem, 2rem); }
+```
+
+## 六、移动端适配要点
+
+### viewport 设置
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+```
+
+### 触摸优化
+
+```css
+/* 最小触摸目标 44x44px */
+.touch-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px 20px;
+}
+
+/* 禁用双击缩放 */
+.no-zoom {
+  touch-action: manipulation;
+}
+```
+
+### 安全区域适配
+
+```css
+/* iPhone 刘海屏安全区域 */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+```
+
+## 七、常见布局方案
+
+### 固定头部 + 滚动内容
+
+```css
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.header {
+  flex-shrink: 0;
+  height: 64px;
+}
+.content {
+  flex: 1;
+  overflow-y: auto;
+}
+```
+
+### 两栏布局（固定侧栏 + 自适应主内容）
+
+```css
+.twocol {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+}
+@media (max-width: 768px) {
+  .twocol {
+    grid-template-columns: 1fr; /* 移动端堆叠 */
+  }
+}
+```
+
+## 八、调试技巧
+
+1. **Chrome DevTools**：设备工具栏可模拟各种手机
+2. **CSS Outline**：`* { outline: 1px solid red; }` 快速查看盒模型
+3. **Responsively**：开源多设备同步预览工具
+4. **Lighthouse**：性能、可访问性、SEO 综合审计
+
+## 总结
+
+响应式布局的核心思路是 **移动优先 + 渐进增强**。推荐技术栈：Flexbox 处理一维布局，Grid 处理二维布局，配合容器查询和 CSS 变量实现更灵活的响应式系统。

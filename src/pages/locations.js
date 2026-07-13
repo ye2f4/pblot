@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from '@docusaurus/router';
+import { supabase } from '@site/src/supabase/supabaseClient';
 
 export const locationList = [
   { name: '北京', lat: 39.9042, lon: 116.4074, code: 'beijing' },
@@ -35,22 +36,48 @@ export default function LocationPage() {
   const [customLat, setCustomLat] = useState('');
   const [customLon, setCustomLon] = useState('');
   const [fullLocList, setFullLocList] = useState([...locationList]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem(LOCATION_STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setActiveLoc(parsed);
-      } catch (e) {}
-    }
-    const customSaved = localStorage.getItem('weather_custom_locations');
-    if (customSaved) {
-      try {
-        const customArr = JSON.parse(customSaved);
-        setFullLocList(prev => [...prev, ...customArr]);
-      } catch (e) {}
-    }
+    const init = async () => {
+      const saved = localStorage.getItem(LOCATION_STORAGE_KEY);
+      if (saved) {
+        try { setActiveLoc(JSON.parse(saved)); } catch (e) {}
+      }
+
+      // 从 localStorage 合并自定义地点
+      const customSaved = localStorage.getItem('weather_custom_locations');
+      if (customSaved) {
+        try {
+          const customArr = JSON.parse(customSaved);
+          setFullLocList(prev => [...prev, ...customArr]);
+        } catch (e) {}
+      }
+
+      // 获取当前用户并从数据库加载自定义地点
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+
+      if (user) {
+        try {
+          const { data: dbLocations } = await supabase
+            .from('custom_locations')
+            .select('name, lat, lon, code')
+            .eq('user_id', user.id);
+
+          if (dbLocations && dbLocations.length > 0) {
+            setFullLocList(prev => {
+              const existing = new Set(prev.map(l => l.code));
+              const newOnes = dbLocations.filter(l => !existing.has(l.code));
+              return [...prev, ...newOnes];
+            });
+          }
+        } catch (e) {
+          console.warn('加载数据库自定义地点失败', e);
+        }
+      }
+    };
+    init();
   }, []);
 
   // 直接切换，无确认弹窗
@@ -61,7 +88,7 @@ export default function LocationPage() {
     history.push('/');
   };
 
-  const addCustomLocation = () => {
+  const addCustomLocation = async () => {
     if (!customName || !customLat || !customLon) return;
     const newCustom = {
       name: customName,
@@ -69,11 +96,30 @@ export default function LocationPage() {
       lon: Number(customLon),
       code: `custom_${Date.now()}`
     };
+
+    // 1. 写入 localStorage
     const savedCustom = localStorage.getItem('weather_custom_locations');
     let arr = [];
     if (savedCustom) arr = JSON.parse(savedCustom);
     arr.push(newCustom);
     localStorage.setItem('weather_custom_locations', JSON.stringify(arr));
+
+    // 2. 写入数据库
+    if (currentUser) {
+      try {
+        await supabase.from('custom_locations').insert({
+          user_id: currentUser.id,
+          name: newCustom.name,
+          lat: newCustom.lat,
+          lon: newCustom.lon,
+          code: newCustom.code
+        });
+        console.log('✅ 自定义地点已写入数据库');
+      } catch (e) {
+        console.warn('数据库写入自定义地点失败', e);
+      }
+    }
+
     setFullLocList(prev => [...prev, newCustom]);
     setCustomName('');
     setCustomLat('');

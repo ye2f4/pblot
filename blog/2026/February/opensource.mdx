@@ -1,44 +1,370 @@
-
 ---
-
-### 6. opensource.mdx
-```mdx
----
-title: 我的开源项目：MonoBlog 个人博客
+title: 从零搭建开源博客：Docusaurus + Supabase 全栈实践
 date: 2025-06-03
 slug: opensource
-tags: [开源, Docusaurus, 博客系统]
-excerpt: 介绍基于 Docusaurus + Supabase 搭建的个人博客开源项目，包含功能、技术栈与使用说明。
+authors: [mono]
+tags: [开源, Docusaurus, Supabase, 博客系统, Vercel]
+excerpt: 从零到一搭建现代化个人博客，详解 Docusaurus 静态站点框架 + Supabase BaaS 后端服务的全栈实践。
 ---
 
-# 我的开源项目：MonoBlog 个人博客
+# 从零搭建开源博客：Docusaurus + Supabase 全栈实践
 
-本文介绍我搭建的个人博客开源项目，基于 Docusaurus 静态站点框架 + Supabase 后端服务。
+本文完整记录我使用 Docusaurus + Supabase + Vercel 搭建并开源 MonoBlog 的全过程，适合想拥有独立技术博客的开发者。
 
-## 一、项目功能
-本博客完整实现以下功能：
-- 静态页面部署，支持 GitHub Pages 免费托管
-- 邮箱 / GitHub 双渠道账号登录
-- 侧边栏实时评论区
-- 在线用户数量、最新注册用户实时统计
-- 全站移动端自适应布局
-- 文章分类、标签、导航跳转
+{/* truncate */}
 
-## 二、技术栈
-- **前端框架**：Docusaurus（基于 React）
-- **样式/布局**：原生 CSS + Flex 弹性布局
-- **后端服务**：Supabase（BaaS 云服务，提供认证、数据库）
-- **部署平台**：GitHub Pages
+## 一、为什么选择 Docusaurus + Supabase
 
-## 三、开源地址
-项目已开源，欢迎 Star、Fork、提 Issue 交流：
-> 地址：https://github.com/ye2f4/pblot
+传统博客方案对比：
 
-## 四、使用建议
-1. 克隆代码到本地，安装依赖后即可本地运行调试；
-2. 自行配置 Supabase 密钥、站点域名、路由信息；
-3. 支持自定义样式、导航、文章内容，可二次开发。
+| 方案 | 优点 | 缺点 |
+|---|---|---|
+| WordPress | 生态成熟 | 需服务器、PHP 维护 |
+| Hexo/Hugo | 纯静态、快 | 无动态功能 |
+| Ghost | 写作体验好 | 需服务器、付费 |
+| **Docusaurus + Supabase** | 静态部署、自带动态能力 | 需前端基础 |
+
+我的需求很简单：**静态部署（省钱）+ 部分动态功能（评论、登录）+ React 生态**。Docusaurus 完美命中。
+
+## 二、项目初始化
+
+### 2.1 创建 Docusaurus 项目
+
+```bash
+npx create-docusaurus@latest my-forum classic --typescript
+cd my-forum
+```
+
+安装核心依赖：
+
+```bash
+pnpm add @supabase/supabase-js @docusaurus/theme-classic
+pnpm add -D tailwindcss autoprefixer postcss
+```
+
+### 2.2 项目结构
+
+```
+my-forum/
+├── blog/             # 博客文章 (MDX)
+├── docs/             # 文档
+├── src/
+│   ├── components/   # React 组件
+│   ├── hooks/        # 自定义 Hooks
+│   ├── pages/        # 独立页面 (chat, locations 等)
+│   ├── css/          # 全局样式
+│   └── supabase/     # Supabase 客户端
+├── static/           # 静态资源
+├── supabase/         # 数据库迁移、边车函数
+├── docusaurus.config.js
+└── package.json
+```
+
+## 三、Supabase 后端配置
+
+### 3.1 创建 Supabase 项目
+
+1. 访问 [supabase.com](https://supabase.com)，注册并创建项目
+2. 获取 `SUPABASE_URL` 和 `SUPABASE_ANON_KEY`
+3. 在项目根目录创建 `.env`：
+
+```env
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOi...
+```
+
+### 3.2 数据库表设计
+
+核心表结构：
+
+```sql
+-- 用户资料表（关联 Supabase Auth）
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  nickname TEXT,
+  avatar_url TEXT,
+  email TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 评论表
+CREATE TABLE comments (
+  id BIGSERIAL PRIMARY KEY,
+  article_id TEXT NOT NULL,
+  username TEXT,
+  avatar_url TEXT,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 群聊相关
+CREATE TABLE groups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE group_members (
+  group_id UUID REFERENCES groups(id),
+  user_id UUID REFERENCES profiles(id),
+  PRIMARY KEY (group_id, user_id)
+);
+
+-- 签到表
+CREATE TABLE sign_ins (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  signed_at DATE DEFAULT CURRENT_DATE,
+  UNIQUE (user_id, signed_at)
+);
+```
+
+### 3.3 RLS 行级安全策略
+
+**这是最容易踩坑的地方！** 所有表默认启用 RLS 后，必须显式授权才能读写：
+
+```sql
+-- 允许已认证用户读取 profiles
+CREATE POLICY "允许已认证用户读取" ON profiles
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- 允许用户更新自己的 profile
+CREATE POLICY "允许用户更新自己" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+-- 允许已认证用户插入评论
+CREATE POLICY "允许已认证用户评论" ON comments
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- 允许所有人读取评论
+CREATE POLICY "允许所有人读取评论" ON comments
+  FOR SELECT USING (true);
+
+-- 群聊相关策略
+CREATE POLICY "允许创建群聊" ON groups
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "允许加入群聊" ON group_members
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+```
+
+> ⚠️ 忘记配置 RLS 策略 = 所有数据库操作静默失败，无报错信息，排查极其困难。
+
+## 四、认证系统实现
+
+### 4.1 Supabase 客户端初始化
+
+```tsx title="src/supabase/supabaseClient.ts"
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!,
+);
+```
+
+### 4.2 useAuth Hook 设计
+
+```tsx title="src/hooks/useAuth.js"
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@site/src/supabase/supabaseClient';
+
+export function useAuth() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 监听认证状态变化
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        }
+        setLoading(false);
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // GitHub OAuth 登录回调
+  const syncGitHubProfile = useCallback(async (githubUser) => {
+    // 关键：先检查 profile 是否存在，防止覆盖用户手动修改的昵称/头像
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id, nickname, avatar_url')
+      .eq('id', githubUser.id)
+      .maybeSingle();
+
+    if (existing) {
+      // 已存在：仅更新未填写的邮箱
+      if (!existing.email) {
+        await supabase.from('profiles')
+          .update({ email: githubUser.email })
+          .eq('id', githubUser.id);
+      }
+    } else {
+      // 首次登录：写入默认信息
+      await supabase.from('profiles').upsert({
+        id: githubUser.id,
+        nickname: githubUser.user_metadata?.full_name || githubUser.email,
+        avatar_url: githubUser.user_metadata?.avatar_url,
+        email: githubUser.email,
+      });
+    }
+  }, []);
+
+  return { user, profile, loading, syncGitHubProfile };
+}
+```
+
+> 🔥 **常见 Bug**：每次登录都 `upsert` 全量数据，导致用户手动修改的昵称和头像被 GitHub OAuth 数据覆盖。解决方案如上：先查询再决定是 insert 还是 update。
+
+## 五、评论区实现
+
+```tsx title="src/hooks/useComments.js"
+export function useComments(articleId) {
+  const [comments, setComments] = useState([]);
+  const { user } = useAuth();
+
+  const fetchComments = useCallback(async () => {
+    const { data } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('article_id', articleId)
+      .order('created_at', { ascending: true });
+    setComments(data || []);
+  }, [articleId]);
+
+  const handleSubmitComment = useCallback(async (content) => {
+    if (!user) return;
+
+    // 从 profiles 表读取 nickname 和 avatar_url，保证全局统一
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('nickname, avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    await supabase.from('comments').insert({
+      article_id: articleId,
+      username: profile?.nickname || user.user_metadata?.full_name || user.email,
+      avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url,
+      content,
+    });
+
+    await fetchComments();
+  }, [articleId, user, fetchComments]);
+
+  return { comments, fetchComments, handleSubmitComment };
+}
+```
+
+## 六、实时统计功能
+
+### 6.1 在线用户统计
+
+利用 Supabase Realtime 订阅 `online_users` 表的变更：
+
+```tsx
+useEffect(() => {
+  const channel = supabase.channel('online-users');
+  channel
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'online_users' },
+      (payload) => {
+        setOnlineCount(payload.new?.count ?? 0);
+      }
+    )
+    .subscribe();
+  return () => { channel.unsubscribe(); };
+}, []);
+```
+
+### 6.2 访问统计与签到
+
+- 每次页面加载时记录 `visit_stats`
+- 用户签到写入 `sign_ins` 表
+- 使用 `site_counter` 表存储全站累计计数
+
+## 七、部署到 Vercel
+
+### 7.1 连接仓库
+
+1. 登录 [vercel.com](https://vercel.com)，点击 **New Project**
+2. 导入 GitHub 仓库 `ye2f4/my-forum`
+3. 框架自动识别为 **Docusaurus**
+
+### 7.2 配置环境变量
+
+在 Vercel 项目 Settings → Environment Variables 中添加：
+
+```
+SUPABASE_URL          = https://xxxxx.supabase.co
+SUPABASE_ANON_KEY     = eyJhbGciOi...
+```
+
+### 7.3 自动部署
+
+每次 `git push` 到 `master` 分支，Vercel 自动构建部署。构建命令：
+
+```bash
+pnpm build
+```
+
+输出目录：`build/`
+
+### 7.4 自定义域名
+
+1. 在 Vercel 项目 → Domains 中添加 `monoblog.cc.cd`
+2. 在域名 DNS 中添加 CNAME 记录指向 `cname.vercel-dns.com`
+3. 等待 SSL 证书自动签发
+
+完成后，Vercel 源码级 CNAME 自动生成：
+
+```js title="docusaurus.config.js"
+function AutoGenerateCNAMEPlugin() {
+  return {
+    name: "auto-generate-cname",
+    async postBuild({ outDir }) {
+      const cnameFilePath = path.join(outDir, "CNAME");
+      fs.writeFileSync(cnameFilePath, "monoblog.cc.cd", "utf8");
+    },
+  };
+}
+```
+
+## 八、特色功能一览
+
+本博客目前实现的完整功能：
+
+- ✅ **双渠道登录**：邮箱密码 + GitHub OAuth
+- ✅ **侧边栏评论**：每篇文章独立评论线程
+- ✅ **实时统计**：在线用户数、最新注册用户
+- ✅ **全站聊天**：基于 Supabase Realtime 的即时通讯
+- ✅ **群聊功能**：创建/加入群组
+- ✅ **签到系统**：日签 + 连续签到统计
+- ✅ **点位收藏**：地图标记 + 数据库持久化
+- ✅ **排行榜**：用户活跃度排名
+- ✅ **暗色模式**：自动跟随系统 + 手动切换
+- ✅ **RSS 订阅**：标准 Atom Feed
+- ✅ **全文搜索**：基于 @easyops-cn/docusaurus-search-local
+
+## 九、开源地址
+
+项目完整源码已托管在 GitHub，持续更新中：
+
+> 🔗 [github.com/ye2f4/pblot](https://github.com/ye2f4/pblot)
+
+欢迎 Star ⭐、Fork、提 Issue 交流。如果你也搭建了自己的博客，欢迎交换友链！
 
 ## 总结
-该项目适合想搭建个人技术博客、学习 Docusaurus + Supabase 组合方案的开发者，欢迎大家一起交流学习。
 
+Docusaurus + Supabase 是一个低成本、高灵活性的博客方案：
+- 静态部署 ≈ 零运维成本
+- Supabase 免费额度足够个人博客使用
+- React 生态支持任意自定义组件
+
+整个博客从零搭建到上线花了约一周业余时间，投入产出比极高。核心踩坑点都在上文中标注了，希望能帮你少走弯路。

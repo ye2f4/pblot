@@ -112,12 +112,12 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("avatar_url")
+        .select("nickname, avatar_url")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       const userAvatar = profile?.avatar_url || defaultAvatar;
-      const userName = user.user_metadata?.full_name || user.email || "用户";
+      const userName = profile?.nickname || user.user_metadata?.full_name || user.email?.split('@')[0] || "用户";
 
       await supabase.from("comments").insert([
         {

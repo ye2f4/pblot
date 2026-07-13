@@ -129,7 +129,7 @@ export const useAuth = () => {
         }
     };
 
-    // 同步用户资料到public.profiles
+    // 同步用户资料到public.profiles（仅首次插入，不覆盖已有数据）
     const syncGitHubProfile = async (session) => {
         if (!session?.user) return;
         
@@ -138,20 +138,41 @@ export const useAuth = () => {
             const uid = session.user.id;
             const email = session.user.email;
 
-            const { error } = await supabase
+            // 先检查是否已有 profile 记录
+            const { data: existing } = await supabase
                 .from('profiles')
-                .upsert([
-                    {
-                        id: uid,
-                        nickname: userMeta?.preferred_username || userMeta?.name || '',
-                        real_name: userMeta?.full_name || '',
-                        avatar_url: userMeta?.avatar_url || '',
-                        email: email || ''
-                    }
-                ]);
+                .select('id,nickname,avatar_url')
+                .eq('id', uid)
+                .maybeSingle();
 
-            if (error) {
-                console.error('同步用户资料失败', error);
+            // 仅当用户首次登录（无profile记录）时写入默认值
+            if (!existing) {
+                const { error } = await supabase
+                    .from('profiles')
+                    .upsert([
+                        {
+                            id: uid,
+                            nickname: userMeta?.preferred_username || userMeta?.name || '',
+                            real_name: userMeta?.full_name || '',
+                            avatar_url: userMeta?.avatar_url || '',
+                            email: email || ''
+                        }
+                    ], { onConflict: 'id' });
+
+                if (error) {
+                    console.error('同步用户资料失败', error);
+                }
+            } else {
+                // 仅在 email 为空时补充写入 email
+                const { data: fullProfile } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('id', uid)
+                    .single();
+
+                if (!fullProfile?.email && email) {
+                    await supabase.from('profiles').update({ email }).eq('id', uid);
+                }
             }
         } catch (err) {
             console.error('同步用户资料捕获异常', err);
