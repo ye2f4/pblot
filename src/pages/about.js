@@ -444,7 +444,8 @@ export default function About() {
               📞 联系与反馈
             </h2>
             <p style={{ fontSize: '15px', color: 'var(--ifm-text-color)', lineHeight: '1.8', margin: '0 0 20px 0' }}>
-              如果你有任何问题、建议或合作意向，欢迎随时联系我！
+              如果你有任何问题、建议或合作意向，欢迎随时联系我！<br />
+              📮 邮箱：a5b4c3d2e1-114514@outlook.com 、 mcpianpian118@outlook.com
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link

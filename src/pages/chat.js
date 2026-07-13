@@ -54,6 +54,26 @@ export default function ChatPage() {
   const [showAtModal, setShowAtModal] = useState(false);
   const [sending, setSending] = useState(false);
 
+  // ========== 移动端/折叠侧边栏相关 ==========
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        // 移动端默认折叠侧边栏，优先展示聊天内容
+        setSidebarCollapsed(true);
+      } else {
+        setSidebarCollapsed(false);
+      }
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // DOM 引用
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -582,8 +602,33 @@ export default function ChatPage() {
         height: 'calc(100vh - 180px)', minHeight: 0, border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '16px',
         overflow: 'hidden', background: 'var(--ifm-card-background-color)'
       }}>
-        <div className="chat-sidebar" style={{ width: '340px', borderRight: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-color-emphasis-100)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--ifm-color-emphasis-300)' }}>
+        <div className="chat-sidebar" style={{
+          width: isMobile ? (sidebarCollapsed ? '0px' : '100%') : '340px',
+          maxHeight: isMobile ? (sidebarCollapsed ? '0px' : '40vh') : 'none',
+          minHeight: isMobile ? (sidebarCollapsed ? '0px' : '0px') : 'none',
+          flexShrink: 0,
+          borderRight: isMobile ? 'none' : '1px solid var(--ifm-color-emphasis-300)',
+          borderBottom: isMobile ? '1px solid var(--ifm-color-emphasis-300)' : 'none',
+          background: 'var(--ifm-color-emphasis-100)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: isMobile ? (sidebarCollapsed ? 'hidden' : 'visible') : 'visible',
+          transition: 'all 0.3s ease',
+        }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--ifm-color-emphasis-300)', alignItems: 'center' }}>
+            {isMobile && !sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                style={{
+                  border: 'none', background: 'transparent', cursor: 'pointer',
+                  fontSize: '20px', padding: '12px', color: 'var(--ifm-text-color)',
+                  lineHeight: 1
+                }}
+                title="收起侧边栏"
+              >
+                ‹
+              </button>
+            )}
             <div
               onClick={() => { setActiveTab('friend'); setTargetUser(null); setCurrentGroup(null); }}
               style={{
@@ -638,6 +683,7 @@ export default function ChatPage() {
                     markAsRead(`private:${user.id}`);
                     recordActivity(`private:${user.id}`);
                   }
+                  if (isMobile) setSidebarCollapsed(true);
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 18px',
@@ -676,6 +722,7 @@ export default function ChatPage() {
                   setShowGroupSetting(false);
                   markAsRead(`group:${group.id}`);
                   recordActivity(`group:${group.id}`);
+                  if (isMobile) setSidebarCollapsed(true);
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 18px',
@@ -707,8 +754,20 @@ export default function ChatPage() {
 
           {activeTab === 'friend' && targetUser ? (
             <>
-              <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--ifm-color-emphasis-300)', fontWeight: 600, color:'var(--ifm-text-color)' }}>
-                {targetUser.nickname}
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--ifm-color-emphasis-300)', fontWeight: 600, color:'var(--ifm-text-color)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {isMobile && sidebarCollapsed && (
+                  <button
+                    onClick={() => setSidebarCollapsed(false)}
+                    style={{
+                      border: 'none', background: 'transparent', cursor: 'pointer',
+                      fontSize: '20px', color: 'var(--ifm-text-color)', padding: 0, lineHeight: 1
+                    }}
+                    title="展开侧边栏"
+                  >
+                    ›
+                  </button>
+                )}
+                <span>{targetUser.nickname}</span>
                 {targetUser.isWebmaster && <span style={{ color:'#07c160',marginLeft:10,fontSize:12 }}>网站管理员</span>}
               </div>
               <div style={{ flex: 1, minHeight: 0, padding: '24px', background: 'var(--ifm-color-emphasis-100)', overflowY: 'auto' }}>
@@ -774,7 +833,21 @@ export default function ChatPage() {
                 padding: '16px 24px', borderBottom: '1px solid var(--ifm-color-emphasis-300)',
                 fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color:'var(--ifm-text-color)'
               }}>
-                <span>{currentGroup.group_name}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {isMobile && sidebarCollapsed && (
+                    <button
+                      onClick={() => setSidebarCollapsed(false)}
+                      style={{
+                        border: 'none', background: 'transparent', cursor: 'pointer',
+                        fontSize: '20px', color: 'var(--ifm-text-color)', padding: 0, lineHeight: 1
+                      }}
+                      title="展开侧边栏"
+                    >
+                      ›
+                    </button>
+                  )}
+                  <span>{currentGroup.group_name}</span>
+                </div>
                 <button
                   onClick={() => {
                   setShowGroupSetting(!showGroupSetting);
@@ -966,8 +1039,20 @@ export default function ChatPage() {
           ) : null}
 
           {(!targetUser && !currentGroup) && (
-            <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--ifm-color-emphasis-600)' }}>
-              {activeTab === 'friend' ? '选择好友开始私聊' : '选择群聊开始聊天'}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', color: 'var(--ifm-color-emphasis-600)' }}>
+              <div>{activeTab === 'friend' ? '选择好友开始私聊' : '选择群聊开始聊天'}</div>
+              {isMobile && sidebarCollapsed && (
+                <button
+                  onClick={() => setSidebarCollapsed(false)}
+                  style={{
+                    padding: '10px 24px', borderRadius: '20px', border: 'none',
+                    background: '#07c160', color: '#fff', cursor: 'pointer',
+                    fontSize: '14px', fontWeight: 500
+                  }}
+                >
+                  展开联系人
+                </button>
+              )}
             </div>
           )}
         </div>

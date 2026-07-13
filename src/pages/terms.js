@@ -126,7 +126,8 @@ export default function TermsOfService() {
           <h2 style={h2Style}>十、联系方式</h2>
           <p style={pStyle}>
             如您对本协议有任何疑问、意见或建议，欢迎通过以下方式联系：<br />
-            📧 在站点留言区留言 ｜ 💬 通过聊天页面发送消息给站长
+            📧 在站点留言区留言 ｜ 💬 通过聊天页面发送消息给站长<br />
+            📮 邮箱：a5b4c3d2e1-114514@outlook.com 、 mcpianpian118@outlook.com
           </p>
         </section>
       </div>

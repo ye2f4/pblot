@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from '@docusaurus/Link';
 import styles from '../../pages/index.module.css';
 
 export default function MainContentTop({ siteData }) {
+    const [isMobile, setIsMobile] = useState(false);
     const marqueeAnimation = {
         animation: 'marquee 18s linear infinite',
         whiteSpace: 'nowrap',
@@ -12,6 +13,13 @@ export default function MainContentTop({ siteData }) {
     const marqueeHover = {
         animationPlayState: 'paused'
     };
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth <= 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
 
     React.useEffect(() => {
         const style = document.createElement('style');
@@ -29,12 +37,14 @@ export default function MainContentTop({ siteData }) {
         <div style={{
             display: 'flex',
             gap: '15px',
-            alignItems: 'center',
+            alignItems: isMobile ? 'center' : 'flex-start',
             width: '100%',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            minWidth: 0,
+            justifyContent: isMobile ? 'center' : 'flex-start',
         }}>
             {/* 标签按钮组：五大功能 */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: 0 }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: 0, flexWrap: 'wrap', flex: isMobile ? '1 1 100%' : '0 1 auto', minWidth: 0, justifyContent: isMobile ? 'center' : 'flex-start' }}>
                 {siteData.tabs.map((tab, i) => (
                     <Link
                         key={i}
@@ -68,9 +78,10 @@ export default function MainContentTop({ siteData }) {
                 backgroundColor: '#E3F2FD',
                 borderRadius: 8,
                 overflow: 'hidden',
-                flex: 1,
+                flex: isMobile ? '1 1 100%' : 1,
                 padding: '0 12px',
-                minWidth: 250,
+                minWidth: isMobile ? 0 : 250,
+                width: isMobile ? '100%' : 'auto',
                 position: 'relative'
             }}>
                 <span
@@ -88,7 +99,7 @@ export default function MainContentTop({ siteData }) {
             </div>
 
             {/* 操作按钮组 */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: 0 }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: 0, flexWrap: 'wrap', flex: isMobile ? '1 1 100%' : '0 1 auto', minWidth: 0, justifyContent: isMobile ? 'center' : 'flex-start', width: isMobile ? '100%' : 'auto' }}>
                 <Link
                     to="/signin"
                     className={styles.btnHover}

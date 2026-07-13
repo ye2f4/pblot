@@ -60,17 +60,25 @@ export default function RankList({ siteData }) {
 
     return (
         <div style={{
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--ifm-card-background-color)',
             padding: 15,
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            borderRadius: 12,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
             marginBottom: 15,
-            width: '100%'
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+            border: '1px solid var(--ifm-toc-border-color)',
         }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h4 style={{
                     margin: 0, fontSize: 16, position: 'relative',
-                    paddingBottom: 8, borderBottom: '2px solid #f0f0f0', flex: 1,
+                    paddingBottom: 8, borderBottom: '2px solid var(--ifm-toc-border-color)', flex: 1,
+                    minWidth: 0,
+                    color: 'var(--ifm-color-emphasis-900)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                 }}>
                     {activeFilter === 'hot' ? '🔥 热门主题' : '📝 最新主题'}
                 </h4>
@@ -79,8 +87,8 @@ export default function RankList({ siteData }) {
                         onClick={() => setActiveFilter('hot')}
                         style={{
                             padding: '3px 8px', border: 'none', borderRadius: '10px',
-                            background: activeFilter === 'hot' ? '#4285f4' : '#f0f0f0',
-                            color: activeFilter === 'hot' ? '#fff' : '#666',
+                            background: activeFilter === 'hot' ? '#4285f4' : 'var(--ifm-background-surface-color)',
+                            color: activeFilter === 'hot' ? '#fff' : 'var(--ifm-color-emphasis-600)',
                             fontSize: 11, cursor: 'pointer', fontWeight: activeFilter === 'hot' ? 600 : 400,
                             transition: 'all 0.2s ease',
                         }}
@@ -91,8 +99,8 @@ export default function RankList({ siteData }) {
                         onClick={() => setActiveFilter('latest')}
                         style={{
                             padding: '3px 8px', border: 'none', borderRadius: '10px',
-                            background: activeFilter === 'latest' ? '#4285f4' : '#f0f0f0',
-                            color: activeFilter === 'latest' ? '#fff' : '#666',
+                            background: activeFilter === 'latest' ? '#4285f4' : 'var(--ifm-background-surface-color)',
+                            color: activeFilter === 'latest' ? '#fff' : 'var(--ifm-color-emphasis-600)',
                             fontSize: 11, cursor: 'pointer', fontWeight: activeFilter === 'latest' ? 600 : 400,
                             transition: 'all 0.2s ease',
                         }}
@@ -103,7 +111,7 @@ export default function RankList({ siteData }) {
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#ccc' }}>
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--ifm-color-emphasis-400)' }}>
                     ⏳ 加载中...
                 </div>
             ) : (
@@ -116,14 +124,17 @@ export default function RankList({ siteData }) {
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    padding: '12px 0',
-                                    borderBottom: i < posts.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                    padding: '10px 0',
+                                    borderBottom: i < posts.length - 1 ? '1px solid var(--ifm-toc-border-color)' : 'none',
                                     transition: 'all 0.3s ease',
                                     cursor: 'pointer',
+                                    borderRadius: '6px',
+                                    paddingLeft: '6px',
+                                    paddingRight: '6px',
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = 'translateX(5px)';
-                                    e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.02)';
+                                    e.currentTarget.style.backgroundColor = 'var(--ifm-background-surface-color)';
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.transform = 'translateX(0)';
@@ -131,40 +142,27 @@ export default function RankList({ siteData }) {
                                 }}
                             >
                                 <span style={{
-                                    width: 24,
-                                    height: 24,
-                                    borderRadius: '50%',
-                                    backgroundColor: numColor,
-                                    color: '#fff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: 12,
-                                    marginRight: 10,
-                                    flexShrink: 0,
+                                    width: 24, height: 24, borderRadius: '50%',
+                                    backgroundColor: numColor, color: '#fff',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 12, marginRight: 10, flexShrink: 0, fontWeight: 700,
                                 }}>{i + 1}</span>
                                 <Link
                                     to={item.link}
                                     style={{
-                                        flex: 1,
-                                        fontSize: 14,
-                                        color: '#333',
+                                        flex: 1, fontSize: 14,
+                                        color: 'var(--ifm-color-emphasis-800)',
                                         textDecoration: 'none',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        padding: '4px 0',
-                                        minWidth: 0,
+                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                        padding: '4px 0', minWidth: 0,
                                     }}
                                     title={item.title}
                                 >
                                     {item.title}
                                 </Link>
                                 <span style={{
-                                    fontSize: 11,
-                                    color: '#999',
-                                    whiteSpace: 'nowrap',
-                                    marginLeft: 8,
+                                    fontSize: 11, color: 'var(--ifm-color-emphasis-400)',
+                                    whiteSpace: 'nowrap', marginLeft: 8, flexShrink: 0,
                                 }}>
                                     {activeFilter === 'hot' && item.views ? `👁${item.views}` : item.date}
                                 </span>

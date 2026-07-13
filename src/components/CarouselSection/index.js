@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 const Slider = lazy(() => import('react-slick'));
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import siteData from '../../data/siteData.json';
 import styles from '../../pages/index.module.css';
 
 // 自定义箭头组件（React 函数组件，避免 currentSlide/slideCount 等 react-slick 内部 props 落到 DOM 上）
@@ -65,19 +66,20 @@ function NextArrow(props) {
   );
 }
 
-export default function CarouselSection({ siteData, base, isClient }) {
+export default function CarouselSection({ base, isClient }) {
+    const carouselCfg = siteData.carouselConfig || {};
     const carouselSettings = {
-        dots: false,
-        infinite: true,
-        speed: 300,
+        dots: carouselCfg.dots ?? false,
+        infinite: carouselCfg.infinite ?? true,
+        speed: carouselCfg.speed ?? 300,
         slidesToShow: 1,
         slidesToScroll: 1,
         autoplay: true,
-        autoplaySpeed: 6000,
+        autoplaySpeed: carouselCfg.autoplaySpeed ?? 6000,
         arrows: true,
         lazyLoad: false,
-        pauseOnHover: true,
-        fade: true,
+        pauseOnHover: carouselCfg.pauseOnHover ?? true,
+        fade: carouselCfg.fade ?? true,
         cssEase: 'ease-in-out',
         centerMode: false,
         centerPadding: '0px',
@@ -88,40 +90,44 @@ export default function CarouselSection({ siteData, base, isClient }) {
         ]
     };
 
+    const images = (siteData.carouselImages && siteData.carouselImages.length > 0) ? siteData.carouselImages : [
+        { filename: '0.webp', title: '' }, { filename: '1.webp', title: '' }
+    ];
+
     return (
-        <div style={{
+        <div className={styles.carouselWrap} style={{
             backgroundColor: 'var(--ifm-card-background-color)',
             padding: 0,
             borderRadius: 8,
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             width: '100%',
+            maxWidth: '100%',
             overflow: 'hidden',
             marginBottom: 20,
         }}>
             <Suspense fallback={
                 <div style={{
-                    aspectRatio: '16 / 7',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#999',
-                    background: 'var(--ifm-color-emphasis-100)',
+                    aspectRatio: '16 / 7', maxWidth: '100%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#999', background: 'var(--ifm-color-emphasis-100)',
                 }}>
                     加载中...
                 </div>
             }>
                 {isClient && (
                     <Slider {...carouselSettings}>
-                        {siteData.carouselImages.map((img, i) => (
-                            <div key={i} style={{ textAlign: 'center' }}>
+                        {images.map((img, i) => (
+                            <div key={i} style={{ textAlign: 'center', maxWidth: '100%' }}>
                                 <img
                                     src={`${base}img/${img.filename}`}
-                                    alt={img.title}
+                                    alt={img.title || ''}
                                     loading={i === 0 ? "eager" : "lazy"}
                                     fetchPriority={i === 0 ? "high" : "auto"}
                                     style={{
                                         width: '100%',
-                                        aspectRatio: '16 / 7',
+                                        maxWidth: '100%',
+                                        aspectRatio: '16 / 9',
+                                        minHeight: '150px',
                                         objectFit: 'cover',
                                         display: 'block',
                                         backgroundColor: 'var(--ifm-color-emphasis-100)'

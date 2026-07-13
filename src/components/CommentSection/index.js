@@ -85,8 +85,8 @@ export default function CommentSection({
     };
 
     return (
-        <div style={{ backgroundColor: '#fff', padding: 15, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', marginBottom: 15, width: '100%', minHeight: '400px' }}>
-            <h4 style={{ margin: '0 0 15px 0', fontSize: 16, borderBottom: '2px solid #f0f0f0', paddingBottom: 8 }}>{siteData.texts.comments.title}</h4>
+        <div style={{ backgroundColor: 'var(--ifm-card-background-color)', padding: 15, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: 15, width: '100%', maxWidth: '100%', boxSizing: 'border-box', minHeight: '380px', border: '1px solid var(--ifm-toc-border-color)' }}>
+            <h4 style={{ margin: '0 0 15px 0', fontSize: 16, borderBottom: '2px solid var(--ifm-toc-border-color)', paddingBottom: 8, color: 'var(--ifm-color-emphasis-900)' }}>{siteData?.texts?.comments?.title || '💬 留言区'}</h4>
 
             {tip && <div style={{ padding: '8px', color: tip.startsWith('✅') ? '#065f46' : '#dc2626', marginBottom: 8, fontSize: 12 }}>{tip}</div>}
 
@@ -95,27 +95,26 @@ export default function CommentSection({
                     value={commentContent}
                     onChange={(e) => setCommentContent(e.target.value)}
                     disabled={commentLoading || !user}
-                    placeholder={siteData.texts.comments.placeholder}
-                    style={{ width: '100%', minHeight: 80, padding: 8, border: '1px solid #eee', borderRadius: 4, resize: 'none', fontSize: 14 }}
+                    placeholder={siteData?.texts?.comments?.placeholder || '分享你的想法...'}
+                    style={{ width: '100%', minHeight: 80, padding: 8, border: '1px solid var(--ifm-toc-border-color)', borderRadius: 8, resize: 'none', fontSize: 14, background: 'var(--ifm-background-surface-color)', color: 'var(--ifm-font-color-base)' }}
                 />
                 <button
                     type="submit"
                     disabled={commentLoading || !user}
-                    style={{ padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 4, marginTop: 8 }}
+                    style={{ padding: '6px 12px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: 8, marginTop: 8, cursor: 'pointer', fontWeight: 500 }}
                 >
-                    {commentLoading ? "发布中..." : siteData.texts.comments.submit}
+                    {commentLoading ? "发布中..." : (siteData?.texts?.comments?.submit || '发表留言')}
                 </button>
             </form>
 
             <div style={{ maxHeight: 300, overflowY: 'auto', gap: 10, display: 'flex', flexDirection: 'column' }}>
                 {comments.length === 0 ? (
-                    <p style={{ color: '#999', fontSize: 12, textAlign: 'center' }}>{siteData.texts.comments.empty}</p>
+                    <p style={{ color: 'var(--ifm-color-emphasis-500)', fontSize: 12, textAlign: 'center' }}>{siteData?.texts?.comments?.empty || '暂无留言，快来发言吧'}</p>
                 ) : (
                     comments.map((item) => (
-                        <div key={item.id} style={{ display: 'flex', gap: 8, paddingBottom: 8, borderBottom: '1px solid #f5f5f5' }}>
-                            {/* 头像渲染逻辑不变，兼容emoji/图片 */}
+                        <div key={item.id} style={{ display: 'flex', gap: 8, paddingBottom: 8, borderBottom: '1px solid var(--ifm-toc-border-color)' }}>
                             {item.avatar_url && !item.avatar_url.startsWith('http') ? (
-                                <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#f0f7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                                <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--ifm-background-surface-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
                                     {item.avatar_url}
                                 </div>
                             ) : (
@@ -127,9 +126,9 @@ export default function CommentSection({
                                 />
                             )}
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 12, fontWeight: 500 }}>{item.username}</div>
-                                <p style={{ margin: '2px 0', fontSize: 12, color: '#666' }}>{item.content}</p>
-                                <div style={{ fontSize: 10, color: '#999' }}>{new Date(item.created_at).toLocaleString()}</div>
+                                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ifm-color-emphasis-900)' }}>{item.username}</div>
+                                <p style={{ margin: '2px 0', fontSize: 12, color: 'var(--ifm-color-emphasis-600)' }}>{item.content}</p>
+                                <div style={{ fontSize: 10, color: 'var(--ifm-color-emphasis-400)' }}>{new Date(item.created_at).toLocaleString()}</div>
                             </div>
                         </div>
                     ))

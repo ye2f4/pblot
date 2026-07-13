@@ -287,7 +287,7 @@ export default function Home() {
   if (!isClient) return null;
 
   return (
-    <Layout title={siteData.siteName} description="Monoの小窝 - 专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、全栈技术分享的个人博客">
+    <Layout title={siteData.siteTitle} description="Monoの小窝 - 专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、全栈技术分享的个人博客">
       <BackToTop />
       <PageLoading />
       <ClickLove />
@@ -324,20 +324,21 @@ export default function Home() {
       <div ref={mainContentRef} className="main-content fadeIn" style={{
         maxWidth: 1200, margin: '20px auto', padding: '0 15px',
         display: 'flex', flexDirection: 'column', gap: 20, width: '100%',
+        boxSizing: 'border-box',
         opacity: isInView(mainContentRef) ? 1 : 0,
         transform: isInView(mainContentRef) ? 'translateY(0)' : 'translateY(30px)',
         transition: 'opacity 0.8s ease, transform 0.8s ease'
       }}>
         <MainContentTop siteData={siteData} />
-        <div style={{ display: 'flex', gap: 20, width: '100%', flexWrap: 'wrap' }}>
-          <div className="left-container" style={{ flex: '7 1 320px', minWidth: 0 }}>
-            <CarouselSection siteData={siteData} base={base} isClient={isClient} />
+        <div className="content-row" style={{ display: 'flex', gap: 20, width: '100%', flexWrap: 'wrap', overflow: 'hidden', boxSizing: 'border-box' }}>
+          <div className="left-container" style={{ flex: '7 1 320px', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box' }}>
+            <CarouselSection base={base} isClient={isClient} />
             <QuickNav siteData={siteData} />
             <UpdatesList siteData={siteData} />
             <TagCloud siteData={siteData} />
             <FriendsAndAbout siteData={siteData} />
           </div>
-          <div className="sidebar-container" style={{ flex: '3 1 260px', minWidth: 0 }}>
+          <div className="sidebar-container" style={{ flex: '3 1 260px', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box' }}>
             {/* 侧边栏早已删除PixelClock渲染块 */}
             <Suspense fallback={<div className="stat-card" style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载天气...</div>}>
               <WeatherWidget />

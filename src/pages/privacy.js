@@ -140,7 +140,8 @@ export default function PrivacyPolicy() {
           <h2 style={h2Style}>十、联系方式</h2>
           <p style={pStyle}>
             如果您对本隐私政策有任何疑问、担忧或要求行使您的数据权利，请联系：<br />
-            📧 通过站点留言区留言 ｜ 💬 通过聊天页面联系站长
+            📧 通过站点留言区留言 ｜ 💬 通过聊天页面联系站长<br />
+            📮 邮箱：a5b4c3d2e1-114514@outlook.com 、 mcpianpian118@outlook.com
           </p>
         </section>
       </div>

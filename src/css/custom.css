@@ -43,11 +43,12 @@
   --ifm-toc-border-color: #383838 !important;
   --ifm-font-color-base: #eaeaea !important;
 
-  /* 暗色模式底栏颜色 */
-  --ifm-footer-link-color: #aaa !important;
-  --ifm-footer-link-hover-color: #67ea94 !important;
-  --ifm-footer-title-color: #ddd !important;
-  --ifm-footer-color: #aaa !important;
+  /* 暗色模式底栏颜色（柔和灰白，不再是红色） */
+  --ifm-footer-link-color: #b0b0b0 !important;
+  --ifm-footer-link-hover-color: #7ec8e3 !important;
+  --ifm-footer-title-color: #e0e0e0 !important;
+  --ifm-footer-color: #b0b0b0 !important;
+  --ifm-footer-background-color: #1a1a1a !important;
 }
 
 /* ========== 通用板块卡片样式（全站统一明暗） ========== */
@@ -101,7 +102,7 @@
   .main-content .left-container,
   .main-content .sidebar-container {
     flex: 1 1 100% !important;
-    min-width: 100% !important;
+    width: 100% !important;
   }
 
   /* 移动端：统计卡片缩小 */
@@ -122,14 +123,21 @@
     flex-direction: column !important;
     height: calc(100vh - 120px) !important;
     min-height: 0 !important;
+    margin: 10px auto !important;
+    width: 100% !important;
+    border-radius: 0 !important;
   }
   .chat-sidebar {
-    width: 100% !important;
-    max-height: 40vh !important;
-    min-height: 0 !important;
-    flex-shrink: 0 !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--ifm-color-emphasis-300) !important;
+    width: 100%;
+    max-height: 40vh;
+    min-height: 0;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  }
+  .chat-sidebar.chat-sidebar-collapsed {
+    max-height: 0;
+    overflow: hidden;
   }
   .chat-main {
     flex: 1 !important;
@@ -189,11 +197,59 @@
 
 /* ========== 中间统计卡片移动端适配 ========== */
 @media (max-width: 768px) {
-  /* MiddleStatsCard 双列变单列 */
-  [class*="topBannerWrap"] div[style*="grid-template-columns: 1fr 2fr 1fr"],
-  [class*="topBannerWrap"] div[style*="grid-template-columns: 1fr 2fr"] {
+  /* MiddleStatsCard 内部双列在极小屏改为单列 */
+  [style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* ========== 底栏优化（去除红色，柔和配色） ========== */
+.footer {
+  background-color: #f5f5f5 !important;
+}
+[data-theme='dark'] .footer {
+  background-color: #1a1a1a !important;
+}
+.footer__title {
+  color: #333 !important;
+  font-weight: 600;
+}
+[data-theme='dark'] .footer__title {
+  color: #ddd !important;
+}
+.footer__link-item {
+  color: #555 !important;
+  transition: color 0.2s, transform 0.2s;
+  display: inline-block;
+}
+.footer__link-item:hover {
+  color: var(--ifm-color-primary) !important;
+  transform: translateX(3px);
+}
+[data-theme='dark'] .footer__link-item {
+  color: #aaa !important;
+}
+[data-theme='dark'] .footer__link-item:hover {
+  color: #67ea94 !important;
+}
+.footer__copyright {
+  color: #777 !important;
+  font-size: 13px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  margin-top: 8px;
+}
+[data-theme='dark'] .footer__copyright {
+  color: #888 !important;
+  border-top-color: rgba(255,255,255,0.08);
+}
+.footer__col {
+  margin-bottom: 0;
+}
+
+/* ========== 底栏 logo 区 ========== */
+.footer__bottom {
+  margin-top: 0;
 }
 
 /* ========== 全局动画 加:global 防止样式隔离失效 ========== */

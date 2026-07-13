@@ -2,31 +2,34 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Layout from '@theme/Layout';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import { supabase } from '../supabase/supabaseClient';
+import siteData from '../data/siteData.json';
 
 const FETCH_TIMEOUT = 8000;
 
-// 瓦片源配置
-const TILE_PROVIDERS = [
-  {
-    name: '高德地图',
-    url: 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
-    subdomains: ['1', '2', '3', '4'],
-    attribution: '&copy; 高德地图',
-    maxZoom: 18,
-  },
-  {
-    name: 'OpenStreetMap',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19,
-  },
-  {
-    name: 'CartoDB',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://carto.com/">CartoDB</a>',
-    maxZoom: 19,
-  },
+// 瓦片源配置（优先使用 siteData，兜底硬编码）
+const TILE_PROVIDERS = (siteData.tileProviders && siteData.tileProviders.length > 0) ? siteData.tileProviders : [
+  { name: '高德地图', url: 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', subdomains: ['1', '2', '3', '4'], attribution: '&copy; 高德地图', maxZoom: 18 },
+  { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19 },
+  { name: 'CartoDB', url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://carto.com/">CartoDB</a>', maxZoom: 19 },
 ];
+
+// 获取访客位置（优先浏览器GPS，兜底 IP 服务）
+const fetchLocation = async () => {
+  if (navigator.geolocation) {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 300000 });
+      });
+      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy, source: 'gps' };
+    } catch (e) { /* GPS 失败，降级 */ }
+  }
+  try {
+    const resp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+    if (!resp.ok) throw new Error('IP lookup failed');
+    const data = await resp.json();
+    return { latitude: data.latitude, longitude: data.longitude, city: data.city, country: data.country_name, country_code: data.country_code, region: data.region, timezone: data.timezone, ip_address: data.ip, isp: data.org, source: 'ip' };
+  } catch (e) { return null; }
+};
 
 function MapCore() {
   const mapRef = useRef(null);
@@ -59,6 +62,55 @@ function MapCore() {
 
   const loadData = useCallback(async () => {
     try {
+      // 确保有 visitor_session，没有则自动生成
+      let sessionId = localStorage.getItem('visitor_session');
+      if (!sessionId) {
+        sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem('visitor_session', sessionId);
+      }
+      // 使用 localStorage 控制上报频率，每 5 分钟允许上报一次
+      const lastReport = localStorage.getItem('map_last_report_time');
+      const canReport = !lastReport || (Date.now() - parseInt(lastReport, 10)) > 300000;
+      if (canReport) {
+        localStorage.setItem('map_last_report_time', Date.now().toString());
+        try {
+          const loc = await fetchLocation();
+          if (loc) {
+            const ua = navigator.userAgent;
+            const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
+            let browser = 'Unknown';
+            if (ua.includes('Edg/')) browser = 'Edge';
+            else if (ua.includes('Chrome/')) browser = 'Chrome';
+            else if (ua.includes('Firefox/')) browser = 'Firefox';
+            else if (ua.includes('Safari/')) browser = 'Safari';
+            let os = 'Unknown';
+            if (ua.includes('Windows')) os = 'Windows';
+            else if (ua.includes('Mac OS')) os = 'macOS';
+            else if (ua.includes('Linux')) os = 'Linux';
+            else if (ua.includes('Android')) os = 'Android';
+            else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+
+            const payload = {
+              session_id: sessionId, latitude: loc.latitude, longitude: loc.longitude,
+              city: loc.city || null, country: loc.country || null,
+              country_code: loc.country_code || null, region: loc.region || null,
+              timezone: loc.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+              ip_address: loc.ip_address || null, isp: loc.isp || null,
+              is_mobile: isMobile, browser, os,
+              last_active: new Date().toISOString()
+            };
+            const { data: existing } = await supabase
+              .from('visitor_locations').select('id, visit_count').eq('session_id', sessionId).maybeSingle();
+            if (existing) {
+              await supabase.from('visitor_locations')
+                .update({ ...payload, visit_count: (existing.visit_count || 0) + 1 }).eq('id', existing.id);
+            } else {
+              await supabase.from('visitor_locations').insert([{ ...payload, visit_count: 1 }]);
+            }
+          }
+        } catch (e) { /* 静默忽略上报失败 */ }
+      }
+
       const { data, error: dbErr } = await fetchWithTimeout(() =>
         supabase
           .from('visitor_locations')

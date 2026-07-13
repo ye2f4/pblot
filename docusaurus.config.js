@@ -4,19 +4,25 @@
 import path from "node:path";
 import fs from "node:fs";
 import remarkDefList from "remark-deflist";
+import siteData from "./src/data/siteData.json" with { type: "json" };
 
 // 环境 & 域名常量
 const isDev = process.env.NODE_ENV === "development";
-const SITE_DOMAIN = "monoblog.cc.cd";
+const SITE_DOMAIN = new URL(siteData.siteUrl).hostname;
+
+const m = siteData.meta || {};
+const b = siteData.branding || {};
+const t = siteData.theme || {};
+const currentYear = new Date().getFullYear();
 
 /**
  * @type {import('@docusaurus/types').Config}
  */
 const config = {
-  title: "Monoの小窝",
-  tagline: "一半黑发藏温柔，一半白发载星网。",
-  url: "https://monoblog.cc.cd",
-  baseUrl: "/",
+  title: siteData.siteTitle,
+  tagline: b.tagline,
+  url: siteData.siteUrl,
+  baseUrl: siteData.basePath,
   trailingSlash: false,
 
   onBrokenLinks: "warn",
@@ -27,68 +33,47 @@ const config = {
     }
   },
 
-  favicon: "img/logo.svg",
-  organizationName: "ye2f4",
+  favicon: b.favicon,
+  organizationName: siteData.organizationName,
   projectName: "",
 
   headTags: [
     {
       tagName: 'link',
       attributes: {
-        rel: 'preload',
-        href: '/img/logo.svg',
-        as: 'image',
-        type: 'image/svg+xml',
-        fetchpriority: 'high',
+        rel: 'preload', href: '/img/logo.svg', as: 'image',
+        type: 'image/svg+xml', fetchpriority: 'high',
       },
     },
     {
       tagName: 'link',
-      attributes: {
-        rel: 'dns-prefetch',
-        href: 'https://xwhwcmorcmgpfpocmgez.supabase.co',
-      },
+      attributes: { rel: 'dns-prefetch', href: 'https://xwhwcmorcmgpfpocmgez.supabase.co' },
     },
     {
       tagName: 'link',
       attributes: {
-        rel: 'preload',
-        href: '/img/bg_big.webp',
-        as: 'image',
-        type: 'image/webp',
-        fetchpriority: 'high',
+        rel: 'preload', href: '/img/bg_big.webp', as: 'image',
+        type: 'image/webp', fetchpriority: 'high',
       },
     },
     {
       tagName: 'link',
-      attributes: {
-        rel: 'preconnect',
-        href: 'https://xwhwcmorcmgpfpocmgez.supabase.co',
-        crossorigin: 'anonymous',
-      },
+      attributes: { rel: 'preconnect', href: 'https://xwhwcmorcmgpfpocmgez.supabase.co', crossorigin: 'anonymous' },
     },
     {
       tagName: 'link',
-      attributes: {
-        rel: 'preconnect',
-        href: 'https://fonts.googleapis.com',
-      },
+      attributes: { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     },
     {
       tagName: 'link',
-      attributes: {
-        rel: 'preconnect',
-        href: 'https://fonts.gstatic.com',
-        crossorigin: 'anonymous',
-      },
+      attributes: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
     },
     {
       tagName: 'link',
       attributes: {
         rel: 'stylesheet',
         href: 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap',
-        media: 'print',
-        onload: "this.media='all'",
+        media: 'print', onload: "this.media='all'",
       },
     },
     {
@@ -101,7 +86,6 @@ const config = {
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com",
           "img-src 'self' data: https: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.is.autonavi.com",
           "font-src 'self' https://fonts.gstatic.com data:",
-          // 放开地图/位置相关请求
           "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com https://api.open-meteo.com https://ipapi.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
           "frame-src 'self'",
           "object-src 'none'",
@@ -110,82 +94,58 @@ const config = {
         ].join('; '),
       },
     },
-    // 已删除无效 X-Frame-Options meta 标签
     {
       tagName: 'meta',
-      attributes: {
-        'http-equiv': 'X-Content-Type-Options',
-        content: 'nosniff',
-      },
+      attributes: { 'http-equiv': 'X-Content-Type-Options', content: 'nosniff' },
     },
     {
       tagName: 'meta',
-      attributes: {
-        'http-equiv': 'Referrer-Policy',
-        content: 'strict-origin-when-cross-origin',
-      },
+      attributes: { 'http-equiv': 'Referrer-Policy', content: 'strict-origin-when-cross-origin' },
     },
     {
       tagName: 'meta',
-      attributes: {
-        'http-equiv': 'Permissions-Policy',
-        content: 'camera=(), microphone=(), geolocation=self',
-      },
+      attributes: { 'http-equiv': 'Permissions-Policy', content: 'camera=(), microphone=(), geolocation=self' },
     },
     {
       tagName: "meta",
-      attributes: {
-        name: "description",
-        content: "Monoの小窝，专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享",
-      },
+      attributes: { name: "description", content: m.description },
     },
     {
       tagName: "meta",
-      attributes: {
-        name: "keywords",
-        content: "ESP32P4,智能手表,LVGL,Meshtastic,开源硬件,Docusaurus,游戏模组,React教程",
-      },
+      attributes: { name: "keywords", content: m.keywords },
     },
     {
       tagName: 'script',
-      attributes: {
-        type: 'application/ld+json',
-      },
+      attributes: { type: 'application/ld+json' },
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Blog",
-        "name": "Monoの小窝",
-        "description": "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享",
-        "url": "https://monoblog.cc.cd",
-        "author": {
-          "@type": "Person",
-          "name": "Mono"
-        },
+        "name": siteData.siteTitle,
+        "description": m.description,
+        "url": siteData.siteUrl,
+        "author": { "@type": "Person", "name": siteData.siteAuthor },
         "publisher": {
           "@type": "Organization",
-          "name": "Monoの小窝",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://monoblog.cc.cd/img/avatar.webp"
-          }
+          "name": siteData.siteTitle,
+          "logo": { "@type": "ImageObject", "url": b.avatarImage }
         }
       }),
     },
-    { tagName: "meta", attributes: { name: "author", content: "Mono" } },
+    { tagName: "meta", attributes: { name: "author", content: siteData.siteAuthor } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
     // Open Graph
     { tagName: "meta", attributes: { property: "og:type", content: "website" } },
-    { tagName: "meta", attributes: { property: "og:title", content: "Monoの小窝 - 技术分享与开源硬件" } },
-    { tagName: "meta", attributes: { property: "og:description", content: "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享" } },
-    { tagName: "meta", attributes: { property: "og:url", content: "https://monoblog.cc.cd" } },
-    { tagName: "meta", attributes: { property: "og:image", content: "https://monoblog.cc.cd/img/og-image.png" } },
-    { tagName: "meta", attributes: { property: "og:site_name", content: "Monoの小窝" } },
-    { tagName: "meta", attributes: { property: "og:locale", content: "zh_CN" } },
+    { tagName: "meta", attributes: { property: "og:title", content: m.ogTitle } },
+    { tagName: "meta", attributes: { property: "og:description", content: m.ogDescription } },
+    { tagName: "meta", attributes: { property: "og:url", content: siteData.siteUrl } },
+    { tagName: "meta", attributes: { property: "og:image", content: m.ogImage } },
+    { tagName: "meta", attributes: { property: "og:site_name", content: siteData.siteTitle } },
+    { tagName: "meta", attributes: { property: "og:locale", content: m.ogLocale } },
     // Twitter Card
     { tagName: "meta", attributes: { name: "twitter:card", content: "summary_large_image" } },
-    { tagName: "meta", attributes: { name: "twitter:title", content: "Monoの小窝 - 技术分享与开源硬件" } },
-    { tagName: "meta", attributes: { name: "twitter:description", content: "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享" } },
-    { tagName: "meta", attributes: { name: "twitter:image", content: "https://monoblog.cc.cd/img/og-image.png" } },
+    { tagName: "meta", attributes: { name: "twitter:title", content: m.twitterTitle } },
+    { tagName: "meta", attributes: { name: "twitter:description", content: m.twitterDescription } },
+    { tagName: "meta", attributes: { name: "twitter:image", content: m.ogImage } },
   ],
 
   themeConfig: {
@@ -194,119 +154,29 @@ const config = {
       respectPrefersColorScheme: true,
       disableSwitch: false,
     },
-    primaryColor: '#2E7D9E',
-    secondaryColor: '#D32F2F',
+    primaryColor: t.primaryColor,
+    secondaryColor: t.secondaryColor,
     docs: { sidebar: { autoCollapseCategories: true } },
     navbar: {
-      hideOnScroll: false,
-      title: "Monoの小窝",
-      logo: {
-        alt: "Mono Logo",
-        src: "img/logo.svg",
-        srcDark: "img/logo.svg",
-      },
-      items: [
-        { label: "博客", to: "/blog/", position: "left" },
-        { label: "文章", to: "/docs/introduction/", position: "left" },
-        {
-          type: "dropdown",
-          label: "资源",
-          position: "left",
-          items: [
-            { label: "资料下载", to: "/downloads/" },
-            { label: "开源项目", to: "/projects/" },
-            { label: "开发工具", to: "/tools/" },
-          ],
-        },
-        {
-          type: "dropdown",
-          label: "工具箱",
-          position: "left",
-          items: [
-            { label: "硬件监控", to: "/hardware/" },
-            { label: "代码片段", to: "/snippets/" },
-            { label: "PCB元器件", to: "/pcb/" },
-            { label: "时光胶囊", to: "/capsule/" },
-            { label: "排行榜", to: "/leaderboard/" },
-          ],
-        },
-        { label: "关于", to: "/about/", position: "left" },
-        {
-          type: "dropdown",
-          label: "更多",
-          position: "left",
-          items: [
-            { label: "更新日志", to: "/changelog/" },
-            { label: "系列项目", to: "/series" },
-            { label: "隐私政策", to: "/privacy/" },
-            { label: "用户协议", to: "/terms/" },
-            { label: "RSS订阅", to: "/blog/rss.xml" },
-          ],
-        },
-        {
-          label: "聊天",
-          to: "/chat/",
-          position: "right",
-          className: "navbar-chat-btn",
-        },
-        {
-          label: "GitHub",
-          href: "https://github.com/ye2f4",
-          position: "right",
-          className: "navbar-github-btn",
-        },
-      ],
+      hideOnScroll: siteData.navbarConfig?.hideOnScroll ?? false,
+      title: siteData.siteTitle,
+      logo: { alt: b.logoAlt, src: b.logoSrc, srcDark: b.logoSrc },
+      items: siteData.navbarConfig?.items || [],
     },
     footer: {
-      style: 'dark',
-      links: [
-        {
-          title: '导航',
-          items: [
-            { label: '博客', to: '/blog/' },
-            { label: '文章', to: '/docs/introduction/' },
-            { label: '论坛', to: '/forum/' },
-            { label: '聊天', to: '/chat/' },
-          ],
-        },
-        {
-          title: '功能',
-          items: [
-            { label: '全球访问地图', to: '/visit-map/' },
-            { label: '排行榜', to: '/leaderboard/' },
-            { label: '资料下载', to: '/downloads/' },
-            { label: 'RSS订阅', to: '/rss/' },
-          ],
-        },
-        {
-          title: '关于',
-          items: [
-            { label: '关于本站', to: '/about/' },
-            { label: '用户协议', to: '/terms/' },
-            { label: '隐私政策', to: '/privacy/' },
-            { label: '更新日志', to: '/changelog/' },
-          ],
-        },
-        {
-          title: '外部',
-          items: [
-            { label: 'GitHub', href: 'https://github.com/ye2f4' },
-            { label: 'Vercel', href: 'https://vercel.com' },
-            { label: 'Supabase', href: 'https://supabase.com' },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} Monoの小窝. Built with Docusaurus & Vercel.`,
+      style: siteData.footerConfig?.style || 'dark',
+      links: siteData.footerConfig?.links || [],
+      copyright: `Copyright © ${currentYear} ${siteData.siteTitle}. Powered by Docusaurus & Vercel.`,
     },
     mermaid: {
       theme: { light: "base", dark: "base" },
       options: {
         themeVariables: {
-          primaryColor: "#2E7D9E",
+          primaryColor: t.primaryColor,
           primaryTextColor: "#1a1a1a",
           primaryBorderColor: "#4D4D4D",
           lineColor: "#EAD67E",
-          secondaryColor: "#D32F2F",
+          secondaryColor: t.secondaryColor,
           tertiaryColor: "#67CEA9",
         },
       },
@@ -314,13 +184,11 @@ const config = {
     prism: {
       additionalLanguages: ["shell-session", "bash"]
     },
-    image: "img/og-image.png",
+    image: m.ogImage,
   },
 
   plugins: [
-    // 自动同步 blog MDX → Supabase（dev/build 都生效）
     require.resolve("./plugins/sync-blog-plugin"),
-
     function AutoGenerateCNAMEPlugin() {
       return {
         name: "auto-generate-cname",
@@ -331,13 +199,11 @@ const config = {
         },
       };
     },
-
     [require.resolve("@easyops-cn/docusaurus-search-local"), {
       hashed: true,
       language: ["zh", "en"],
       highlightSearchTermsOnTargetPage: true,
     }],
-
     () => ({
       name: "docusaurus-tailwindcss",
       configurePostCss(postcssOptions) {
@@ -346,7 +212,6 @@ const config = {
         return postcssOptions;
       },
     }),
-
     () => ({
       name: "docusaurus-webpack-alias",
       configureWebpack() {
@@ -371,20 +236,20 @@ const config = {
       {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/ye2f4/pblot/edit/master/",
+          editUrl: `${siteData.githubUrl}/pblot/edit/master/`,
           breadcrumbs: true,
           showLastUpdateAuthor: true,
           remarkPlugins: [remarkDefList],
         },
         blog: {
-          blogTitle: 'Monoの小窝',
-          blogDescription: '个人随笔、技术分享、开源教程',
+          blogTitle: b.blogTitle,
+          blogDescription: b.blogDescription,
           postsPerPage: 10,
           blogSidebarCount: 5,
           onUntruncatedBlogPosts: 'ignore',
           feedOptions: {
             type: 'all',
-            copyright: '© 2026 Monoの小窝',
+            copyright: `© ${currentYear} ${siteData.siteTitle}`,
             language: 'zh-CN'
           }
         },
@@ -395,11 +260,7 @@ const config = {
           changefreq: 'weekly',
           priority: 0.7,
           lastmod: 'date',
-          ignorePatterns: [
-            '/tags/**',
-            '/categories/**',
-            '/search',
-          ],
+          ignorePatterns: ['/tags/**', '/categories/**', '/search'],
         },
       },
     ],

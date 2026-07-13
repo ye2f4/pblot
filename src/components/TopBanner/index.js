@@ -9,6 +9,13 @@ import { triggerGlobalProfileRefresh, AVATAR_CACHE_KEY } from '../../utils/globa
 
 const SCROLL_MODE = false;
 
+// 登录主题色配置
+const loginTheme = {
+  primaryBg: '#509feb', primaryHoverBg: '#3e8cd8',
+  bilibiliBg: '#fa78a0', githubBg: '#272b30', githubHoverBg: '#373c42',
+  logoutBg: '#f53f3f', logoutHoverBg: '#d32f2f',
+};
+
 // 优先读取数据库 nickname，兜底授权信息
 const getUserName = (user = null, nickName = '') => {
   if (nickName && nickName.trim()) return nickName.trim();
@@ -270,125 +277,81 @@ export default function TopBanner({
           ) : !user ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ fontSize: 14, color: '#666' }}>
-                欢迎访客，登录解锁完整功能
+                {siteData?.texts?.visitorWelcome || '欢迎访客，登录解锁完整功能'}
               </div>
 
               {/* 登录、注册强制同一行，弹性均分 */}
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <Link
                   to="/login"
                   style={{
-                    flex: 1,
-                    textAlign: 'center',
-                    background: '#509feb',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '11px 16px',
-                    borderRadius: '12px',
-                    textDecoration: 'none',
-                    fontSize: 14,
-                    fontWeight: 500,
+                    flex: 1, textAlign: 'center',
+                    background: siteData?.loginTheme?.primaryBg || loginTheme.primaryBg,
+                    color: '#fff', border: 'none',
+                    padding: '11px 16px', borderRadius: '12px',
+                    textDecoration: 'none', fontSize: 14, fontWeight: 500,
                     transition: 'all 0.25s ease',
                     boxShadow: '0 2px 8px rgba(80,159,235,0.22)'
                   }}
-                  onMouseOver={(e) => {
-                    e.target.style.background = '#3e8cd8';
-                    e.target.style.boxShadow = '0 4px 12px rgba(80,159,235,0.32)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.background = '#509feb';
-                    e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)';
-                  }}
+                  onMouseOver={(e) => { e.target.style.background = siteData?.loginTheme?.primaryHoverBg || loginTheme.primaryHoverBg; e.target.style.boxShadow = '0 4px 12px rgba(80,159,235,0.32)'; }}
+                  onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.primaryBg || loginTheme.primaryBg; e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)'; }}
                 >
-                  立即登录
+                  {siteData?.texts?.buttons?.login || '立即登录'}
                 </Link>
 
                 <Link
                   to="/register"
                   style={{
-                    flex: 1,
-                    textAlign: 'center',
-                    background: '#509feb',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '11px 16px',
-                    borderRadius: '12px',
-                    textDecoration: 'none',
-                    fontSize: 14,
-                    fontWeight: 500,
+                    flex: 1, textAlign: 'center',
+                    background: siteData?.loginTheme?.primaryBg || loginTheme.primaryBg,
+                    color: '#fff', border: 'none',
+                    padding: '11px 16px', borderRadius: '12px',
+                    textDecoration: 'none', fontSize: 14, fontWeight: 500,
                     transition: 'all 0.25s ease',
                     boxShadow: '0 2px 8px rgba(80,159,235,0.22)'
                   }}
-                  onMouseOver={(e) => {
-                    e.target.style.background = '#3e8cd8';
-                    e.target.style.boxShadow = '0 4px 12px rgba(80,159,235,0.32)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.background = '#509feb';
-                    e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)';
-                  }}
+                  onMouseOver={(e) => { e.target.style.background = siteData?.loginTheme?.primaryHoverBg || loginTheme.primaryHoverBg; e.target.style.boxShadow = '0 4px 12px rgba(80,159,235,0.32)'; }}
+                  onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.primaryBg || loginTheme.primaryBg; e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)'; }}
                 >
-                  立即注册
+                  {siteData?.texts?.buttons?.register || '立即注册'}
                 </Link>
               </div>
 
-              {/* B站按钮 带图标 微调亮度 */}
+              {/* B站按钮 */}
               <button
                 disabled
                 style={{
-                  width: '100%',
-                  border: 'none',
-                  background: '#fa78a0',
-                  color: '#fff',
-                  padding: '11px 16px',
-                  borderRadius: '12px',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'not-allowed',
-                  opacity: 0.92,
+                  width: '100%', border: 'none',
+                  background: siteData?.loginTheme?.bilibiliBg || loginTheme.bilibiliBg,
+                  color: '#fff', padding: '11px 16px',
+                  borderRadius: '12px', fontSize: 14, fontWeight: 500,
+                  cursor: 'not-allowed', opacity: 0.92,
                   transition: 'all 0.25s ease',
                   boxShadow: '0 2px 8px rgba(250,120,160,0.22)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
                 }}
               >
                 <span>📺</span>
-                Bilibili 登录（开发中）
+                {siteData?.texts?.buttons?.bilibiliLogin || 'Bilibili 登录（开发中）'}
               </button>
 
-              {/* GitHub登录 带小猫图标 亮度微调 */}
+              {/* GitHub登录 */}
               <button
                 onClick={handleGitHubLogin}
                 style={{
-                  width: '100%',
-                  border: 'none',
-                  background: '#272b30',
-                  color: '#fff',
-                  padding: '11px 16px',
-                  borderRadius: '12px',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.25s ease',
+                  width: '100%', border: 'none',
+                  background: siteData?.loginTheme?.githubBg || loginTheme.githubBg,
+                  color: '#fff', padding: '11px 16px',
+                  borderRadius: '12px', fontSize: 14, fontWeight: 500,
+                  cursor: 'pointer', transition: 'all 0.25s ease',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.13)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
                 }}
-                onMouseOver={(e) => {
-                  e.target.style.background = '#373c42';
-                  e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.20)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = '#272b30';
-                  e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.13)';
-                }}
+                onMouseOver={(e) => { e.target.style.background = siteData?.loginTheme?.githubHoverBg || loginTheme.githubHoverBg; e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.20)'; }}
+                onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.githubBg || loginTheme.githubBg; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.13)'; }}
               >
                 <span>🐱</span>
-                GitHub 登录
+                {siteData?.texts?.buttons?.githubLogin || 'GitHub 登录'}
               </button>
 
             </div>
@@ -396,7 +359,7 @@ export default function TopBanner({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#333' }}>
                 {renderUserAvatar(avatarEmoji)}
-                <span>👋 欢迎回来，<strong>{dbNickname || getUserName(user)}</strong></span>
+                <span>{siteData?.texts?.welcomeBack || '👋 欢迎回来，'}<strong>{dbNickname || getUserName(user)}</strong></span>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <Link
@@ -416,7 +379,7 @@ export default function TopBanner({
                   onMouseOver={(e) => e.target.style.borderColor = '#509feb'}
                   onMouseOut={(e) => e.target.style.borderColor = '#ccc'}
                 >
-                  个人中心
+                  {siteData?.texts?.buttons?.profile || '个人中心'}
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -425,7 +388,7 @@ export default function TopBanner({
                     flex: 1,
                     minWidth: '100px',
                     border: 'none',
-                    background: '#f53f3f',
+                    background: siteData?.loginTheme?.logoutBg || loginTheme.logoutBg,
                     color: '#fff',
                     padding: '9px 0',
                     borderRadius: '10px',
@@ -433,8 +396,10 @@ export default function TopBanner({
                     cursor: signOutLoading ? 'not-allowed' : 'pointer',
                     transition: '0.2s'
                   }}
+                  onMouseOver={(e) => { if (!signOutLoading) e.target.style.background = siteData?.loginTheme?.logoutHoverBg || loginTheme.logoutHoverBg; }}
+                  onMouseOut={(e) => { if (!signOutLoading) e.target.style.background = siteData?.loginTheme?.logoutBg || loginTheme.logoutBg; }}
                 >
-                  {signOutLoading ? '退出中' : '退出登录'}
+                  {signOutLoading ? (siteData?.texts?.buttons?.loggingOut || '退出中') : (siteData?.texts?.buttons?.logout || '退出登录')}
                 </button>
               </div>
             </div>

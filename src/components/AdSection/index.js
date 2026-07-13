@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function AdSection({ ads, base }) {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
   if (!ads || ads.length === 0) return null;
 
   return (
@@ -9,9 +11,10 @@ export default function AdSection({ ads, base }) {
         <div
           key={i}
           style={{
-            marginBottom: '15px',
-            width: 'auto',
-            height: 'auto',
+            marginBottom: isMobile ? '8px' : '15px',
+            width: '100%',
+            boxSizing: 'border-box',
+            overflow: 'hidden',
           }}
         >
           <a 
@@ -26,7 +29,7 @@ export default function AdSection({ ads, base }) {
               loading="lazy"
               style={{
                 display: 'block',
-                width: 'auto',
+                width: '100%',
                 height: 'auto',
                 maxWidth: '100%',
                 borderRadius: 6,

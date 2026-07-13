@@ -16,7 +16,8 @@ CREATE POLICY "允许已认证用户创建群聊" ON groups
 
 DROP POLICY IF EXISTS "允许群主更新群聊" ON groups;
 CREATE POLICY "允许群主更新群聊" ON groups
-  FOR UPDATE USING (auth.uid() = owner_id);
+  FOR UPDATE USING (auth.uid() = owner_id)
+  WITH CHECK (true);
 
 DROP POLICY IF EXISTS "允许群主删除群聊" ON groups;
 CREATE POLICY "允许群主删除群聊" ON groups

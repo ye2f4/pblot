@@ -64,9 +64,9 @@ export default function FriendsAndAbout({ siteData }) {
   }, [siteData.friends, siteData.about]);
 
   return (
-    <div style={{ display: 'flex', gap: 20, width: '100%' }}>
+    <div className={styles.friendAndAboutWrap}>
       {/* 友情链接 */}
-      <div className={styles.sectionCard} style={{ flex: 1 }}>
+      <div className={styles.sectionCard}>
         <h3 className={styles.sectionTitle}>{siteData.texts.friendsTitle}</h3>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 16, color: '#ccc' }}>⏳ 加载中...</div>
@@ -88,7 +88,7 @@ export default function FriendsAndAbout({ siteData }) {
       </div>
 
       {/* 关于本站 */}
-      <div className={styles.sectionCard} style={{ flex: 1 }}>
+      <div className={styles.sectionCard}>
         <h3 className={styles.sectionTitle}>{siteData.texts.aboutTitle}</h3>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 16, color: '#ccc' }}>⏳ 加载中...</div>

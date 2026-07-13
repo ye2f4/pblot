@@ -3,18 +3,192 @@
   "siteUrl": "https://monoblog.cc.cd",
   "basePath": "/",
   "callbackPath": "",
+  "siteAuthor": "Mono",
+  "organizationName": "ye2f4",
+  "githubUrl": "https://github.com/ye2f4",
+
+  "meta": {
+    "description": "Monoの小窝，专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享",
+    "keywords": "ESP32P4,智能手表,LVGL,Meshtastic,开源硬件,Docusaurus,游戏模组,React教程",
+    "ogTitle": "Monoの小窝 - 技术分享与开源硬件",
+    "ogDescription": "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享",
+    "ogImage": "https://monoblog.cc.cd/img/og-image.png",
+    "ogLocale": "zh_CN",
+    "twitterTitle": "Monoの小窝 - 技术分享与开源硬件",
+    "twitterDescription": "专注ESP32P4智能手表、LVGL开发、Meshtastic Mesh网络、开源硬件、技术分享"
+  },
+
+  "theme": {
+    "primaryColor": "#2E7D9E",
+    "secondaryColor": "#D32F2F",
+    "footerLinkColor": "#555",
+    "footerLinkHoverColor": "#2E7D9E",
+    "footerTitleColor": "#333",
+    "footerColor": "#555",
+    "footerDarkLinkColor": "#aaa",
+    "footerDarkLinkHoverColor": "#67ea94",
+    "footerDarkTitleColor": "#ddd",
+    "footerDarkColor": "#aaa"
+  },
+
+  "branding": {
+    "tagline": "一半黑发藏温柔，一半白发载星网。",
+    "blogTitle": "Monoの小窝",
+    "blogDescription": "个人随笔、技术分享、开源教程",
+    "logoAlt": "Mono Logo",
+    "logoSrc": "img/logo.svg",
+    "favicon": "img/logo.svg",
+    "avatarImage": "https://monoblog.cc.cd/img/avatar.webp"
+  },
+
+  "navbarConfig": {
+    "hideOnScroll": false,
+    "items": [
+      { "label": "博客", "to": "/blog/", "position": "left" },
+      { "label": "文章", "to": "/docs/introduction/", "position": "left" },
+      {
+        "type": "dropdown", "label": "资源", "position": "left",
+        "items": [
+          { "label": "资料下载", "to": "/downloads/" },
+          { "label": "开源项目", "to": "/projects/" },
+          { "label": "开发工具", "to": "/tools/" }
+        ]
+      },
+      {
+        "type": "dropdown", "label": "工具箱", "position": "left",
+        "items": [
+          { "label": "硬件监控", "to": "/hardware/" },
+          { "label": "代码片段", "to": "/snippets/" },
+          { "label": "PCB元器件", "to": "/pcb/" },
+          { "label": "时光胶囊", "to": "/capsule/" },
+          { "label": "排行榜", "to": "/leaderboard/" }
+        ]
+      },
+      { "label": "关于", "to": "/about/", "position": "left" },
+      {
+        "type": "dropdown", "label": "更多", "position": "left",
+        "items": [
+          { "label": "更新日志", "to": "/changelog/" },
+          { "label": "系列项目", "to": "/series" },
+          { "label": "隐私政策", "to": "/privacy/" },
+          { "label": "用户协议", "to": "/terms/" },
+          { "label": "RSS订阅", "to": "/blog/rss.xml" }
+        ]
+      },
+      { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" },
+      { "label": "GitHub", "href": "https://github.com/ye2f4", "position": "right", "className": "navbar-github-btn" }
+    ]
+  },
+
+  "footerConfig": {
+    "style": "dark",
+    "links": [
+      {
+        "title": "导航",
+        "items": [
+          { "label": "博客", "to": "/blog/" },
+          { "label": "文章", "to": "/docs/introduction/" },
+          { "label": "论坛", "to": "/forum/" },
+          { "label": "聊天", "to": "/chat/" }
+        ]
+      },
+      {
+        "title": "功能",
+        "items": [
+          { "label": "全球访问地图", "to": "/visit-map/" },
+          { "label": "排行榜", "to": "/leaderboard/" },
+          { "label": "资料下载", "to": "/downloads/" },
+          { "label": "RSS订阅", "to": "/rss/" }
+        ]
+      },
+      {
+        "title": "关于",
+        "items": [
+          { "label": "关于本站", "to": "/about/" },
+          { "label": "用户协议", "to": "/terms/" },
+          { "label": "隐私政策", "to": "/privacy/" },
+          { "label": "更新日志", "to": "/changelog/" }
+        ]
+      },
+      {
+        "title": "外部",
+        "items": [
+          { "label": "GitHub", "href": "https://github.com/ye2f4" },
+          { "label": "Vercel", "href": "https://vercel.com" },
+          { "label": "Supabase", "href": "https://supabase.com" }
+        ]
+      }
+    ]
+  },
+
+  "carouselConfig": {
+    "autoplaySpeed": 6000,
+    "speed": 300,
+    "fade": true,
+    "dots": false,
+    "infinite": true,
+    "pauseOnHover": true
+  },
+
+  "tileProviders": [
+    {
+      "name": "高德地图",
+      "url": "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+      "subdomains": ["1", "2", "3", "4"],
+      "attribution": "&copy; 高德地图",
+      "maxZoom": 18
+    },
+    {
+      "name": "OpenStreetMap",
+      "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
+      "maxZoom": 19
+    },
+    {
+      "name": "CartoDB",
+      "url": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+      "attribution": "&copy; <a href=\"https://carto.com/\">CartoDB</a>",
+      "maxZoom": 19
+    }
+  ],
+
+  "statColors": [
+    { "bg": "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)", "shadow": "rgba(59, 130, 246, 0.25)" },
+    { "bg": "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)", "shadow": "rgba(124, 58, 237, 0.25)" },
+    { "bg": "linear-gradient(135deg, #34d399 0%, #10b981 100%)", "shadow": "rgba(16, 185, 129, 0.25)" },
+    { "bg": "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)", "shadow": "rgba(245, 158, 11, 0.25)" },
+    { "bg": "linear-gradient(135deg, #f472b6 0%, #ec4899 100%)", "shadow": "rgba(236, 72, 153, 0.25)" }
+  ],
+
+  "loginTheme": {
+    "primaryBg": "#509feb",
+    "primaryHoverBg": "#3e8cd8",
+    "bilibiliBg": "#fa78a0",
+    "githubBg": "#272b30",
+    "githubHoverBg": "#373c42",
+    "logoutBg": "#f53f3f",
+    "logoutHoverBg": "#d32f2f"
+  },
+
+  "siteAnnouncement": "本站持续更新React与嵌入式教程，欢迎交流~",
+
   "texts": {
     "announcement": "欢迎来到Mono的小窝！本站为个人技术分享站点~",
     "notification": "📢 欢迎来到Mono的小窝！本站持续更新技术教程和资源分享，记得常来看看哦~ 🔥 最新上线React入门系列教程！",
+    "welcomeTitle": "欢迎来到Monoの小窝",
+    "visitorWelcome": "欢迎访客，登录解锁完整功能",
+    "welcomeBack": "👋 欢迎回来，",
+    "siteNotice": "站点公告",
+    "todayHeatmap": "📊 今日访问热力",
+    "systemStatus": "⚙️ 系统状态",
     "buttons": {
-      "login": "登录",
-      "register": "注册",
-      "githubLogin": "GitHub登录",
-      "signIn": "签到",
-      "drawPost": "抽贴",
+      "login": "立即登录",
+      "register": "立即注册",
+      "githubLogin": "GitHub 登录",
+      "bilibiliLogin": "Bilibili 登录（开发中）",
+      "profile": "个人中心",
       "logout": "退出登录",
-      "logging": "登录中...",
-      "profile": "个人中心"
+      "loggingOut": "退出中"
     },
     "loginTips": {
       "loginFailed": "登录失败: ",
@@ -43,249 +217,90 @@
       "message": "✅ 登录成功，正在返回首页..."
     },
     "rankTitle": "最新主题",
-    "weekJp": [
-      "日",
-      "月",
-      "火",
-      "水",
-      "木",
-      "金",
-      "土"
-    ],
-    "weekEn": [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday"
-    ],
+    "weekJp": ["日", "月", "火", "水", "木", "金", "土"],
+    "weekEn": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     "quickNavTitle": "🚀 快速导航",
     "updatesTitle": "📰 最新更新",
     "tagsTitle": "🏷️ 技术标签",
     "friendsTitle": "🔗 友情链接",
     "aboutTitle": "💡 关于本站"
   },
+
   "stats": [
-    {
-      "label": "今",
-      "value": "--",
-      "color": "#333"
-    },
-    {
-      "label": "昨",
-      "value": "--",
-      "color": "#34a853"
-    },
-    {
-      "label": "总",
-      "value": "--",
-      "color": "#999"
-    },
-    {
-      "label": "会",
-      "value": "--",
-      "color": "#999"
-    },
-    {
-      "label": "新",
-      "value": "--",
-      "color": "#999"
-    }
+    { "label": "今", "value": "--", "color": "#333" },
+    { "label": "昨", "value": "--", "color": "#34a853" },
+    { "label": "总", "value": "--", "color": "#999" },
+    { "label": "会", "value": "--", "color": "#999" },
+    { "label": "新", "value": "--", "color": "#999" }
   ],
+
   "tabs": [
-    {
-      "name": "最新主题",
-      "link": "/forum?tab=latest",
-      "color": "#4285f4"
-    },
-    {
-      "name": "最新回复",
-      "link": "/forum?tab=replies",
-      "color": "#ea4335"
-    },
-    {
-      "name": "热门主题",
-      "link": "/forum?tab=hot",
-      "color": "#fbbc05"
-    },
-    {
-      "name": "精华推荐",
-      "link": "/forum?tab=featured",
-      "color": "#34a853"
-    }
+    { "name": "最新主题", "link": "/forum?tab=latest", "color": "#4285f4" },
+    { "name": "最新回复", "link": "/forum?tab=replies", "color": "#ea4335" },
+    { "name": "热门主题", "link": "/forum?tab=hot", "color": "#fbbc05" },
+    { "name": "精华推荐", "link": "/forum?tab=featured", "color": "#34a853" }
   ],
+
   "carouselImages": [
-    {
-      "filename": "0.webp",
-      "title": ""
-    },
-    {
-      "filename": "1.webp",
-      "title": ""
-    },
-    {
-      "filename": "2.webp",
-      "title": ""
-    },
-    {
-      "filename": "3.webp",
-      "title": ""
-    },
-    {
-      "filename": "4.webp",
-      "title": ""
-    },
-    {
-      "filename": "5.webp",
-      "title": ""
-    },
-    {
-      "filename": "6.webp",
-      "title": ""
-    }
+    { "filename": "0.webp", "title": "" },
+    { "filename": "1.webp", "title": "" },
+    { "filename": "2.webp", "title": "" },
+    { "filename": "3.webp", "title": "" },
+    { "filename": "4.webp", "title": "" },
+    { "filename": "5.webp", "title": "" },
+    { "filename": "6.webp", "title": "" }
   ],
+
   "quickNav": [
-    {
-      "name": "React教程",
-      "icon": "⚛️",
-      "color": "#61dafb",
-      "link": "/blog/react"
-    },
-    {
-      "name": "前端开发",
-      "icon": "🎨",
-      "color": "#ff6b6b",
-      "link": "/blog/frontend"
-    },
-    {
-      "name": "后端技术",
-      "icon": "⚙️",
-      "color": "#4ecdc4",
-      "link": "/blog/backend"
-    },
-    {
-      "name": "开发工具",
-      "icon": "🛠️",
-      "color": "#ffe66d",
-      "link": "/tools"
-    },
-    {
-      "name": "游戏模组",
-      "icon": "🎮",
-      "color": "#a78bfa",
-      "link": "/blog/minecraft"
-    },
-    {
-      "name": "开源项目",
-      "icon": "📦",
-      "color": "#f472b6",
-      "link": "/projects"
-    }
+    { "name": "React教程", "icon": "⚛️", "color": "#61dafb", "link": "/blog/react" },
+    { "name": "前端开发", "icon": "🎨", "color": "#ff6b6b", "link": "/blog/frontend" },
+    { "name": "后端技术", "icon": "⚙️", "color": "#4ecdc4", "link": "/blog/backend" },
+    { "name": "开发工具", "icon": "🛠️", "color": "#ffe66d", "link": "/tools" },
+    { "name": "游戏模组", "icon": "🎮", "color": "#a78bfa", "link": "/blog/minecraft" },
+    { "name": "开源项目", "icon": "📦", "color": "#f472b6", "link": "/projects" }
   ],
+
   "updates": [
-    {
-      "date": "2025-06-08",
-      "content": "上线React入门系列教程第一章"
-    },
-    {
-      "date": "2025-06-07",
-      "content": "修复网站轮播图显示问题"
-    },
-    {
-      "date": "2025-06-06",
-      "content": "添加滚动通知栏功能"
-    },
-    {
-      "date": "2025-06-05",
-      "content": "网站全新改版上线"
-    }
+    { "date": "2025-06-08", "content": "上线React入门系列教程第一章" },
+    { "date": "2025-06-07", "content": "修复网站轮播图显示问题" },
+    { "date": "2025-06-06", "content": "添加滚动通知栏功能" },
+    { "date": "2025-06-05", "content": "网站全新改版上线" }
   ],
+
   "tags": [
-    {
-      "name": "React",
-      "count": 28,
-      "color": "#61dafb"
-    },
-    {
-      "name": "JavaScript",
-      "count": 45,
-      "color": "#f7df1e"
-    },
-    {
-      "name": "CSS",
-      "count": 32,
-      "color": "#264de4"
-    },
-    {
-      "name": "Node.js",
-      "count": 18,
-      "color": "#339933"
-    },
-    {
-      "name": "Docusaurus",
-      "count": 12,
-      "color": "#3ecc91"
-    },
-    {
-      "name": "Minecraft",
-      "count": 25,
-      "color": "#62b47a"
-    },
-    {
-      "name": "Git",
-      "count": 15,
-      "color": "#f05032"
-    },
-    {
-      "name": "Linux",
-      "count": 10,
-      "color": "#fcc624"
-    }
+    { "name": "React", "count": 28, "color": "#61dafb" },
+    { "name": "JavaScript", "count": 45, "color": "#f7df1e" },
+    { "name": "CSS", "count": 32, "color": "#264de4" },
+    { "name": "Node.js", "count": 18, "color": "#339933" },
+    { "name": "Docusaurus", "count": 12, "color": "#3ecc91" },
+    { "name": "Minecraft", "count": 25, "color": "#62b47a" },
+    { "name": "Git", "count": 15, "color": "#f05032" },
+    { "name": "Linux", "count": 10, "color": "#fcc624" }
   ],
+
   "friends": [
-    {
-      "name": "张三的技术博客",
-      "url": "https://example1.com"
-    },
-    {
-      "name": "李四的前端笔记",
-      "url": "https://example2.com"
-    },
-    {
-      "name": "王五的游戏工坊",
-      "url": "https://example3.com"
-    },
-    {
-      "name": "开源中国",
-      "url": "https://oschina.net"
-    }
+    { "name": "GitHub", "url": "https://github.com" },
+    { "name": "稀土掘金", "url": "https://juejin.cn" },
+    { "name": "V2EX", "url": "https://v2ex.com" },
+    { "name": "Stack Overflow", "url": "https://stackoverflow.com" },
+    { "name": "MDN Web Docs", "url": "https://developer.mozilla.org" },
+    { "name": "哔哩哔哩", "url": "https://www.bilibili.com" },
+    { "name": "知乎", "url": "https://www.zhihu.com" },
+    { "name": "CSDN", "url": "https://www.csdn.net" },
+    { "name": "开源中国", "url": "https://www.oschina.net" },
+    { "name": "InfoQ", "url": "https://www.infoq.cn" }
   ],
+
   "about": "本站是Mono的个人技术分享博客，专注于前端开发、游戏模组和开源项目。在这里你可以找到实用的教程、有趣的项目和各种技术资源。欢迎大家一起交流学习！",
+
   "rankList": [
-    {
-      "title": "加载中...",
-      "link": "/forum",
-      "date": ""
-    }
+    { "title": "加载中...", "link": "/forum", "date": "" }
   ],
+
   "ads": [
-    {
-      "filename": "ad_right_1.webp",
-      "link": "https://klpbbs.com/t/ad/xl_pc.html"
-    },
-    {
-      "filename": "ad_right_2.webp",
-      "link": "https://klpbbs.com/t/ad/yxy_pc.html"
-    },
-    {
-      "filename": "ad_right_3.webp",
-      "link": "https://xz.klpz.net/123/"
-    },
-    {
-      "filename": "ad_right_4.webp",
-      "link": "https://mcbebbs.cn/"
-    }
+    { "filename": "ad_right_1.webp", "link": "https://klpbbs.com/t/ad/xl_pc.html" },
+    { "filename": "ad_right_2.webp", "link": "https://klpbbs.com/t/ad/yxy_pc.html" },
+    { "filename": "ad_right_3.webp", "link": "https://xz.klpz.net/123/" },
+    { "filename": "ad_right_4.webp", "link": "https://mcbebbs.cn/" }
   ]
 }

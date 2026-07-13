@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../supabase/supabaseClient';
+import siteData from '../../data/siteData.json';
 import styles from '../../pages/index.module.css';
 
-const statColors = [
+const statColors = (siteData.statColors && siteData.statColors.length > 0) ? siteData.statColors : [
   { bg: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)', shadow: 'rgba(59, 130, 246, 0.25)' },
   { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', shadow: 'rgba(124, 58, 237, 0.25)' },
   { bg: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)', shadow: 'rgba(16, 185, 129, 0.25)' },
@@ -120,8 +121,15 @@ export default function MiddleStatsCard({
     totalLatency: 0
   });
   const [hourData, setHourData] = useState(Array(24).fill(0));
-  const isFirstVisit = useRef(false);
   const sessionReported = useRef(false);
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const openCalendar = () => window.open('/calendar', '_blank');
   const padZero = (num) => String(num).padStart(2, '0');
@@ -138,8 +146,8 @@ export default function MiddleStatsCard({
     day: 1,
     second: 0
   });
-  const weekJpMap = ['日', '月', '火', '水', '木', '金', '土'];
-  const weekEnMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const weekJpMap = siteData.texts?.weekJp || ['日', '月', '火', '水', '木', '金', '土'];
+  const weekEnMap = siteData.texts?.weekEn || ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   const getISOWeekNumber = (ts) => {
     const date = new Date(ts * 1000);
@@ -367,11 +375,27 @@ export default function MiddleStatsCard({
         // 静默忽略清理错误
       }
 
-      // 4. 新会话首次心跳 +1（独立 try/catch）
-      if (!isFirstVisit.current) {
-        isFirstVisit.current = true;
+      // 4. 新会话首次心跳 +1（使用 sessionStorage 防刷新重复计数）
+      const sessionKey = `visit_counted_${sessionId}`;
+      const alreadyCounted = sessionStorage.getItem(sessionKey);
+      if (!alreadyCounted) {
+        sessionStorage.setItem(sessionKey, '1');
         todayVisits += 1;
         totalVisits += 1;
+        // UV 增量（首次记录此会话时尝试新增 UV）
+        try {
+          await supabase.rpc('record_unique_visitor', { visitor_fingerprint: sessionId });
+          // 重新读取 uv_count
+          const { data: uvRow } = await supabase
+            .from('visit_stats').select('uv_count').eq('id', 1).maybeSingle();
+          uvCount = uvRow?.uv_count || 0;
+        } catch (e) {
+          // RPC 不可用时降级直接更新
+          try {
+            uvCount += 1;
+            await supabase.from('visit_stats').update({ uv_count: uvCount }).eq('id', 1);
+          } catch (e2) { /* 静默忽略 */ }
+        }
 
         try {
           await supabase
@@ -489,17 +513,17 @@ export default function MiddleStatsCard({
       background: 'rgba(255,255,255,0.95)',
       backdropFilter: 'blur(8px)',
       boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-      padding: '14px',
+      padding: isMobile ? '10px' : '14px',
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gridTemplateRows: 'auto auto auto auto',
-      gap: '4px 14px',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+      gridTemplateRows: isMobile ? 'auto' : 'auto auto auto auto',
+      gap: isMobile ? '8px' : '4px 14px',
       alignItems: 'stretch',
     }}
       onClick={(e) => e.stopPropagation()}
     >
       {/* A区 顶部5个图标统计 */}
-      <div style={{ gridColumn: 1, gridRow: 1 }}>
+      <div style={{ gridColumn: 1, gridRow: isMobile ? 'auto' : 1 }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
@@ -523,19 +547,19 @@ export default function MiddleStatsCard({
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
               >
                 <div style={{
-                  width: 42, height: 42, borderRadius: '50%',
+                  width: isMobile ? 32 : 42, height: isMobile ? 32 : 42, borderRadius: '50%',
                   background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 3px', boxShadow: `0 2px 6px ${color.shadow}`
                 }}>
-                  <span style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>{item.label}</span>
+                  <span style={{ fontSize: isMobile ? 14 : 18, fontWeight: 'bold', color: '#fff' }}>{item.label}</span>
                 </div>
-                <p style={{ fontSize: 11, margin: '1px 0 0', fontWeight: 700, color: '#4285f4' }}>{showVal}</p>
+                <p style={{ fontSize: isMobile ? 10 : 11, margin: '1px 0 0', fontWeight: 700, color: '#4285f4' }}>{showVal}</p>
               </div>
             );
           }) : (
             Array.from({ length: 5 }).map((_, i) => (
               <div key={i} style={{ textAlign: 'center', opacity: 0.5 }}>
-                <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(0,0,0,0.05)', margin: '0 auto 3px' }} />
+                <div style={{ width: isMobile ? 32 : 42, height: isMobile ? 32 : 42, borderRadius: '50%', background: 'rgba(0,0,0,0.05)', margin: '0 auto 3px' }} />
                 <div style={{ width: 32, height: 9, background: 'rgba(0,0,0,0.05)', borderRadius: 4, margin: '0 auto 2px' }} />
                 <div style={{ width: 26, height: 11, background: 'rgba(0,0,0,0.05)', borderRadius: 4, margin: '0 auto' }} />
               </div>
@@ -545,11 +569,12 @@ export default function MiddleStatsCard({
       </div>
 
       {/* B区 在线/今日/总访问 */}
-      <div style={{ gridColumn: 1, gridRow: 2 }}>
+      <div style={{ gridColumn: 1, gridRow: isMobile ? 'auto' : 2 }}>
         <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
           padding: '4px 8px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px',
-          fontSize: 11, color: '#666', fontWeight: 500,
+          fontSize: isMobile ? 10 : 11, color: '#666', fontWeight: 500,
+          gap: isMobile ? '4px' : '0',
         }}>
           <span>👥 在线：{visitStats.online}</span>
           <span>☀️ 今日：{visitStats.today}</span>
@@ -559,12 +584,13 @@ export default function MiddleStatsCard({
       </div>
 
       {/* C区 系统健康监控 */}
-      <div style={{ gridColumn: 1, gridRow: 3 }}>
+      <div style={{ gridColumn: 1, gridRow: isMobile ? 'auto' : 3 }}>
         <div style={{
           padding: '3px 6px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
+          gap: '4px',
         }}>
-          <span style={{ fontSize: 10, color: '#666' }}>⚙️ 系统状态</span>
+          <span style={{ fontSize: 10, color: '#666' }}>{siteData.texts?.systemStatus || '⚙️ 系统状态'}</span>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{
@@ -619,7 +645,7 @@ export default function MiddleStatsCard({
           title="点击查看全球访问地图"
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666' }}>
-            <span>📊 今日访问热力</span>
+            <span>{siteData.texts?.todayHeatmap || '📊 今日访问热力'}</span>
             <span>当前{currentHour}:00 峰值{maxHourCount} 🔗地图</span>
           </div>
           <div style={{
@@ -650,22 +676,22 @@ export default function MiddleStatsCard({
       </div>
 
       {/* E区 时钟面板 */}
-      <div style={{ gridColumn: 2, gridRow: '1 / span 3', height: '100%' }}>
+      <div style={{ gridColumn: isMobile ? 1 : 2, gridRow: isMobile ? 'auto' : '1 / span 3', height: isMobile ? 'auto' : '100%' }}>
         <div className="pixel-clock-fixed" style={{
-          padding: "12px 14px", borderRadius: "16px", textAlign: "center",
+          padding: isMobile ? "10px 12px" : "12px 14px", borderRadius: "16px", textAlign: "center",
           boxShadow: "0 4px 16px rgba(0,0,0,0.08)", position: "relative",
-          width: '100%', height: '100%', boxSizing: 'border-box',
+          width: '100%', height: isMobile ? 'auto' : '100%', boxSizing: 'border-box',
         }}>
-          <p style={{ margin: '0 0 3px', fontSize: 15, color: '#1ce306', fontWeight: 500 }}>
+          <p style={{ margin: '0 0 3px', fontSize: isMobile ? 12 : 15, color: '#1ce306', fontWeight: 500 }}>
             {locationName}当地时间
           </p>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: '5px', marginBottom: '5px'
           }}>
-            <span style={{ fontSize: 17 }}>⏰</span>
+            <span style={{ fontSize: isMobile ? 14 : 17 }}>⏰</span>
             <div className={`pixel-font ${styles.clockText}`} style={{
-              fontSize: 19, color: '#1a1a1a', letterSpacing: 2,
+              fontSize: isMobile ? 16 : 19, color: '#1a1a1a', letterSpacing: 2,
             }}>
               {display.time}
             </div>
@@ -674,13 +700,13 @@ export default function MiddleStatsCard({
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px',
             margin: '0 auto 5px', padding: '2px 8px',
             backgroundColor: 'rgba(66, 133, 244, 0.1)', border: 'none',
-            borderRadius: '18px', cursor: 'pointer', fontSize: 11, color: '#0060fc', fontWeight: 500,
+            borderRadius: '18px', cursor: 'pointer', fontSize: isMobile ? 10 : 11, color: '#0060fc', fontWeight: 500,
           }}>
-            <span style={{ fontSize: 12 }}>📅</span>
+            <span style={{ fontSize: isMobile ? 10 : 12 }}>📅</span>
             <span>{display.weekJp}曜日 · {display.weekEn}</span>
           </button>
           <div className={`pixel-font ${styles.dateText}`} style={{
-            fontSize: 13, color: '#333', fontWeight: 600
+            fontSize: isMobile ? 11 : 13, color: '#333', fontWeight: 600
           }}>
             {display.year}-{padZero(display.month)}-{padZero(display.day)} 第{display.weekNum}周
           </div>
@@ -688,7 +714,7 @@ export default function MiddleStatsCard({
       </div>
 
       {/* F区 公告栏 */}
-      <div style={{ gridColumn: 2, gridRow: 4 }}>
+      <div style={{ gridColumn: isMobile ? 1 : 2, gridRow: isMobile ? 'auto' : 4 }}>
         <div style={{
           height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center',
           padding: '6px 8px', background: 'rgba(254, 248, 230, 0.7)',
@@ -697,9 +723,9 @@ export default function MiddleStatsCard({
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
             <span style={{ fontSize: 12 }}>📢</span>
             <div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#d97706' }}>站点公告</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#d97706' }}>{siteData.texts?.siteNotice || '站点公告'}</span>
               <p style={{ fontSize: 10, color: '#555', margin: '2px 0 0', lineHeight: 1.4 }}>
-                本站持续更新React与嵌入式教程，欢迎交流~
+                {siteData.siteAnnouncement || '本站持续更新React与嵌入式教程，欢迎交流~'}
               </p>
             </div>
           </div>
