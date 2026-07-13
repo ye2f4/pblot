@@ -577,12 +577,12 @@ export default function ChatPage() {
 
   return (
     <Layout title="在线聊天">
-      <div style={{
+      <div className="chat-container" style={{
         display: 'flex', width: '96%', maxWidth: '1400px', margin: '30px auto',
         height: 'calc(100vh - 180px)', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '16px',
         overflow: 'hidden', background: 'var(--ifm-card-background-color)'
       }}>
-        <div style={{ width: '340px', borderRight: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-color-emphasis-100)', display: 'flex', flexDirection: 'column' }}>
+        <div className="chat-sidebar" style={{ width: '340px', borderRight: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-color-emphasis-100)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', borderBottom: '1px solid var(--ifm-color-emphasis-300)' }}>
             <div
               onClick={() => { setActiveTab('friend'); setTargetUser(null); setCurrentGroup(null); }}
@@ -697,7 +697,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div className="chat-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           {error && (
             <div style={{
               background: '#fff2f0', color: '#ff4d4f', padding: '12px 20px',

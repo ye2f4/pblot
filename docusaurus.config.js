@@ -99,7 +99,7 @@ const config = {
           "default-src 'self'",
           "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://xwhwcmorcmgpfpocmgez.supabase.co https://va.vercel-scripts.com https://unpkg.com https://cdnjs.cloudflare.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com",
-          "img-src 'self' data: https: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
+          "img-src 'self' data: https: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.is.autonavi.com",
           "font-src 'self' https://fonts.gstatic.com data:",
           // 放开地图/位置相关请求
           "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com https://api.open-meteo.com https://ipapi.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",

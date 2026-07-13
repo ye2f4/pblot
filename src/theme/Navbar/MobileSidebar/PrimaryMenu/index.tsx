@@ -22,6 +22,10 @@ export default function PrimaryMenu(): React.ReactNode {
   // 点击下拉菜单项时，展开二级菜单
   const handleDropdownClick = (item: NavbarItem) => {
     const subItems = (item.items || []) as NavbarItem[];
+    if (!secondaryMenu || typeof secondaryMenu.show !== 'function') {
+      // 降级：直接跳转不展开二级菜单
+      return;
+    }
     secondaryMenu.show({
       content: (
         <ul className="menu__list">

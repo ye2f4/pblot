@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Layout from '@theme/Layout';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 import { supabase } from '../supabase/supabaseClient';
 
-// 瓦片源配置（多源兜底，优先国内可访问源）
+const FETCH_TIMEOUT = 8000;
+
+// 瓦片源配置
 const TILE_PROVIDERS = [
   {
     name: '高德地图',
@@ -27,20 +28,13 @@ const TILE_PROVIDERS = [
   },
 ];
 
-// 修复 Leaflet 默认图标路径（webpack 打包后需要）
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
-
-const FETCH_TIMEOUT = 8000;
-
-export default function VisitMap() {
+function MapCore() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
+  const tileProviderIndex = useRef(0);
+  const LRef = useRef(null);
+
   const [locations, setLocations] = useState([]);
   const [stats, setStats] = useState({
     totalVisitors: 0,
@@ -51,7 +45,6 @@ export default function VisitMap() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const tileProviderIndex = useRef(0);
 
   const fetchWithTimeout = useCallback(async (queryFn) => {
     const timeout = new Promise((_, reject) =>
@@ -102,15 +95,42 @@ export default function VisitMap() {
     }
   }, [fetchWithTimeout]);
 
+  // 加载 Leaflet（仅在浏览器端）
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const L = (await import('leaflet')).default;
+        await import('leaflet/dist/leaflet.css');
+        if (cancelled) return;
+
+        // 修复 Leaflet 默认图标路径
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+          iconUrl: require('leaflet/dist/images/marker-icon.png'),
+          shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+        });
+
+        LRef.current = L;
+      } catch (e) {
+        console.error('加载 Leaflet 失败:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // 数据加载
   useEffect(() => {
     loadData();
     const timer = setInterval(loadData, 30000);
     return () => clearInterval(timer);
   }, [loadData]);
 
-  // 初始化地图（Leaflet 已通过 npm 打包，无需等待 CDN 加载）
+  // 初始化地图
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    const L = LRef.current;
+    if (!mapRef.current || mapInstanceRef.current || !L) return;
 
     const map = L.map(mapRef.current, {
       center: [30, 10],
@@ -122,7 +142,6 @@ export default function VisitMap() {
       attributionControl: true
     });
 
-    // 尝试加载瓦片源，失败则切换下一个
     const tryLoadTiles = (index) => {
       if (index >= TILE_PROVIDERS.length) {
         setError('所有地图瓦片源加载失败，请检查网络连接');
@@ -155,7 +174,6 @@ export default function VisitMap() {
     const resizeHandler = () => map.invalidateSize();
     window.addEventListener('resize', resizeHandler);
 
-    // 初始加载后延迟 invalidateSize 确保容器尺寸正确
     setTimeout(() => map.invalidateSize(), 200);
 
     return () => {
@@ -163,11 +181,12 @@ export default function VisitMap() {
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, []);
+  }, [LRef.current]);
 
   // 更新标记
   useEffect(() => {
-    if (!mapInstanceRef.current || !markersLayerRef.current) return;
+    const L = LRef.current;
+    if (!mapInstanceRef.current || !markersLayerRef.current || !L) return;
 
     markersLayerRef.current.clearLayers();
 
@@ -230,7 +249,6 @@ export default function VisitMap() {
     } else if (locations.length === 1) {
       mapInstanceRef.current.setView([locations[0].latitude, locations[0].longitude], 6);
     }
-
   }, [locations]);
 
   const getTimeAgo = (date) => {
@@ -253,7 +271,10 @@ export default function VisitMap() {
   };
 
   return (
-    <Layout title="全球访问地图" description="Monoの小窝 - 全球访客分布地图">
+    <div style={{
+      maxWidth: 1400, margin: '0 auto', padding: '16px',
+      display: 'flex', flexDirection: 'column', gap: '16px', height: 'calc(100vh - 60px)'
+    }}>
       <style>{`
         @keyframes markerPulse {
           0% { box-shadow: 0 0 0 0 rgba(66,133,244,0.5); }
@@ -266,107 +287,116 @@ export default function VisitMap() {
       `}</style>
 
       <div style={{
-        maxWidth: 1400, margin: '0 auto', padding: '16px',
-        display: 'flex', flexDirection: 'column', gap: '16px', height: 'calc(100vh - 60px)'
+        display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center',
+        justifyContent: 'space-between'
       }}>
-        <div style={{
-          display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#1a1a1a' }}>
-            🌍 全球访问地图
-          </h2>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <div style={statCardStyle}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#4285f4' }}>{stats.totalVisitors}</div>
-              <div style={{ fontSize: 11, color: '#999' }}>访客位置</div>
-            </div>
-            <div style={statCardStyle}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#34a853' }}>{stats.uniqueCountries}</div>
-              <div style={{ fontSize: 11, color: '#999' }}>国家/地区</div>
-            </div>
-            <div style={statCardStyle}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#fbbc05' }}>{stats.uniqueCities}</div>
-              <div style={{ fontSize: 11, color: '#999' }}>城市</div>
-            </div>
-            <div style={statCardStyle}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#ea4335' }}>{stats.mobilePercent}%</div>
-              <div style={{ fontSize: 11, color: '#999' }}>移动端</div>
-            </div>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#1a1a1a' }}>
+          🌍 全球访问地图
+        </h2>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={statCardStyle}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#4285f4' }}>{stats.totalVisitors}</div>
+            <div style={{ fontSize: 11, color: '#999' }}>访客位置</div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button onClick={loadData} style={{
-              padding: '6px 14px', border: '1px solid #ddd', borderRadius: '8px',
-              background: '#fff', cursor: 'pointer', fontSize: 13, color: '#555',
-            }}>
-              🔄 刷新
-            </button>
-            {stats.lastUpdate && (
-              <span style={{ fontSize: 11, color: '#999' }}>更新于 {stats.lastUpdate}</span>
-            )}
+          <div style={statCardStyle}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#34a853' }}>{stats.uniqueCountries}</div>
+            <div style={{ fontSize: 11, color: '#999' }}>国家/地区</div>
+          </div>
+          <div style={statCardStyle}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#fbbc05' }}>{stats.uniqueCities}</div>
+            <div style={{ fontSize: 11, color: '#999' }}>城市</div>
+          </div>
+          <div style={statCardStyle}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#ea4335' }}>{stats.mobilePercent}%</div>
+            <div style={{ fontSize: 11, color: '#999' }}>移动端</div>
           </div>
         </div>
-
-        {error && (
-          <div style={{
-            padding: '16px 20px', background: '#fff3cd', borderRadius: '10px',
-            color: '#856404', border: '1px solid #ffc107', fontSize: 13,
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button onClick={loadData} style={{
+            padding: '6px 14px', border: '1px solid #ddd', borderRadius: '8px',
+            background: '#fff', cursor: 'pointer', fontSize: 13, color: '#555',
           }}>
-            <strong>⚠️ {error}</strong>
-            <p style={{ margin: '4px 0 0', fontSize: 11 }}>
-              请在 Supabase SQL Editor 中运行项目根目录下的
-              <code style={{ background: '#ffeeba', padding: '1px 4px', borderRadius: 3 }}>supabase/migrations/20260713_visitor_system.sql</code>
-            </p>
-          </div>
-        )}
-
-        {loading && !error && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            height: '50px', color: '#999', fontSize: 14, gap: '8px'
-          }}>
-            <span>⏳</span> 正在加载访客数据...
-          </div>
-        )}
-
-        <div style={{
-          flex: 1, minHeight: 400, borderRadius: '16px', overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb',
-          background: '#f0f4f8',
-          position: 'relative'
-        }}>
-          <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-
-          {locations.length > 0 && (
-            <div style={{
-              position: 'absolute', bottom: 16, left: 16, zIndex: 1000,
-              background: 'rgba(255,255,255,0.95)', borderRadius: '10px',
-              padding: '8px 12px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              fontSize: 11, color: '#555', display: 'flex', gap: '12px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#4285f4', border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}></div>
-                <span>活跃(30分钟内)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#9ca3af', border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}></div>
-                <span>历史访客</span>
-              </div>
-            </div>
-          )}
-
-          {!loading && locations.length === 0 && (
-            <div style={{
-              position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
-              zIndex: 1000, background: 'rgba(255,255,255,0.95)', borderRadius: '12px',
-              padding: '12px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
-              fontSize: 14, color: '#666',
-            }}>
-              📍 暂无访客位置数据，等待第一位访客到来...
-            </div>
+            🔄 刷新
+          </button>
+          {stats.lastUpdate && (
+            <span style={{ fontSize: 11, color: '#999' }}>更新于 {stats.lastUpdate}</span>
           )}
         </div>
       </div>
+
+      {error && (
+        <div style={{
+          padding: '16px 20px', background: '#fff3cd', borderRadius: '10px',
+          color: '#856404', border: '1px solid #ffc107', fontSize: 13,
+        }}>
+          <strong>⚠️ {error}</strong>
+          <p style={{ margin: '4px 0 0', fontSize: 11 }}>
+            请在 Supabase SQL Editor 中运行项目根目录下的
+            <code style={{ background: '#ffeeba', padding: '1px 4px', borderRadius: 3 }}>supabase/migrations/20260713_visitor_system.sql</code>
+          </p>
+        </div>
+      )}
+
+      {loading && !error && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: '50px', color: '#999', fontSize: 14, gap: '8px'
+        }}>
+          <span>⏳</span> 正在加载访客数据...
+        </div>
+      )}
+
+      <div style={{
+        flex: 1, minHeight: 400, borderRadius: '16px', overflow: 'hidden',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb',
+        background: '#f0f4f8',
+        position: 'relative'
+      }}>
+        <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+
+        {locations.length > 0 && (
+          <div style={{
+            position: 'absolute', bottom: 16, left: 16, zIndex: 1000,
+            background: 'rgba(255,255,255,0.95)', borderRadius: '10px',
+            padding: '8px 12px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            fontSize: 11, color: '#555', display: 'flex', gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#4285f4', border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}></div>
+              <span>活跃(30分钟内)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#9ca3af', border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}></div>
+              <span>历史访客</span>
+            </div>
+          </div>
+        )}
+
+        {!loading && locations.length === 0 && (
+          <div style={{
+            position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 1000, background: 'rgba(255,255,255,0.95)', borderRadius: '12px',
+            padding: '12px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+            fontSize: 14, color: '#666',
+          }}>
+            📍 暂无访客位置数据，等待第一位访客到来...
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function VisitMap() {
+  return (
+    <Layout title="全球访问地图" description="Monoの小窝 - 全球访客分布地图">
+      <BrowserOnly fallback={
+        <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
+          地图加载中...
+        </div>
+      }>
+        {() => <MapCore />}
+      </BrowserOnly>
     </Layout>
   );
 }

@@ -27,6 +27,12 @@
   --ifm-card-background-color: #ffffff !important;
   --ifm-background-surface-color: #f8f9fa !important;
   --ifm-toc-border-color: #e0e0e0 !important;
+
+  /* 底栏链接颜色覆盖（默认 secondaryColor 是红色） */
+  --ifm-footer-link-color: #555 !important;
+  --ifm-footer-link-hover-color: #2E7D9E !important;
+  --ifm-footer-title-color: #333 !important;
+  --ifm-footer-color: #555 !important;
 }
 
 /* 暗色模式柔和配色，解决卡片纯白刺眼 */
@@ -36,6 +42,12 @@
   --ifm-background-surface-color: #2a2a2a !important;
   --ifm-toc-border-color: #383838 !important;
   --ifm-font-color-base: #eaeaea !important;
+
+  /* 暗色模式底栏颜色 */
+  --ifm-footer-link-color: #aaa !important;
+  --ifm-footer-link-hover-color: #67ea94 !important;
+  --ifm-footer-title-color: #ddd !important;
+  --ifm-footer-color: #aaa !important;
 }
 
 /* ========== 通用板块卡片样式（全站统一明暗） ========== */
@@ -80,6 +92,86 @@
     padding: 8px;
     white-space: pre-wrap !important;
     word-break: break-all;
+  }
+
+  /* 移动端：首页两栏布局改为单栏 */
+  .main-content > div {
+    flex-direction: column !important;
+  }
+  .main-content .left-container,
+  .main-content .sidebar-container {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+  }
+
+  /* 移动端：统计卡片缩小 */
+  .stat-card {
+    padding: 10px 12px;
+  }
+
+  /* 移动端：TopBanner 适配 */
+  .bannerGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 移动端：导航栏精简 */
+  .navbar__title {
+    font-size: 14px;
+  }
+  .navbar__logo {
+    height: 24px;
+  }
+
+  /* 移动端：聊天页适配 */
+  .chat-container {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .chat-sidebar {
+    width: 100% !important;
+    max-height: 45vh !important;
+    flex-shrink: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--ifm-color-emphasis-300) !important;
+  }
+  .chat-main {
+    flex: 1 !important;
+    min-height: 50vh !important;
+  }
+  /* 聊天输入区域移动端优化 */
+  .chat-input-area {
+    padding: 10px 12px !important;
+  }
+}
+
+/* ========== 平板适配 ========== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-content .left-container {
+    flex: 6 1 300px !important;
+  }
+  .main-content .sidebar-container {
+    flex: 4 1 240px !important;
+  }
+
+  /* 平板：聊天侧边栏缩小 */
+  .chat-sidebar {
+    width: 260px !important;
+  }
+}
+
+/* ========== 通用：移动端 Tab/按钮横向滚动 ========== */
+@media (max-width: 640px) {
+  /* 论坛/排行榜等 Tab 栏横向滚动 */
+  .tabs-scroll {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px !important;
+    padding-bottom: 4px;
+  }
+  .tabs-scroll > * {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
 }
 
