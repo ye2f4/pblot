@@ -32,7 +32,9 @@ function MapCore() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
-  const tileProviderIndex = useRef(0);
+  const tileLayerRef = useRef(null);
+  const tileLoadCount = useRef(0);
+  const tileErrorCount = useRef(0);
   const LRef = useRef(null);
 
   const [locations, setLocations] = useState([]);
@@ -45,6 +47,8 @@ function MapCore() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeProvider, setActiveProvider] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
 
   const fetchWithTimeout = useCallback(async (queryFn) => {
     const timeout = new Promise((_, reject) =>
@@ -95,6 +99,55 @@ function MapCore() {
     }
   }, [fetchWithTimeout]);
 
+  // 数据加载
+  useEffect(() => {
+    loadData();
+    const timer = setInterval(loadData, 30000);
+    return () => clearInterval(timer);
+  }, [loadData]);
+
+  // 切换瓦片源
+  const switchProvider = useCallback((index) => {
+    const L = LRef.current;
+    const map = mapInstanceRef.current;
+    if (!L || !map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    const provider = TILE_PROVIDERS[index];
+    tileLoadCount.current = 0;
+    tileErrorCount.current = 0;
+
+    const tileLayer = L.tileLayer(provider.url, {
+      attribution: provider.attribution,
+      maxZoom: provider.maxZoom,
+      noWrap: false,
+      ...(provider.subdomains ? { subdomains: provider.subdomains } : {}),
+    });
+
+    // 统计瓦片加载成功/失败
+    tileLayer.on('tileload', () => {
+      tileLoadCount.current++;
+    });
+    tileLayer.on('tileerror', () => {
+      tileErrorCount.current++;
+      // 如果错误数超过加载数的 3 倍且已加载不足 5 块，提示切换
+      if (tileErrorCount.current > 8 && tileLoadCount.current < 3 && tileErrorCount.current > tileLoadCount.current * 3) {
+        setError('当前地图源加载困难，请尝试切换到其他地图源');
+      }
+    });
+
+    tileLayer.addTo(map);
+    tileLayerRef.current = tileLayer;
+    setActiveProvider(index);
+    setError(null);
+  }, []);
+
+  // Leaflet 加载就绪状态（避免 ref 作为依赖）
+  const [leafletReady, setLeafletReady] = useState(false);
+
   // 加载 Leaflet（仅在浏览器端）
   useEffect(() => {
     let cancelled = false;
@@ -113,6 +166,7 @@ function MapCore() {
         });
 
         LRef.current = L;
+        setLeafletReady(true);
       } catch (e) {
         console.error('加载 Leaflet 失败:', e);
       }
@@ -120,17 +174,10 @@ function MapCore() {
     return () => { cancelled = true; };
   }, []);
 
-  // 数据加载
-  useEffect(() => {
-    loadData();
-    const timer = setInterval(loadData, 30000);
-    return () => clearInterval(timer);
-  }, [loadData]);
-
-  // 初始化地图
+  // 初始化地图（依赖 leafletReady 状态触发）
   useEffect(() => {
     const L = LRef.current;
-    if (!mapRef.current || mapInstanceRef.current || !L) return;
+    if (!leafletReady || !mapRef.current || mapInstanceRef.current || !L) return;
 
     const map = L.map(mapRef.current, {
       center: [30, 10],
@@ -142,46 +189,25 @@ function MapCore() {
       attributionControl: true
     });
 
-    const tryLoadTiles = (index) => {
-      if (index >= TILE_PROVIDERS.length) {
-        setError('所有地图瓦片源加载失败，请检查网络连接');
-        return;
-      }
-      const provider = TILE_PROVIDERS[index];
-      const tileLayer = L.tileLayer(provider.url, {
-        attribution: provider.attribution,
-        maxZoom: provider.maxZoom,
-        noWrap: false,
-      });
-
-      tileLayer.on('tileerror', () => {
-        if (index === tileProviderIndex.current) {
-          map.removeLayer(tileLayer);
-          tileProviderIndex.current = index + 1;
-          tryLoadTiles(index + 1);
-        }
-      });
-
-      tileLayer.addTo(map);
-      tileProviderIndex.current = index;
-    };
-
-    tryLoadTiles(0);
-
     markersLayerRef.current = L.layerGroup().addTo(map);
     mapInstanceRef.current = map;
+    setMapReady(true);
+
+    // 延迟加载瓦片，确保容器已渲染
+    setTimeout(() => {
+      switchProvider(0);
+      map.invalidateSize();
+    }, 300);
 
     const resizeHandler = () => map.invalidateSize();
     window.addEventListener('resize', resizeHandler);
-
-    setTimeout(() => map.invalidateSize(), 200);
 
     return () => {
       window.removeEventListener('resize', resizeHandler);
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [LRef.current]);
+  }, [leafletReady]);
 
   // 更新标记
   useEffect(() => {
@@ -326,14 +352,27 @@ function MapCore() {
 
       {error && (
         <div style={{
-          padding: '16px 20px', background: '#fff3cd', borderRadius: '10px',
+          padding: '12px 20px', background: '#fff3cd', borderRadius: '10px',
           color: '#856404', border: '1px solid #ffc107', fontSize: 13,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8,
         }}>
-          <strong>⚠️ {error}</strong>
-          <p style={{ margin: '4px 0 0', fontSize: 11 }}>
-            请在 Supabase SQL Editor 中运行项目根目录下的
-            <code style={{ background: '#ffeeba', padding: '1px 4px', borderRadius: 3 }}>supabase/migrations/20260713_visitor_system.sql</code>
-          </p>
+          <span><strong>⚠️ {error}</strong></span>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {TILE_PROVIDERS.map((p, i) => (
+              <button
+                key={p.name}
+                onClick={() => switchProvider(i)}
+                style={{
+                  padding: '4px 12px', border: '1px solid #856404', borderRadius: '6px',
+                  background: activeProvider === i ? '#856404' : 'transparent',
+                  color: activeProvider === i ? '#fff' : '#856404',
+                  cursor: 'pointer', fontSize: 12, fontWeight: 500,
+                }}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -353,6 +392,31 @@ function MapCore() {
         position: 'relative'
       }}>
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+
+        {/* 地图瓦片源切换按钮 */}
+        {mapReady && (
+          <div style={{
+            position: 'absolute', top: 10, right: 10, zIndex: 1000,
+            display: 'flex', gap: 4,
+          }}>
+            {TILE_PROVIDERS.map((p, i) => (
+              <button
+                key={p.name}
+                onClick={() => switchProvider(i)}
+                title={`切换到${p.name}`}
+                style={{
+                  padding: '4px 10px', border: '1px solid #ccc', borderRadius: '6px',
+                  background: activeProvider === i ? '#4285f4' : 'rgba(255,255,255,0.9)',
+                  color: activeProvider === i ? '#fff' : '#555',
+                  cursor: 'pointer', fontSize: 11, fontWeight: activeProvider === i ? 600 : 400,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                }}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {locations.length > 0 && (
           <div style={{

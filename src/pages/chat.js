@@ -579,7 +579,7 @@ export default function ChatPage() {
     <Layout title="在线聊天">
       <div className="chat-container" style={{
         display: 'flex', width: '96%', maxWidth: '1400px', margin: '30px auto',
-        height: 'calc(100vh - 180px)', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '16px',
+        height: 'calc(100vh - 180px)', minHeight: 0, border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '16px',
         overflow: 'hidden', background: 'var(--ifm-card-background-color)'
       }}>
         <div className="chat-sidebar" style={{ width: '340px', borderRight: '1px solid var(--ifm-color-emphasis-300)', background: 'var(--ifm-color-emphasis-100)', display: 'flex', flexDirection: 'column' }}>
@@ -711,7 +711,7 @@ export default function ChatPage() {
                 {targetUser.nickname}
                 {targetUser.isWebmaster && <span style={{ color:'#07c160',marginLeft:10,fontSize:12 }}>网站管理员</span>}
               </div>
-              <div style={{ flex: 1, padding: '24px', background: 'var(--ifm-color-emphasis-100)', overflowY: 'auto' }}>
+              <div style={{ flex: 1, minHeight: 0, padding: '24px', background: 'var(--ifm-color-emphasis-100)', overflowY: 'auto' }}>
                 {privateMsgList.map(msg => {
                   const isSelf = msg.from_user_id === myId;
                   return (
@@ -720,7 +720,8 @@ export default function ChatPage() {
                       <div style={{
                         maxWidth: '65%', padding: '9px 14px', borderRadius: '20px',
                         background: isSelf ? '#07c160' : 'var(--ifm-card-background-color)',
-                        color: isSelf ? '#fff' : 'var(--ifm-text-color)'
+                        color: isSelf ? '#fff' : 'var(--ifm-text-color)',
+                        wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap'
                       }}>{msg.content}</div>
                       {isSelf && renderAvatar(myAvatar, myId, 34)}
                     </div>
@@ -783,7 +784,7 @@ export default function ChatPage() {
                 >群聊设置</button>
               </div>
 
-              <div style={{ flex: 1, padding: '24px', background: 'var(--ifm-color-emphasis-100)', overflowY: 'auto', position: 'relative' }}>
+              <div style={{ flex: 1, minHeight: 0, padding: '24px', background: 'var(--ifm-color-emphasis-100)', overflowY: 'auto', position: 'relative' }}>
                 {groupMsgList.map(msg => {
                   const isSelf = msg.from_user_id === myId;
                   const sender = msg.sender || {};
@@ -800,7 +801,8 @@ export default function ChatPage() {
                         <div style={{
                           maxWidth: '65%', padding: '9px 14px', borderRadius: '20px',
                           background: isSelf ? '#07c160' : 'var(--ifm-card-background-color)',
-                          color: isSelf ? '#fff' : 'var(--ifm-text-color)'
+                          color: isSelf ? '#fff' : 'var(--ifm-text-color)',
+                          wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap'
                         }}>{msg.content}</div>
                         {isSelf && renderAvatar(myAvatar, myId, 34)}
                       </div>

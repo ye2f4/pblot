@@ -109,11 +109,6 @@
     padding: 10px 12px;
   }
 
-  /* 移动端：TopBanner 适配 */
-  .bannerGrid {
-    grid-template-columns: 1fr !important;
-  }
-
   /* 移动端：导航栏精简 */
   .navbar__title {
     font-size: 14px;
@@ -122,25 +117,35 @@
     height: 24px;
   }
 
-  /* 移动端：聊天页适配 */
+  /* 移动端：聊天页适配 - 使用固定高度避免纵向拉长 */
   .chat-container {
     flex-direction: column !important;
-    height: auto !important;
+    height: calc(100vh - 120px) !important;
+    min-height: 0 !important;
   }
   .chat-sidebar {
     width: 100% !important;
-    max-height: 45vh !important;
+    max-height: 40vh !important;
+    min-height: 0 !important;
     flex-shrink: 0 !important;
     border-right: none !important;
     border-bottom: 1px solid var(--ifm-color-emphasis-300) !important;
   }
   .chat-main {
     flex: 1 !important;
-    min-height: 50vh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
   /* 聊天输入区域移动端优化 */
   .chat-input-area {
     padding: 10px 12px !important;
+  }
+
+  /* 移动端：消息气泡文字换行 */
+  .chat-container [style*="max-width: 65%"] {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important;
   }
 }
 
@@ -172,6 +177,22 @@
   .tabs-scroll > * {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
+  }
+
+  /* 移动端：TopBanner 容器边距缩小 */
+  [class*="topBannerWrap"] {
+    padding: 12px !important;
+    margin: 8px auto !important;
+    border-radius: 16px !important;
+  }
+}
+
+/* ========== 中间统计卡片移动端适配 ========== */
+@media (max-width: 768px) {
+  /* MiddleStatsCard 双列变单列 */
+  [class*="topBannerWrap"] div[style*="grid-template-columns: 1fr 2fr 1fr"],
+  [class*="topBannerWrap"] div[style*="grid-template-columns: 1fr 2fr"] {
+    grid-template-columns: 1fr !important;
   }
 }
 

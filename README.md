@@ -84,7 +84,7 @@
 
 ## 🌐 在线预览
 > 线上访问地址（持续更新）
-- GitHub Pages：https://ye2f4.github.io/
+- 永久域名：https://monoblog.cc.cd
 - Vercel 部署地址：待补充
 
 <br />
