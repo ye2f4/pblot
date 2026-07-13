@@ -4,6 +4,67 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import styles from '../../pages/index.module.css';
 
+// 自定义箭头组件（React 函数组件，避免 currentSlide/slideCount 等 react-slick 内部 props 落到 DOM 上）
+function PrevArrow(props) {
+  const { className, style, onClick } = props;
+  return (
+    <button
+      type="button"
+      aria-label="上一张"
+      className={className}
+      style={{
+        ...style,
+        left: 15,
+        zIndex: 20,
+        minWidth: 48,
+        minHeight: 48,
+        border: 'none',
+        background: 'rgba(255,255,255,0.9)',
+        borderRadius: '50%',
+        fontSize: 20,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      }}
+      onClick={onClick}
+    >
+      ‹
+    </button>
+  );
+}
+
+function NextArrow(props) {
+  const { className, style, onClick } = props;
+  return (
+    <button
+      type="button"
+      aria-label="下一张"
+      className={className}
+      style={{
+        ...style,
+        right: 15,
+        zIndex: 20,
+        minWidth: 48,
+        minHeight: 48,
+        border: 'none',
+        background: 'rgba(255,255,255,0.9)',
+        borderRadius: '50%',
+        fontSize: 20,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      }}
+      onClick={onClick}
+    >
+      ›
+    </button>
+  );
+}
+
 export default function CarouselSection({ siteData, base, isClient }) {
     const carouselSettings = {
         dots: false,
@@ -20,54 +81,8 @@ export default function CarouselSection({ siteData, base, isClient }) {
         cssEase: 'ease-in-out',
         centerMode: false,
         centerPadding: '0px',
-        prevArrow: (
-            <button
-                type="button"
-                aria-label="上一张"
-                style={{
-                    position: 'absolute',
-                    left: 15,
-                    zIndex: 20,
-                    minWidth: 48,
-                    minHeight: 48,
-                    border: 'none',
-                    background: 'rgba(255,255,255,0.9)',
-                    borderRadius: '50%',
-                    fontSize: 20,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                }}
-            >
-                ‹
-            </button>
-        ),
-        nextArrow: (
-            <button
-                type="button"
-                aria-label="下一张"
-                style={{
-                    position: 'absolute',
-                    right: 15,
-                    zIndex: 20,
-                    minWidth: 48,
-                    minHeight: 48,
-                    border: 'none',
-                    background: 'rgba(255,255,255,0.9)',
-                    borderRadius: '50%',
-                    fontSize: 20,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                }}
-            >
-                ›
-            </button>
-        ),
+        prevArrow: <PrevArrow />,
+        nextArrow: <NextArrow />,
         responsive: [
             { breakpoint: 768, settings: { arrows: false, fade: false } }
         ]
@@ -75,26 +90,22 @@ export default function CarouselSection({ siteData, base, isClient }) {
 
     return (
         <div style={{
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--ifm-card-background-color)',
             padding: 0,
             borderRadius: 8,
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             width: '100%',
             overflow: 'hidden',
             marginBottom: 20,
-            minHeight: '350px',
         }}>
             <Suspense fallback={
                 <div style={{
-                    height: 350,
+                    aspectRatio: '16 / 7',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#999',
-                    backgroundImage: `url(${base}img/bar1.webp)`,
-                    backgroundSize: 'contain',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
+                    background: 'var(--ifm-color-emphasis-100)',
                 }}>
                     加载中...
                 </div>
@@ -106,18 +117,17 @@ export default function CarouselSection({ siteData, base, isClient }) {
                                 <img
                                     src={`${base}img/${img.filename}`}
                                     alt={img.title}
-                                    width="1200"
-                                    height="350"
                                     loading={i === 0 ? "eager" : "lazy"}
                                     fetchPriority={i === 0 ? "high" : "auto"}
                                     style={{
-                                        borderRadius: 0,
-                                        maxHeight: 350,
-                                        objectFit: 'contain',
-                                        backgroundColor: '#f5f5f5'
+                                        width: '100%',
+                                        aspectRatio: '16 / 7',
+                                        objectFit: 'cover',
+                                        display: 'block',
+                                        backgroundColor: 'var(--ifm-color-emphasis-100)'
                                     }}
                                 />
-                                <p style={{ marginTop: 8, marginBottom: 8, fontSize: 14 }}>
+                                <p style={{ marginTop: 8, marginBottom: 8, fontSize: 14, color: 'var(--ifm-text-color)' }}>
                                     {img.title}
                                 </p>
                             </div>

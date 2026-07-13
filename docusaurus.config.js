@@ -97,12 +97,12 @@ const config = {
         'http-equiv': 'Content-Security-Policy',
         content: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://xwhwcmorcmgpfpocmgez.supabase.co https://va.vercel-scripts.com",
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-          "img-src 'self' data: https: blob:",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://xwhwcmorcmgpfpocmgez.supabase.co https://va.vercel-scripts.com https://unpkg.com https://cdnjs.cloudflare.com",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com",
+          "img-src 'self' data: https: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
           "font-src 'self' https://fonts.gstatic.com data:",
-          // 新增 https://api.open-meteo.com 放开气象接口请求
-          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com https://api.open-meteo.com",
+          // 放开地图/位置相关请求
+          "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com https://api.open-meteo.com https://ipapi.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
           "frame-src 'self'",
           "object-src 'none'",
           "base-uri 'self'",
@@ -129,7 +129,7 @@ const config = {
       tagName: 'meta',
       attributes: {
         'http-equiv': 'Permissions-Policy',
-        content: 'camera=(), microphone=(), geolocation=()',
+        content: 'camera=(), microphone=(), geolocation=self',
       },
     },
     {
@@ -258,7 +258,45 @@ const config = {
       ],
     },
     footer: {
-      copyright: `Powered by Docusaurus + Vercel © ${new Date().getFullYear()} Monoの小窝`,
+      style: 'dark',
+      links: [
+        {
+          title: '导航',
+          items: [
+            { label: '博客', to: '/blog/' },
+            { label: '文章', to: '/docs/introduction/' },
+            { label: '论坛', to: '/forum/' },
+            { label: '聊天', to: '/chat/' },
+          ],
+        },
+        {
+          title: '功能',
+          items: [
+            { label: '全球访问地图', to: '/visit-map/' },
+            { label: '排行榜', to: '/leaderboard/' },
+            { label: '资料下载', to: '/downloads/' },
+            { label: 'RSS订阅', to: '/rss/' },
+          ],
+        },
+        {
+          title: '关于',
+          items: [
+            { label: '关于本站', to: '/about/' },
+            { label: '用户协议', to: '/terms/' },
+            { label: '隐私政策', to: '/privacy/' },
+            { label: '更新日志', to: '/changelog/' },
+          ],
+        },
+        {
+          title: '外部',
+          items: [
+            { label: 'GitHub', href: 'https://github.com/ye2f4' },
+            { label: 'Vercel', href: 'https://vercel.com' },
+            { label: 'Supabase', href: 'https://supabase.com' },
+          ],
+        },
+      ],
+      copyright: `Copyright © ${new Date().getFullYear()} Monoの小窝. Built with Docusaurus & Vercel.`,
     },
     mermaid: {
       theme: { light: "base", dark: "base" },
@@ -280,6 +318,9 @@ const config = {
   },
 
   plugins: [
+    // 自动同步 blog MDX → Supabase（dev/build 都生效）
+    require.resolve("./plugins/sync-blog-plugin"),
+
     function AutoGenerateCNAMEPlugin() {
       return {
         name: "auto-generate-cname",

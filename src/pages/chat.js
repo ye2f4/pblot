@@ -133,9 +133,9 @@ export default function ChatPage() {
   };
 
   // ===================== 数据请求方法 =====================
+  // 好友列表（排除站长）
   const fetchAllUsers = async (selfUid) => {
     try {
-      // 排除自己 + 排除站长（站长已在"联系站长"固定位置）
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nickname, avatar_url')
@@ -147,6 +147,22 @@ export default function ChatPage() {
     } catch (err) {
       console.error("加载联系人失败：", err);
       setError("加载联系人失败，请刷新重试");
+    }
+  };
+
+  // 群聊选人列表（包含除自己之外的所有用户，包括站长）
+  const [allUsersForGroup, setAllUsersForGroup] = useState([]);
+  const fetchAllUsersForGroup = async (selfUid) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nickname, avatar_url')
+        .neq('id', selfUid);
+
+      if (error) throw error;
+      setAllUsersForGroup(data || []);
+    } catch (err) {
+      console.error("加载群聊选人列表失败：", err);
     }
   };
 
@@ -246,24 +262,25 @@ export default function ChatPage() {
     setSending(true);
     setError(null);
     try {
-      const insertData = {
-        from_user_id: currentUser.id,
-        content: txt,
-        created_at: new Date()
-      };
-
       if (activeTab === 'friend' && targetUser) {
-        insertData.to_user_id = targetUser.id;
-        insertData.group_id = null;
-        const { error } = await supabase.from('messages').insert([insertData]);
+        const { error } = await supabase.from('messages').insert([{
+          from_user_id: currentUser.id,
+          to_user_id: targetUser.id,
+          content: txt,
+          created_at: new Date()
+        }]);
         if (error) throw error;
         setInputValue('');
         fetchPrivateMessages(targetUser.id);
-      }
-      if (activeTab === 'group' && currentGroup) {
-        insertData.group_id = currentGroup.id;
-        insertData.to_user_id = null;
-        const { error } = await supabase.from('messages').insert([insertData]);
+      } else if (activeTab === 'group' && currentGroup) {
+        // 群消息不设 to_user_id（用 from_user_id 代替以满足表 NOT NULL 约束）
+        const { error } = await supabase.from('messages').insert([{
+          from_user_id: currentUser.id,
+          to_user_id: currentUser.id,
+          group_id: currentGroup.id,
+          content: txt,
+          created_at: new Date()
+        }]);
         if (error) throw error;
         setInputValue('');
         fetchGroupMessages(currentGroup.id);
@@ -399,6 +416,7 @@ export default function ChatPage() {
         setMyProfile(profile || { avatar_url: DEFAULT_EMOJI_AVATAR });
 
         await fetchAllUsers(uid);
+        await fetchAllUsersForGroup(uid);
         await fetchMyGroups(uid);
       } catch (err) {
         console.error("初始化失败：", err);
@@ -528,7 +546,7 @@ export default function ChatPage() {
               style={{
                 width: '36px', height: '36px', borderRadius: '50%',
                 background: '#07c160', color: '#fff', border: 'none',
-                fontSize: '20px', cursor: 'pointer', display: 'flex',
+                fontSize: '20px', cursor: 'pointer', display: activeTab === 'group' ? 'flex' : 'none',
                 alignItems: 'center', justifyContent: 'center'
               }}
               title="创建群聊"
@@ -634,7 +652,7 @@ export default function ChatPage() {
 
               <div style={{ padding: '16px 20px', borderTop: '1px solid var(--ifm-color-emphasis-300)', position: 'relative' }}>
                 {showAtModal && <div style={{ position: 'absolute', bottom: '80px', left: '20px', background: 'var(--ifm-card-background-color)', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '10px', width: '220px', maxHeight: '220px', overflowY: 'auto', zIndex: 999 }}>
-                  {userList.map(u => <div key={u.id} onClick={() => insertAt(u)} style={{ padding: '10px 16px', cursor: 'pointer', color:'var(--ifm-text-color)' }}>@{u.nickname}</div>)}
+                  {allUsersForGroup.map(u => <div key={u.id} onClick={() => insertAt(u)} style={{ padding: '10px 16px', cursor: 'pointer', color:'var(--ifm-text-color)' }}>@{u.nickname}</div>)}
                 </div>}
                 {showEmojiPanel && <div style={{ position: 'absolute', bottom: '80px', left: '20px', zIndex: 999 }}>
                   <EmojiPicker onEmojiClick={handleEmojiSelect} />
@@ -726,7 +744,7 @@ export default function ChatPage() {
 
               <div style={{ padding: '16px 20px', borderTop: '1px solid var(--ifm-color-emphasis-300)', position: 'relative' }}>
                 {showAtModal && <div style={{ position: 'absolute', bottom: '80px', left: '20px', background: 'var(--ifm-card-background-color)', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '10px', width: '220px', maxHeight: '220px', overflowY: 'auto', zIndex: 999 }}>
-                  {userList.map(u => <div key={u.id} onClick={() => insertAt(u)} style={{ padding: '10px 16px', cursor: 'pointer', color:'var(--ifm-text-color)' }}>@{u.nickname}</div>)}
+                  {allUsersForGroup.map(u => <div key={u.id} onClick={() => insertAt(u)} style={{ padding: '10px 16px', cursor: 'pointer', color:'var(--ifm-text-color)' }}>@{u.nickname}</div>)}
                 </div>}
                 {showEmojiPanel && <div style={{ position: 'absolute', bottom: '80px', left: '20px', zIndex: 999 }}>
                   <EmojiPicker onEmojiClick={handleEmojiSelect} />
@@ -787,7 +805,7 @@ export default function ChatPage() {
             <div style={{ marginBottom: '16px' }}>
               <p style={{ margin: '0 0 8px' }}>选择群成员：</p>
               <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px', padding: '8px' }}>
-                {userList.map(u => (
+                {allUsersForGroup.map(u => (
                   <div
                     key={u.id}
                     onClick={() => {

@@ -194,7 +194,7 @@ export default function Register() {
         setShowEmojiPicker(false);
     };
 
-    // Step2 更新profile资料
+    // Step2 写入profile资料（使用 upsert 防止触发器未及时创建行导致的失败）
     const handleRegisterFinish = async (skipFillInfo = false) => {
         if (loading || isSubmitting.current || !currentUser) return;
         setLoading(true);
@@ -202,6 +202,7 @@ export default function Register() {
         setError('');
         try {
             const payload = {
+                id: currentUser.id,
                 username: username.toLowerCase(),
                 nickname,
                 avatar_url: skipFillInfo ? '😀' : avatar_url,
@@ -214,8 +215,7 @@ export default function Register() {
 
             const { error } = await supabase
                 .from('profiles')
-                .update(payload)
-                .eq('id', currentUser.id);
+                .upsert(payload, { onConflict: 'id' });
 
             if (error) throw error;
             goStep(3);
@@ -367,7 +367,7 @@ export default function Register() {
 
                             <input
                                 type="email"
-                                placeholder="电子邮箱（必填，用于找回密码）"
+                                placeholder="电子邮箱（形式为xxx@yyy.zzz均可）"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required

@@ -20,23 +20,42 @@ export default function Leaderboard() {
 
   const fetchRankings = async () => {
     try {
-      // 1. 留言活跃度榜（前端内存分组）
+      // 1. 留言活跃度榜（拉取 profiles 关联 nickname）
       const { data: allComments } = await supabase
         .from('comments')
-        .select('user_id, username');
+        .select('user_id');
 
       const countMap = {};
-      allComments.forEach(item => {
+      const allUserIds = [];
+      (allComments || []).forEach(item => {
         const key = item.user_id;
         if (!countMap[key]) {
-          countMap[key] = {
-            user_id: item.user_id,
-            username: item.username,
-            count: 0
-          };
+          countMap[key] = { user_id: item.user_id, count: 0 };
+          allUserIds.push(key);
         }
         countMap[key].count += 1;
       });
+
+      // 批量拉取 profiles 获取昵称
+      if (allUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, nickname, avatar_url')
+          .in('id', allUserIds);
+
+        const profileMap = {};
+        profiles?.forEach(p => { profileMap[p.id] = p; });
+
+        Object.keys(countMap).forEach(uid => {
+          countMap[uid].username = profileMap[uid]?.nickname || '匿名用户';
+          countMap[uid].avatar_url = profileMap[uid]?.avatar_url || '';
+        });
+      } else {
+        Object.keys(countMap).forEach(uid => {
+          countMap[uid].username = '匿名用户';
+          countMap[uid].avatar_url = '';
+        });
+      }
 
       const commentList = Object.values(countMap)
         .sort((a, b) => b.count - a.count)
@@ -54,15 +73,16 @@ export default function Leaderboard() {
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('id, nickname')
+          .select('id, nickname, avatar_url')
           .in('id', userIds);
 
         const profileMap = {};
-        profiles?.forEach(p => profileMap[p.id] = p.nickname);
+        profiles?.forEach(p => { profileMap[p.id] = p; });
 
         setSignInRanking(signInData.map(s => ({
           ...s,
-          username: profileMap[s.user_id] || '匿名用户'
+          username: profileMap[s.user_id]?.nickname || '匿名用户',
+          avatar_url: profileMap[s.user_id]?.avatar_url || ''
         })));
       }
 
@@ -90,9 +110,37 @@ export default function Leaderboard() {
       color: 'var(--ifm-color-emphasis-600)',
       fontSize: '15px'
     }}>
-      暂无数据，敬请期待
+      🏜️ 暂无数据，快去参与互动吧~
     </div>
   );
+
+  // 头像渲染
+  const renderAvatar = (avatarUrl, username) => {
+    if (avatarUrl && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))) {
+      return (
+        <img src={avatarUrl} alt={username}
+          style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', marginRight: 12 }}
+          onError={(e) => { e.target.style.display = 'none'; }} />
+      );
+    }
+    const emoji = avatarUrl || '👤';
+    return (
+      <div style={{
+        width: 36, height: 36, borderRadius: '50%',
+        background: 'var(--ifm-color-emphasis-100)',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        marginRight: 12, fontSize: 18, flexShrink: 0
+      }}>{emoji}</div>
+    );
+  };
+
+  // 排名徽章
+  const getRankBadge = (index) => {
+    if (index === 0) return { emoji: '🥇', color: '#f59e0b', bg: '#fffbeb' };
+    if (index === 1) return { emoji: '🥈', color: '#94a3b8', bg: '#f8fafc' };
+    if (index === 2) return { emoji: '🥉', color: '#d97706', bg: '#fef2f2' };
+    return { emoji: `#${index + 1}`, color: 'var(--ifm-color-emphasis-600)', bg: 'transparent' };
+  };
 
   if (loading) {
     return (
@@ -213,18 +261,17 @@ export default function Leaderboard() {
                       <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
                         <th style={{
                           padding: '18px 24px',
-                          textAlign: 'left',
+                          textAlign: 'center',
                           color: 'var(--ifm-text-color)',
                           fontWeight: 600,
-                          width: '120px'
+                          width: '80px'
                         }}>排名</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
                           color: 'var(--ifm-text-color)',
-                          fontWeight: 600,
-                          flex: 1
-                        }}>用户昵称</th>
+                          fontWeight: 600
+                        }}>用户</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'right',
@@ -236,41 +283,41 @@ export default function Leaderboard() {
                     </thead>
                     <tbody>
                       {commentRanking.map((item, index) => {
-                        // 前三名特殊底色
-                        const rowBg = index === 0 ? '#fffbeb' : index === 1 ? 'var(--ifm-color-emphasis-100)' : index === 2 ? '#fef2f2' : 'var(--ifm-card-background-color)';
+                        const badge = getRankBadge(index);
                         return (
                           <tr
                             key={item.user_id}
                             style={{
-                              background: rowBg,
-                              transition: 'background 0.2s ease'
+                              background: badge.bg,
+                              transition: 'all 0.2s ease'
                             }}
-                            onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
-                            onMouseOut={(e) => e.target.style.background = rowBg}
+                            onMouseOver={(e) => { e.currentTarget.style.background = 'var(--ifm-color-emphasis-100)'; e.currentTarget.style.transform = 'translateX(4px)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = badge.bg; e.currentTarget.style.transform = 'translateX(0)'; }}
                           >
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              fontSize: '16px'
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+                              textAlign: 'center',
+                              fontSize: index < 3 ? '24px' : '16px'
                             }}>
-                              {index === 0 && '🥇'}
-                              {index === 1 && '🥈'}
-                              {index === 2 && '🥉'}
-                              {index > 2 && <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{index + 1}</span>}
+                              {badge.emoji}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              color: 'var(--ifm-text-color)'
-                            }}>
-                              {item.username}
-                            </td>
-                            <td style={{
-                              padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              textAlign: 'right',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
                               color: 'var(--ifm-text-color)',
-                              fontWeight: 500
+                              display: 'flex', alignItems: 'center'
+                            }}>
+                              {renderAvatar(item.avatar_url, item.username)}
+                              <span style={{ fontWeight: index < 3 ? 600 : 400 }}>{item.username}</span>
+                            </td>
+                            <td style={{
+                              padding: '16px 24px',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+                              textAlign: 'right',
+                              color: badge.color,
+                              fontWeight: 700,
+                              fontSize: '16px'
                             }}>
                               {item.count} 条
                             </td>
@@ -296,18 +343,17 @@ export default function Leaderboard() {
                       <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
                         <th style={{
                           padding: '18px 24px',
-                          textAlign: 'left',
+                          textAlign: 'center',
                           color: 'var(--ifm-text-color)',
                           fontWeight: 600,
-                          width: '120px'
+                          width: '80px'
                         }}>排名</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
                           color: 'var(--ifm-text-color)',
-                          fontWeight: 600,
-                          flex: 1
-                        }}>用户昵称</th>
+                          fontWeight: 600
+                        }}>用户</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'right',
@@ -319,40 +365,41 @@ export default function Leaderboard() {
                     </thead>
                     <tbody>
                       {signInRanking.map((item, index) => {
-                        const rowBg = index === 0 ? '#fffbeb' : index === 1 ? 'var(--ifm-color-emphasis-100)' : index === 2 ? '#fef2f2' : 'var(--ifm-card-background-color)';
+                        const badge = getRankBadge(index);
                         return (
                           <tr
                             key={item.user_id}
                             style={{
-                              background: rowBg,
-                              transition: 'background 0.2s ease'
+                              background: badge.bg,
+                              transition: 'all 0.2s ease'
                             }}
-                            onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
-                            onMouseOut={(e) => e.target.style.background = rowBg}
+                            onMouseOver={(e) => { e.currentTarget.style.background = 'var(--ifm-color-emphasis-100)'; e.currentTarget.style.transform = 'translateX(4px)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = badge.bg; e.currentTarget.style.transform = 'translateX(0)'; }}
                           >
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              fontSize: '16px'
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+                              textAlign: 'center',
+                              fontSize: index < 3 ? '24px' : '16px'
                             }}>
-                              {index === 0 && '🥇'}
-                              {index === 1 && '🥈'}
-                              {index === 2 && '🥉'}
-                              {index > 2 && <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{index + 1}</span>}
+                              {badge.emoji}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              color: 'var(--ifm-text-color)'
-                            }}>
-                              {item.username}
-                            </td>
-                            <td style={{
-                              padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              textAlign: 'right',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
                               color: 'var(--ifm-text-color)',
-                              fontWeight: 500
+                              display: 'flex', alignItems: 'center'
+                            }}>
+                              {renderAvatar(item.avatar_url, item.username)}
+                              <span style={{ fontWeight: index < 3 ? 600 : 400 }}>{item.username}</span>
+                            </td>
+                            <td style={{
+                              padding: '16px 24px',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+                              textAlign: 'right',
+                              color: badge.color,
+                              fontWeight: 700,
+                              fontSize: '16px'
                             }}>
                               {item.total_days} 天
                             </td>
@@ -378,17 +425,16 @@ export default function Leaderboard() {
                       <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
                         <th style={{
                           padding: '18px 24px',
-                          textAlign: 'left',
+                          textAlign: 'center',
                           color: 'var(--ifm-text-color)',
                           fontWeight: 600,
-                          width: '120px'
+                          width: '80px'
                         }}>排名</th>
                         <th style={{
                           padding: '18px 24px',
                           textAlign: 'left',
                           color: 'var(--ifm-text-color)',
-                          fontWeight: 600,
-                          flex: 1
+                          fontWeight: 600
                         }}>设备名称</th>
                         <th style={{
                           padding: '18px 24px',
@@ -401,42 +447,42 @@ export default function Leaderboard() {
                     </thead>
                     <tbody>
                       {deviceRanking.map((item, index) => {
-                        const rowBg = index === 0 ? '#f9da61' : index === 1 ? 'var(--ifm-color-emphasis-100)' : index === 2 ? '#fef2f2' : 'var(--ifm-card-background-color)';
+                        const badge = getRankBadge(index);
                         return (
                           <tr
-                            key={item.device_name}
+                            key={item.device_name || index}
                             style={{
-                              background: rowBg,
-                              transition: 'background 0.2s ease'
+                              background: badge.bg,
+                              transition: 'all 0.2s ease'
                             }}
-                            onMouseOver={(e) => e.target.style.background = 'var(--ifm-color-emphasis-100)'}
-                            onMouseOut={(e) => e.target.style.background = rowBg}
+                            onMouseOver={(e) => { e.currentTarget.style.background = 'var(--ifm-color-emphasis-100)'; e.currentTarget.style.transform = 'translateX(4px)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = badge.bg; e.currentTarget.style.transform = 'translateX(0)'; }}
                           >
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              fontSize: '16px'
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+                              textAlign: 'center',
+                              fontSize: index < 3 ? '24px' : '16px'
                             }}>
-                              {index === 0 && '🥇'}
-                              {index === 1 && '🥈'}
-                              {index === 2 && '🥉'}
-                              {index > 2 && <span style={{ color: 'var(--ifm-color-emphasis-600)' }}>{index + 1}</span>}
+                              {badge.emoji}
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
-                              color: 'var(--ifm-text-color)'
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
+                              color: 'var(--ifm-text-color)',
+                              display: 'flex', alignItems: 'center', gap: 10
                             }}>
-                              {item.device_name}
+                              <span style={{ fontSize: 20 }}>🖥️</span>
+                              <span style={{ fontWeight: index < 3 ? 600 : 400 }}>{item.device_name}</span>
                             </td>
                             <td style={{
                               padding: '16px 24px',
-                              borderBottom: '1px solid var(--ifm-color-emphasis-300)',
+                              borderBottom: '1px solid var(--ifm-color-emphasis-200)',
                               textAlign: 'right',
                               color: 'var(--ifm-color-emphasis-600)',
-                              fontSize: '14px'
+                              fontSize: '13px'
                             }}>
-                              {new Date(item.last_heartbeat).toLocaleString()}
+                              {new Date(item.last_heartbeat).toLocaleString('zh-CN')}
                             </td>
                           </tr>
                         );

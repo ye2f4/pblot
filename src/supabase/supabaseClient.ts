@@ -26,11 +26,11 @@ export const supabase = isBrowser
       detectSessionInUrl: true, // 重中之重，自动抓取#token
       flow: 'pkce',
       storage: window.localStorage,
-         // 新增：会话安全配置
-        storageKey: 'sb-session',
+      storageKey: 'sb-session',
       cookieOptions: {
-        secure: true,
-        sameSite: 'strict',
+        // secure 仅在 HTTPS 下开启，localhost 开发环境无需
+        secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
+        sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7天
       }
     }

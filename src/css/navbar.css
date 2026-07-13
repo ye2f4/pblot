@@ -240,6 +240,26 @@ a+.navbar__link {
   }
 }
 
+/* 移动端侧边栏：下拉折叠项不显示为链接 */
+.navbar-sidebar .menu__list-item-collapsible .menu__link {
+  cursor: default;
+  pointer-events: auto;
+}
+
+.navbar-sidebar .menu__list-item-collapsible:hover .menu__link {
+  background: hsl(var(--muted));
+}
+
+/* 移动端侧边栏：折叠按钮加大点击区域 */
+.navbar-sidebar .menu__caret {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
+.navbar-sidebar .menu__list-item-collapsible--active {
+  background: hsl(var(--muted));
+}
+
 .navbar-sidebar .menu__link--active {
   background: hsl(var(--muted));
   color: hsl(var(--btn-primary));

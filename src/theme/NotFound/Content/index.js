@@ -2,18 +2,13 @@ import Translate from '@docusaurus/Translate';
 import Heading from '@theme/Heading';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
-import useBaseUrl from '@docusaurus/useBaseUrl';
 
 export default function NotFoundContent({ className }) {
   return (
     <main className={clsx("container margin-vert--xl", className)}>
       <div className="row">
         <div className="col col--6 col--offset-3" style={{ textAlign: 'center' }}>
-          <img
-            src={useBaseUrl('/design/chirpy/chirpy.png')}
-            alt="Chirpy"
-            style={{ maxWidth: '300px', marginBottom: '30px' }}
-          />
+          <div style={{ fontSize: '120px', marginBottom: '10px' }}>🔍</div>
           <Heading as="h1" className="hero__title">
             <Translate
               id="theme.NotFound.title"

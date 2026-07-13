@@ -6,7 +6,6 @@ export default function MainContentTop({ siteData }) {
     const marqueeAnimation = {
         animation: 'marquee 18s linear infinite',
         whiteSpace: 'nowrap',
-        // 提前把垂直居中写死在动画容器，避免transform叠加冲突
         top: '50%',
         transform: 'translateY(-50%)'
     };
@@ -18,7 +17,6 @@ export default function MainContentTop({ siteData }) {
         const style = document.createElement('style');
         style.textContent = `
             @keyframes marquee {
-                /* 只做水平位移，垂直位置不动 */
                 0% { transform: translateX(100%) translateY(-50%); }
                 100% { transform: translateX(-100%) translateY(-50%); }
             }
@@ -35,7 +33,7 @@ export default function MainContentTop({ siteData }) {
             width: '100%',
             flexWrap: 'wrap'
         }}>
-            {/* 标签按钮组 */}
+            {/* 标签按钮组：五大功能 */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: 0 }}>
                 {siteData.tabs.map((tab, i) => (
                     <Link
@@ -96,7 +94,7 @@ export default function MainContentTop({ siteData }) {
                     className={styles.btnHover}
                     style={{
                         padding: '8px 16px',
-                        backgroundColor: '#34a853',
+                        backgroundColor: '#4285f4',
                         color: '#fff',
                         border: 'none',
                         borderRadius: 4,
@@ -110,10 +108,10 @@ export default function MainContentTop({ siteData }) {
                         justifyContent: 'center',
                     }}
                 >
-                    {siteData.texts.buttons.signIn}
+                    ✅ 签到
                 </Link>
                 <Link
-                    to="/draw"
+                    to="/forum?tab=random"
                     className={styles.btnHover}
                     style={{
                         padding: '8px 16px',
@@ -131,7 +129,28 @@ export default function MainContentTop({ siteData }) {
                         justifyContent: 'center',
                     }}
                 >
-                    {siteData.texts.buttons.drawPost}
+                    🎲 抽贴
+                </Link>
+                <Link
+                    to="/visit-map"
+                    className={styles.btnHover}
+                    style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#34a853',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 4,
+                        fontSize: 14,
+                        whiteSpace: 'nowrap',
+                        textDecoration: 'none',
+                        minWidth: 48,
+                        minHeight: 48,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    🌍 访问地图
                 </Link>
             </div>
         </div>

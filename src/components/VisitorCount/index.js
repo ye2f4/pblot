@@ -12,61 +12,35 @@ export default function VisitorCount() {
   useEffect(() => {
     if (!supabase) return;
 
-    const updateStats = async () => {
+    const fetchStats = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const { data: current } = await supabase
+        // 只读模式，不再写入
+        const { data } = await supabase
           .from('visit_stats')
-          .select('*')
+          .select('today_visits, total_visits, uv_count, last_reset')
           .eq('id', 1)
           .single();
 
-        let todayCount = current?.today_visits || 0;
-        if (current?.last_reset !== today) todayCount = 0;
-
-        const newTotal = (current?.total_visits || 0) + 1;
-        const newToday = todayCount + 1;
-
-        await supabase
-          .from('visit_stats')
-          .update({
-            total_visits: newTotal,
-            today_visits: newToday,
-            last_reset: today
-          })
-          .eq('id', 1);
-
-        const sessionId = localStorage.getItem('visitor_session') || crypto.randomUUID();
-        localStorage.setItem('visitor_session', sessionId);
-
-        await supabase
-          .from('online_users')
-          .upsert([{ session_id: sessionId, last_active: new Date() }], {
-            onConflict: 'session_id'
-          });
-
-        await supabase
-          .from('online_users')
-          .delete()
-          .lt('last_active', new Date(Date.now() - 300000).toISOString());
+        const today = new Date().toISOString().split('T')[0];
+        const todayVisits = data?.last_reset === today ? (data?.today_visits || 0) : 0;
 
         const { count: onlineCount } = await supabase
           .from('online_users')
           .select('*', { count: 'exact', head: true });
 
         setStats({
-          total: newTotal,
-          today: newToday,
+          total: data?.total_visits || 0,
+          today: todayVisits,
           online: onlineCount || 0,
-          uv: current?.uv_count || 0
+          uv: data?.uv_count || 0
         });
       } catch (e) {
-        console.log('统计加载失败', e);
+        console.log('VisitorCount 读取统计失败', e.message);
       }
     };
 
-    updateStats();
-    const interval = setInterval(updateStats, 5000);
+    fetchStats();
+    const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
 

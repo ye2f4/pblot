@@ -623,6 +623,7 @@
   .main-content {
     flex-direction: column;
     gap: 15px !important;
+    padding: 0 12px !important;
   }
 
   .carousel-container,
@@ -630,16 +631,7 @@
     flex: 1 1 100% !important;
   }
 
-  .tab-buttons {
-    flex-wrap: wrap;
-    justify-content: center !important;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-    justify-content: center !important;
-  }
-
+  /* 隐藏移动端轮播箭头 */
   .slick-prev,
   .slick-next {
     display: none !important;
@@ -647,6 +639,11 @@
 
   .navGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sidebarRight {
+    min-width: unset;
+    max-width: unset;
   }
 }
 
@@ -657,14 +654,6 @@
 
   .clock-text {
     font-size: 32px !important;
-  }
-
-  .carousel-container {
-    flex: 6 !important;
-  }
-
-  .sidebar-container {
-    flex: 4 !important;
   }
 
   .navGrid {

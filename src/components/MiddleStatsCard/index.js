@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../supabase/supabaseClient';
 import styles from '../../pages/index.module.css';
 
@@ -10,7 +10,6 @@ const statColors = [
   { bg: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)', shadow: 'rgba(236, 72, 153, 0.25)' }
 ];
 
-// 复用全局昵称获取逻辑
 const getUserName = (user = null, nickName = '') => {
   if (nickName && nickName.trim()) return nickName.trim();
   if (!user || !user.user_metadata) return "用户";
@@ -23,6 +22,71 @@ const getUserName = (user = null, nickName = '') => {
   );
 };
 
+// 获取浏览器和设备信息
+const getDeviceInfo = () => {
+  const ua = navigator.userAgent;
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
+  let browser = 'Unknown';
+  if (ua.includes('Edg/')) browser = 'Edge';
+  else if (ua.includes('Chrome/')) browser = 'Chrome';
+  else if (ua.includes('Firefox/')) browser = 'Firefox';
+  else if (ua.includes('Safari/')) browser = 'Safari';
+
+  let os = 'Unknown';
+  if (ua.includes('Windows')) os = 'Windows';
+  else if (ua.includes('Mac OS')) os = 'macOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+  else if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+
+  return { isMobile, browser, os, userAgent: ua };
+};
+
+// 获取访客位置（优先浏览器GPS，兜底 IP 服务）
+const fetchLocation = async () => {
+  // 尝试浏览器地理位置
+  if (navigator.geolocation) {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 5000,
+          maximumAge: 300000
+        });
+      });
+      return {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        source: 'gps'
+      };
+    } catch (e) {
+      console.log('GPS定位未授权或失败，使用IP定位');
+    }
+  }
+
+  // 兜底：通过 IP API 获取位置
+  try {
+    const resp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+    if (!resp.ok) throw new Error('IP lookup failed');
+    const data = await resp.json();
+    return {
+      latitude: data.latitude,
+      longitude: data.longitude,
+      city: data.city,
+      country: data.country_name,
+      country_code: data.country_code,
+      region: data.region,
+      timezone: data.timezone,
+      ip_address: data.ip,
+      isp: data.org,
+      source: 'ip'
+    };
+  } catch (e) {
+    console.log('IP定位失败', e.message);
+    return null;
+  }
+};
+
 export default function MiddleStatsCard({
   siteData = {},
   isSessionChecked = false,
@@ -30,16 +94,22 @@ export default function MiddleStatsCard({
   latestUser = '新用户',
   timeEpoch = Math.floor(Date.now() / 1000),
   locationName = "北京",
-  // 接收父组件穿透的最新资料
   currentNickname = "",
   currentAvatar = "",
   user = null
 }) {
-  console.log("【MiddleStatsCard最终层】timeEpoch =", timeEpoch, "城市 =", locationName, "最新昵称 =", currentNickname);
   const [visitStats, setVisitStats] = useState({
     online: 0,
     today: 0,
-    total: 0
+    yesterday: 0,
+    total: 0,
+    uv: 0
+  });
+  // 帖子统计（今/昨/总）
+  const [postStats, setPostStats] = useState({
+    todayPosts: 0,
+    yesterdayPosts: 0,
+    totalPosts: 0
   });
   const [sysHealth, setSysHealth] = useState({
     apiHealth: true,
@@ -50,12 +120,13 @@ export default function MiddleStatsCard({
     totalLatency: 0
   });
   const [hourData, setHourData] = useState(Array(24).fill(0));
+  const isFirstVisit = useRef(false);
+  const sessionReported = useRef(false);
 
-  // 时钟核心逻辑
   const openCalendar = () => window.open('/calendar', '_blank');
   const padZero = (num) => String(num).padStart(2, '0');
 
-  // 基准时间戳用state存储
+  // ---- 时钟逻辑 ----
   const [baseTs, setBaseTs] = useState(timeEpoch);
   const [display, setDisplay] = useState({
     time: '00:00:00',
@@ -70,7 +141,6 @@ export default function MiddleStatsCard({
   const weekJpMap = ['日', '月', '火', '水', '木', '金', '土'];
   const weekEnMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  // ISO周计算函数
   const getISOWeekNumber = (ts) => {
     const date = new Date(ts * 1000);
     date.setHours(0, 0, 0, 0);
@@ -85,14 +155,13 @@ export default function MiddleStatsCard({
     return 1 + Math.round((firstThursday - firstThursdayYear) / 604800000);
   };
 
-  // 刷新渲染数据，带打印校验
   const refreshDisplay = (ts) => {
     const date = new Date(ts * 1000);
     const h = padZero(date.getHours());
     const m = padZero(date.getMinutes());
     const s = padZero(date.getSeconds());
     const wIdx = date.getDay();
-    const newDisplay = {
+    setDisplay({
       time: `${h}:${m}:${s}`,
       weekJp: weekJpMap[wIdx],
       weekEn: weekEnMap[wIdx],
@@ -101,19 +170,14 @@ export default function MiddleStatsCard({
       month: date.getMonth() + 1,
       day: date.getDate(),
       second: date.getSeconds()
-    };
-    console.log("【refresh组装时间】", newDisplay.time, "时间戳", ts);
-    setDisplay(newDisplay);
+    });
   };
 
-  // 监听父组件传入时间戳、最新昵称变化，强制刷新
   useEffect(() => {
-    console.log("=== 触发timeEpoch/昵称更新钩子 ===", timeEpoch, currentNickname);
     setBaseTs(timeEpoch);
     refreshDisplay(timeEpoch);
   }, [timeEpoch, currentNickname]);
 
-  // 每秒自动+1秒走时
   useEffect(() => {
     const tickTimer = setInterval(() => {
       setBaseTs(prev => {
@@ -125,14 +189,11 @@ export default function MiddleStatsCard({
     return () => clearInterval(tickTimer);
   }, []);
 
-  // 系统健康检测
-  const checkSystemHealth = async () => {
+  // ---- 系统健康检测 ----
+  const checkSystemHealth = useCallback(async () => {
     const startTotal = performance.now();
-    let apiHealth = true;
-    let dbHealth = true;
-    let cacheHealth = true;
-    let dbLatency = 0;
-    let cacheLatency = 0;
+    let apiHealth = true, dbHealth = true, cacheHealth = true;
+    let dbLatency = 0, cacheLatency = 0;
 
     try {
       const dbStart = performance.now();
@@ -155,33 +216,20 @@ export default function MiddleStatsCard({
     }
 
     const totalLatency = Math.round(performance.now() - startTotal);
-    setSysHealth({
-      apiHealth,
-      dbHealth,
-      cacheHealth,
-      dbLatency,
-      cacheLatency,
-      totalLatency
-    });
+    setSysHealth({ apiHealth, dbHealth, cacheHealth, dbLatency, cacheLatency, totalLatency });
 
     try {
       await supabase
         .from('visit_stats')
-        .update({
-          db_latency: dbLatency,
-          cache_latency: cacheLatency,
-          api_healthy: apiHealth,
-          db_healthy: dbHealth,
-          cache_healthy: cacheHealth
-        })
+        .update({ db_latency: dbLatency, cache_latency: cacheLatency, api_healthy: apiHealth, db_healthy: dbHealth, cache_healthy: cacheHealth })
         .eq('id', 1);
     } catch (e) {
-      console.warn('健康数据无写入权限，跳过持久化', e.message);
+      console.warn('健康数据持久化失败', e.message);
     }
-  };
+  }, []);
 
-  // 24小时热力数据加载
-  const loadHourlyData = async () => {
+  // ---- 24小时热力 ----
+  const loadHourlyData = useCallback(async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       const { data } = await supabase
@@ -191,85 +239,249 @@ export default function MiddleStatsCard({
 
       const arr = Array(24).fill(0);
       data?.forEach(item => {
-        arr[item.hour] = item.count;
+        if (item.hour >= 0 && item.hour < 24) arr[item.hour] = item.count;
       });
       setHourData(arr);
     } catch (e) {
       console.warn('加载小时热力数据失败', e.message);
-      setHourData(Array(24).fill(0));
     }
-  };
+  }, []);
 
-  // 访问统计轮询
+  // ---- 上报访客位置（一次性） ----
+  const reportLocation = useCallback(async (sessionId) => {
+    if (sessionReported.current) return;
+    sessionReported.current = true;
+
+    try {
+      const loc = await fetchLocation();
+      if (!loc) return;
+
+      const deviceInfo = getDeviceInfo();
+      const payload = {
+        session_id: sessionId,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        city: loc.city || null,
+        country: loc.country || null,
+        country_code: loc.country_code || null,
+        region: loc.region || null,
+        timezone: loc.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ip_address: loc.ip_address || null,
+        isp: loc.isp || null,
+        is_mobile: deviceInfo.isMobile,
+        browser: deviceInfo.browser,
+        os: deviceInfo.os,
+        last_active: new Date().toISOString()
+      };
+
+      // Upsert by session_id
+      const { data: existing } = await supabase
+        .from('visitor_locations')
+        .select('id, visit_count')
+        .eq('session_id', sessionId)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('visitor_locations')
+          .update({ ...payload, visit_count: (existing.visit_count || 0) + 1 })
+          .eq('id', existing.id);
+      } else {
+        await supabase.from('visitor_locations').insert([{ ...payload, visit_count: 1 }]);
+      }
+    } catch (e) {
+      console.warn('位置上报失败', e.message);
+    }
+  }, []);
+
+  // ---- 核心访问统计轮询（统一入口，带错误降级） ----
   useEffect(() => {
     if (!supabase) return;
-    const updateStats = async () => {
-      const todayISO = new Date().toISOString().split('T')[0];
-      let currentStat = { today_visits: 0, total_visits: 0, last_reset: todayISO };
 
+    let sessionId = localStorage.getItem('visitor_session');
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem('visitor_session', sessionId);
+    }
+
+    let consecutiveErrors = 0;
+    const MAX_CONSECUTIVE_ERRORS = 3;
+    let pollingActive = true;
+
+    const updateStats = async () => {
+      if (!pollingActive) return;
+      const todayISO = new Date().toISOString().split('T')[0];
+      const yesterdayISO = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+      let todayVisits = visitStats?.today || 0;
+      let yesterdayVisits = visitStats?.yesterday || 0;
+      let totalVisits = visitStats?.total || 0;
+      let uvCount = visitStats?.uv || 0;
+      let onlineCount = visitStats?.online || 0;
+      let anySuccess = false;
+
+      // 1. 读取 visit_stats（独立 try/catch）
       try {
-        const res = await supabase
+        const { data: statRow, error: statErr } = await supabase
           .from('visit_stats')
-          .select('today_visits, total_visits, last_reset')
+          .select('*')
           .eq('id', 1)
-          .single();
-        if (res.data) currentStat = res.data;
+          .maybeSingle();
+
+        if (statErr) throw statErr;
+
+        if (statRow) {
+          todayVisits = statRow.today_visits || 0;
+          yesterdayVisits = statRow.yesterday_visits || 0;
+          totalVisits = statRow.total_visits || 0;
+          uvCount = statRow.uv_count || 0;
+          const lastReset = statRow.last_reset;
+
+          if (lastReset !== todayISO) {
+            yesterdayVisits = (lastReset === yesterdayISO) ? todayVisits : 0;
+            todayVisits = 0;
+          }
+          anySuccess = true;
+        }
       } catch (e) {
-        console.warn('读取访问统计失败，使用默认值', e.message);
+        console.warn('[统计] visit_stats 读取失败', e.message);
       }
 
-      const displayToday = currentStat.last_reset === todayISO ? currentStat.today_visits : 0;
-      const displayTotal = currentStat.total_visits;
-
-      const sessionId = localStorage.getItem('visitor_session') || crypto.randomUUID();
-      localStorage.setItem('visitor_session', sessionId);
-
+      // 2. 上线当前用户（独立 try/catch）
       try {
-        const nowIso = new Date().toISOString();
+        const deviceInfo = getDeviceInfo();
         await supabase.from('online_users').upsert(
-          [{ session_id: sessionId, last_active: nowIso }],
+          [{ session_id: sessionId, last_active: new Date().toISOString(), user_agent: deviceInfo.userAgent, page_path: window.location.pathname }],
           { onConflict: 'session_id' }
         );
+        anySuccess = true;
       } catch (e) {
-        console.warn('在线用户上报失败', e.message);
+        console.warn('[统计] online_users 写入失败', e.message);
       }
 
+      // 3. 清理超时离线用户（独立 try/catch）
       try {
         const expireIso = new Date(Date.now() - 300000).toISOString();
         await supabase.from('online_users').delete().lt('last_active', expireIso);
       } catch (e) {
-        console.warn('清理离线用户失败', e.message);
+        // 静默忽略清理错误
       }
 
-      let onlineCount = 0;
+      // 4. 新会话首次心跳 +1（独立 try/catch）
+      if (!isFirstVisit.current) {
+        isFirstVisit.current = true;
+        todayVisits += 1;
+        totalVisits += 1;
+
+        try {
+          await supabase
+            .from('visit_stats')
+            .update({
+              today_visits: todayVisits,
+              total_visits: totalVisits,
+              yesterday_visits: yesterdayVisits,
+              last_reset: todayISO
+            })
+            .eq('id', 1);
+          anySuccess = true;
+        } catch (e) {
+          console.warn('[统计] visit_stats 更新失败', e.message);
+        }
+
+        // hourly_visits（独立 try/catch）
+        try {
+          const currentHour = new Date().getHours();
+          await supabase.rpc('record_hourly_visit', { target_hour: currentHour });
+        } catch (e) {
+          try {
+            await supabase.from('hourly_visits').upsert(
+              { stat_date: todayISO, hour: new Date().getHours(), count: 1 },
+              { onConflict: 'stat_date,hour', ignoreDuplicates: false }
+            );
+          } catch (e2) {
+            // 静默忽略
+          }
+        }
+      }
+
+      // 5. 统计在线人数（独立 try/catch）
       try {
         const { count } = await supabase
           .from('online_users')
           .select('*', { count: 'exact', head: true });
         onlineCount = count || 0;
+        anySuccess = true;
       } catch (e) {
-        console.warn('读取在线人数失败', e.message);
+        console.warn('[统计] 在线人数读取失败', e.message);
       }
 
+      // 更新状态
       setVisitStats({
-        total: displayTotal,
-        today: displayToday,
-        online: onlineCount
+        total: totalVisits,
+        today: todayVisits,
+        yesterday: yesterdayVisits,
+        online: onlineCount,
+        uv: uvCount
       });
 
+      // 6. 获取帖子统计（今/昨/总，独立 try/catch）
+      try {
+        const { count: totalPosts } = await supabase
+          .from('forum_posts')
+          .select('*', { count: 'exact', head: true });
+
+        const { count: todayPosts } = await supabase
+          .from('forum_posts')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', todayISO);
+
+        const { count: yesterdayPosts } = await supabase
+          .from('forum_posts')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', yesterdayISO)
+          .lt('created_at', todayISO);
+
+        setPostStats({
+          todayPosts: todayPosts || 0,
+          yesterdayPosts: yesterdayPosts || 0,
+          totalPosts: totalPosts || 0,
+        });
+      } catch (e) {
+        console.warn('[统计] 帖子统计读取失败', e.message);
+      }
+
+      // 7. 上报访客位置（异步，不阻塞）
+      reportLocation(sessionId);
+
+      // 8. 健康检测 + 热力（独立调用，不阻塞）
       checkSystemHealth();
       loadHourlyData();
+
+      // 错误累积检测：连续失败 N 次则停止轮询
+      if (anySuccess) {
+        consecutiveErrors = 0;
+      } else {
+        consecutiveErrors++;
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          pollingActive = false;
+          console.warn('[统计] Supabase 连续不可用，已停止轮询。请检查数据库迁移是否已执行。');
+        }
+      }
     };
 
     updateStats();
     const timer = setInterval(updateStats, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [checkSystemHealth, loadHourlyData, reportLocation]);
 
   const maxHourCount = Math.max(...hourData, 1);
   const currentHour = new Date().getHours();
-  // 核心：优先使用父组件传递的最新自定义昵称
   const finalUserName = getUserName(user, currentNickname);
+
+  // 跳转访问地图
+  const openVisitMap = () => {
+    window.open('/visit-map', '_blank');
+  };
 
   return (
     <div style={{
@@ -286,7 +498,7 @@ export default function MiddleStatsCard({
     }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* A区 顶部5个图标统计 - 修复最新昵称展示 */}
+      {/* A区 顶部5个图标统计 */}
       <div style={{ gridColumn: 1, gridRow: 1 }}>
         <div style={{
           display: 'grid',
@@ -297,10 +509,13 @@ export default function MiddleStatsCard({
           {isSessionChecked ? (siteData?.stats || []).map((item, i) => {
             let showVal = item.value;
             if (item.label === "会") showVal = userCount;
-            // 显示最新注册用户的昵称（而非当前用户）
             if (item.label === "新") {
               showVal = latestUser || '新用户';
             }
+            // 动态展示今日/昨日/总数（帖子数量）
+            if (item.label === "今") showVal = postStats.todayPosts;
+            if (item.label === "昨") showVal = postStats.yesterdayPosts;
+            if (item.label === "总") showVal = postStats.totalPosts;
             const color = statColors[i] || statColors[0];
             return (
               <div key={`${i}-${currentNickname}`} style={{ textAlign: 'center', transition: 'all 0.3s ease' }}
@@ -308,15 +523,9 @@ export default function MiddleStatsCard({
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
               >
                 <div style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: '50%',
-                  background: color.bg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 3px',
-                  boxShadow: `0 2px 6px ${color.shadow}`
+                  width: 42, height: 42, borderRadius: '50%',
+                  background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 3px', boxShadow: `0 2px 6px ${color.shadow}`
                 }}>
                   <span style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>{item.label}</span>
                 </div>
@@ -338,56 +547,56 @@ export default function MiddleStatsCard({
       {/* B区 在线/今日/总访问 */}
       <div style={{ gridColumn: 1, gridRow: 2 }}>
         <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '4px 8px',
-          background: 'rgba(0,0,0,0.03)',
-          borderRadius: '10px',
-          fontSize: 11,
-          color: '#666',
-          fontWeight: 500,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '4px 8px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px',
+          fontSize: 11, color: '#666', fontWeight: 500,
         }}>
           <span>👥 在线：{visitStats.online}</span>
           <span>☀️ 今日：{visitStats.today}</span>
           <span>👣 总访问：{visitStats.total}</span>
+          <span>📊 UV：{visitStats.uv}</span>
         </div>
       </div>
 
       {/* C区 系统健康监控 */}
       <div style={{ gridColumn: 1, gridRow: 3 }}>
         <div style={{
-          padding: '3px 6px',
-          background: 'rgba(0,0,0,0.03)',
-          borderRadius: '8px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          padding: '3px 6px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <span style={{ fontSize: 10, color: '#666' }}>⚙️ 系统状态</span>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 20, height: 20, margin: '0 auto 2px', background: sysHealth.apiHealth ? '#34d399' : '#ef4444', borderRadius: '50%' }} />
+              <div style={{
+                width: 20, height: 20, margin: '0 auto 2px',
+                background: sysHealth.apiHealth ? '#34d399' : '#ef4444',
+                borderRadius: '50%', transition: 'background 0.5s ease'
+              }} />
               <span style={{ fontSize: 9, color: '#555' }}>API</span>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 20, height: 20, margin: '0 auto 2px', background: sysHealth.dbHealth ? '#fbbf24' : '#ef4444', borderRadius: '50%' }} />
+              <div style={{
+                width: 20, height: 20, margin: '0 auto 2px',
+                background: sysHealth.dbHealth ? '#fbbf24' : '#ef4444',
+                borderRadius: '50%', transition: 'background 0.5s ease'
+              }} />
               <span style={{ fontSize: 9, color: '#555' }}>DB {sysHealth.dbLatency}ms</span>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 20, height: 20, margin: '0 auto 2px', background: sysHealth.cacheHealth ? '#4285f4' : '#ef4444', borderRadius: '50%' }} />
-              <span style={{ fontSize: 9, color: '#555' }}>缓存 {sysHealth.cacheLatency}ms</span>
+              <div style={{
+                width: 20, height: 20, margin: '0 auto 2px',
+                background: sysHealth.cacheHealth ? '#4285f4' : '#ef4444',
+                borderRadius: '50%', transition: 'background 0.5s ease'
+              }} />
+              <span style={{ fontSize: 9, color: '#555' }}>Cache {sysHealth.cacheLatency}ms</span>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{
-                width: 40,
-                height: 12,
-                margin: '0 auto 2px',
-                borderRadius: '2px',
+                width: 40, height: 12, margin: '0 auto 2px', borderRadius: '2px',
                 background: sysHealth.totalLatency < 50
                   ? 'linear-gradient(90deg, #34d399 100%, #e5e7eb 0%)'
                   : sysHealth.totalLatency < 150
-                    ? `linear-gradient(90deg, #fbbf24 ${(sysHealth.totalLatency / 150) * 100}%, #e5e7eb ${(sysHealth.totalLatency / 150) * 100}%)`
+                    ? `linear-gradient(90deg, #fbbf24 ${Math.min((sysHealth.totalLatency / 150) * 100, 100)}%, #e5e7eb 0%)`
                     : 'linear-gradient(90deg, #ef4444 100%, #e5e7eb 0%)'
               }} />
               <span style={{ fontSize: 9, color: '#555' }}>总{sysHealth.totalLatency}ms</span>
@@ -396,33 +605,30 @@ export default function MiddleStatsCard({
         </div>
       </div>
 
-      {/* D区 24小时热力图 */}
+      {/* D区 24小时热力图（可点击跳转访问地图） */}
       <div style={{ gridColumn: 1, gridRow: 4 }}>
         <div style={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '4px 6px',
-          background: 'rgba(0,0,0,0.02)',
-          borderRadius: '8px',
-          gap: '4px'
-        }}>
+          height: '100%', display: 'flex', flexDirection: 'column',
+          justifyContent: 'center', padding: '4px 6px',
+          background: 'rgba(0,0,0,0.02)', borderRadius: '8px', gap: '4px',
+          cursor: 'pointer', transition: 'box-shadow 0.3s ease',
+        }}
+          onClick={openVisitMap}
+          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 0 2px #4285f4 inset'}
+          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+          title="点击查看全球访问地图"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666' }}>
             <span>📊 今日访问热力</span>
-            <span>当前{currentHour}:00 峰值{maxHourCount}</span>
+            <span>当前{currentHour}:00 峰值{maxHourCount} 🔗地图</span>
           </div>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(24, 1fr)',
-            gap: '1px',
-            flex: 1,
-            minHeight: '30px',
-            alignItems: 'flex-end'
+            display: 'grid', gridTemplateColumns: 'repeat(24, 1fr)',
+            gap: '1px', flex: 1, minHeight: '30px', alignItems: 'flex-end'
           }}>
             {hourData.map((count, i) => {
               const isCur = i === currentHour;
-              const hPercent = maxHourCount === 0 ? 5 : (count / maxHourCount) * 100;
+              const hPercent = maxHourCount === 0 ? 5 : Math.max((count / maxHourCount) * 100, 3);
               let fillColor;
               if (isCur) fillColor = '#4285f4';
               else if (count / maxHourCount > 0.8) fillColor = '#34d399';
@@ -431,88 +637,52 @@ export default function MiddleStatsCard({
               else fillColor = '#e5e7eb';
 
               return (
-                <div
-                  key={i}
-                  style={{
-                    height: `${hPercent}%`,
-                    backgroundColor: fillColor,
-                    borderRadius: '1px 1px 0 0',
-                    transition: 'height 0.5s ease'
-                  }}
-                  title={`${i}点 访问${count}次`}
-                />
+                <div key={i} style={{
+                  height: `${hPercent}%`,
+                  backgroundColor: fillColor,
+                  borderRadius: '1px 1px 0 0',
+                  transition: 'height 0.5s ease, background-color 0.3s ease'
+                }} title={`${i}:00 访问${count}次`} />
               );
             })}
           </div>
         </div>
       </div>
 
-      {/* E区 时钟面板 - 修复DOM嵌套bug */}
+      {/* E区 时钟面板 */}
       <div style={{ gridColumn: 2, gridRow: '1 / span 3', height: '100%' }}>
         <div className="pixel-clock-fixed" style={{
-          padding: "12px 14px",
-          borderRadius: "16px",
-          textAlign: "center",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-          position: "relative",
-          width: '100%',
-          height: '100%',
-          boxSizing: 'border-box',
+          padding: "12px 14px", borderRadius: "16px", textAlign: "center",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)", position: "relative",
+          width: '100%', height: '100%', boxSizing: 'border-box',
         }}>
-          <p style={{
-            margin: '0 0 3px',
-            fontSize: 15,
-            color: '#1ce306',
-            fontWeight: 500
-          }}>
+          <p style={{ margin: '0 0 3px', fontSize: 15, color: '#1ce306', fontWeight: 500 }}>
             {locationName}当地时间
           </p>
-
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '5px',
-            marginBottom: '5px'
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '5px', marginBottom: '5px'
           }}>
             <span style={{ fontSize: 17 }}>⏰</span>
             <div className={`pixel-font ${styles.clockText}`} style={{
-              fontSize: 19,
-              color: '#1a1a1a',
-              letterSpacing: 2,
+              fontSize: 19, color: '#1a1a1a', letterSpacing: 2,
             }}>
               {display.time}
             </div>
           </div>
-
           <button onClick={openCalendar} style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '3px',
-            margin: '0 auto 5px',
-            padding: '2px 8px',
-            backgroundColor: 'rgba(66, 133, 244, 0.1)',
-            border: 'none',
-            borderRadius: '18px',
-            cursor: 'pointer',
-            fontSize: 11,
-            color: '#0060fc',
-            fontWeight: 500,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px',
+            margin: '0 auto 5px', padding: '2px 8px',
+            backgroundColor: 'rgba(66, 133, 244, 0.1)', border: 'none',
+            borderRadius: '18px', cursor: 'pointer', fontSize: 11, color: '#0060fc', fontWeight: 500,
           }}>
             <span style={{ fontSize: 12 }}>📅</span>
             <span>{display.weekJp}曜日 · {display.weekEn}</span>
           </button>
-
           <div className={`pixel-font ${styles.dateText}`} style={{
-            fontSize: 13,
-            color: '#333',
-            fontWeight: 600
+            fontSize: 13, color: '#333', fontWeight: 600
           }}>
-            {display.year}-
-            {padZero(display.month)}-
-            {padZero(display.day)}
-            第{display.weekNum}周
+            {display.year}-{padZero(display.month)}-{padZero(display.day)} 第{display.weekNum}周
           </div>
         </div>
       </div>
@@ -520,14 +690,9 @@ export default function MiddleStatsCard({
       {/* F区 公告栏 */}
       <div style={{ gridColumn: 2, gridRow: 4 }}>
         <div style={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '6px 8px',
-          background: 'rgba(254, 248, 230, 0.7)',
-          borderRadius: '8px',
-          border: '1px dashed #f5cc80',
+          height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          padding: '6px 8px', background: 'rgba(254, 248, 230, 0.7)',
+          borderRadius: '8px', border: '1px dashed #f5cc80',
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
             <span style={{ fontSize: 12 }}>📢</span>

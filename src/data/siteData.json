@@ -70,49 +70,49 @@
   "stats": [
     {
       "label": "今",
-      "value": "今日:88",
+      "value": "--",
       "color": "#333"
     },
     {
       "label": "昨",
-      "value": "昨日:12",
+      "value": "--",
       "color": "#34a853"
     },
     {
       "label": "总",
-      "value": "总帖:56",
+      "value": "--",
       "color": "#999"
     },
     {
       "label": "会",
-      "value": "你掉线了，确认1",
+      "value": "--",
       "color": "#999"
     },
     {
       "label": "新",
-      "value": "你掉线了，确认2",
+      "value": "--",
       "color": "#999"
     }
   ],
   "tabs": [
     {
       "name": "最新主题",
-      "link": "/blog/latest_post",
+      "link": "/forum?tab=latest",
       "color": "#4285f4"
     },
     {
       "name": "最新回复",
-      "link": "/blog/latest_comments",
+      "link": "/forum?tab=replies",
       "color": "#ea4335"
     },
     {
       "name": "热门主题",
-      "link": "/blog/hot",
+      "link": "/forum?tab=hot",
       "color": "#fbbc05"
     },
     {
       "name": "精华推荐",
-      "link": "/blog/good",
+      "link": "/forum?tab=featured",
       "color": "#34a853"
     }
   ],
@@ -265,39 +265,9 @@
   "about": "本站是Mono的个人技术分享博客，专注于前端开发、游戏模组和开源项目。在这里你可以找到实用的教程、有趣的项目和各种技术资源。欢迎大家一起交流学习！",
   "rankList": [
     {
-      "title": "React入门到精通",
-      "link": "/blog/react-guide",
-      "date": "2025-06-07"
-    },
-    {
-      "title": "GitHub Pages部署教程",
-      "link": "/blog/gh-pages",
-      "date": "2025-06-06"
-    },
-    {
-      "title": "Docusaurus静态站点搭建",
-      "link": "/blog/docusaurus",
-      "date": "2025-06-05"
-    },
-    {
-      "title": "React-Slick轮播使用",
-      "link": "/blog/react-slick",
-      "date": "2025-06-04"
-    },
-    {
-      "title": "CSS模糊效果实现",
-      "link": "/blog/css-blur",
-      "date": "2025-06-03"
-    },
-    {
-      "title": "JavaScript定时器详解",
-      "link": "/blog/js-timer",
-      "date": "2025-06-02"
-    },
-    {
-      "title": "JSON静态数据管理",
-      "link": "/blog/json-data",
-      "date": "2025-06-01"
+      "title": "加载中...",
+      "link": "/forum",
+      "date": ""
     }
   ],
   "ads": [
