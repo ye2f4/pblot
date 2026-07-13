@@ -14,7 +14,7 @@ const SITE_DOMAIN = "monoblog.cc.cd";
  */
 const config = {
   title: "Monoの小窝",
-  tagline: "一半白发藏温柔，一半白发载星网。",
+  tagline: "一半黑发藏温柔，一半白发载星网。",
   url: "https://monoblog.cc.cd",
   baseUrl: "/",
   trailingSlash: false,

@@ -3,6 +3,7 @@ import EmojiPicker from 'emoji-picker-react';
 import Layout from '@theme/Layout';
 import { supabase } from '@site/src/supabase/supabaseClient';
 import { triggerGlobalProfileRefresh } from '@site/src/utils/globalProfileUtil';
+import { markAsRead, incrementUnread, recordActivity, getActivityMap } from '../utils/chatNotification';
 
 // 固定常量
 const PROFILE_PAGE = '/profile';
@@ -39,6 +40,9 @@ export default function ChatPage() {
   const [groupMsgList, setGroupMsgList] = useState([]);
   const [groupTopIds, setGroupTopIds] = useState([]);
   const [showGroupSetting, setShowGroupSetting] = useState(false);
+  const [groupMembers, setGroupMembers] = useState([]);
+  const [transferTargetId, setTransferTargetId] = useState('');
+  const [showTransferUI, setShowTransferUI] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedMemberIds, setSelectedMemberIds] = useState([]);
@@ -238,7 +242,7 @@ export default function ChatPage() {
       if (!msgData) { setGroupMsgList([]); scrollToBottom(); return; }
 
       const userIds = [...new Set(msgData.map(m => m.from_user_id))];
-      const { data: profileData } = await supabase.from('profiles').select('id, avatar_url').in('id', userIds);
+      const { data: profileData } = await supabase.from('profiles').select('id, avatar_url, nickname').in('id', userIds);
       const map = {};
       profileData?.forEach(p => map[p.id] = p);
 
@@ -356,6 +360,48 @@ export default function ChatPage() {
     fetchMyGroups(currentUser.id);
   };
 
+  // 获取群成员列表（用于群主转移）
+  const fetchGroupMembers = async (groupId) => {
+    try {
+      const { data: members, error } = await supabase
+        .from('group_members')
+        .select('user_id')
+        .eq('group_id', groupId);
+      if (error) throw error;
+      const userIds = members.map(m => m.user_id).filter(id => id !== currentUser.id);
+      if (userIds.length === 0) {
+        setGroupMembers([]);
+        return;
+      }
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, nickname, avatar_url')
+        .in('id', userIds);
+      if (pErr) throw pErr;
+      setGroupMembers(profiles || []);
+    } catch (err) {
+      console.error('获取群成员失败:', err);
+    }
+  };
+
+  // 转移群主
+  const transferGroupOwner = async () => {
+    if (!transferTargetId || !currentGroup) return;
+    try {
+      const { error } = await supabase
+        .from('groups')
+        .update({ owner_id: transferTargetId })
+        .eq('id', currentGroup.id);
+      if (error) throw error;
+      setShowTransferUI(false);
+      setTransferTargetId('');
+      fetchMyGroups(currentUser.id);
+    } catch (err) {
+      console.error('转移群主失败:', err);
+      setError('转移群主失败: ' + err.message);
+    }
+  };
+
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
       messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -449,17 +495,34 @@ export default function ChatPage() {
     };
   }, [currentUser?.id]);
 
-  // 实时消息监听
+  // 实时消息监听（含未读跟踪）
   useEffect(() => {
     if (!currentUser) return;
     const channel = supabase.channel('chat-real-time')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const msg = payload.new;
-        if (!msg.group_id && targetUser?.id && (msg.from_user_id === targetUser.id || msg.to_user_id === targetUser.id)) {
-          fetchPrivateMessages(targetUser.id);
+        // 忽略自己发的消息
+        if (msg.from_user_id === currentUser.id) return;
+
+        // 私聊：正在看该会话则刷新，否则增加未读
+        if (!msg.group_id) {
+          const convId = `private:${msg.from_user_id}`;
+          recordActivity(convId);
+          if (targetUser?.id === msg.from_user_id) {
+            fetchPrivateMessages(targetUser.id);
+          } else {
+            incrementUnread(convId);
+          }
         }
-        if (msg.group_id && currentGroup?.id === msg.group_id) {
-          fetchGroupMessages(currentGroup.id);
+        // 群聊：正在看该群则刷新，否则增加未读
+        if (msg.group_id) {
+          const convId = `group:${msg.group_id}`;
+          recordActivity(convId);
+          if (currentGroup?.id === msg.group_id) {
+            fetchGroupMessages(currentGroup.id);
+          } else {
+            incrementUnread(convId);
+          }
         }
       }).subscribe();
 
@@ -493,6 +556,18 @@ export default function ChatPage() {
 
   // 最终列表 = 首位站长 + 普通好友
   const finalFriendList = [webmasterUser, ...sortedFriends];
+
+  // 群聊排序：有新消息的靠前
+  const activityMap = getActivityMap();
+  const sortedGroups = [...filteredGroups].sort((a, b) => {
+    // 置顶优先
+    if (a.is_top && !b.is_top) return -1;
+    if (!a.is_top && b.is_top) return 1;
+    // 然后按最近活跃时间排序（新消息在前）
+    const aTime = activityMap[`group:${a.id}`] || 0;
+    const bTime = activityMap[`group:${b.id}`] || 0;
+    return bTime - aTime;
+  });
 
   const myAvatar = myProfile?.avatar_url || DEFAULT_EMOJI_AVATAR;
   const myId = currentUser?.id;
@@ -557,7 +632,13 @@ export default function ChatPage() {
             {activeTab === 'friend' && finalFriendList.map(user => (
               <div
                 key={user.isWebmaster ? 'webmaster-fixed' : user.id}
-                onClick={() => setTargetUser(user)}
+                onClick={() => {
+                  setTargetUser(user);
+                  if (!user.isWebmaster) {
+                    markAsRead(`private:${user.id}`);
+                    recordActivity(`private:${user.id}`);
+                  }
+                }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 18px',
                   cursor: 'pointer', 
@@ -587,10 +668,15 @@ export default function ChatPage() {
               </div>
             ))}
 
-            {activeTab === 'group' && filteredGroups.map(group => (
+            {activeTab === 'group' && sortedGroups.map(group => (
               <div
                 key={group.id}
-                onClick={() => { setCurrentGroup(group); setShowGroupSetting(false); }}
+                onClick={() => {
+                  setCurrentGroup(group);
+                  setShowGroupSetting(false);
+                  markAsRead(`group:${group.id}`);
+                  recordActivity(`group:${group.id}`);
+                }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 18px',
                   cursor: 'pointer', background: currentGroup?.id === group.id ? 'var(--ifm-color-emphasis-300)' : 'transparent',
@@ -689,7 +775,10 @@ export default function ChatPage() {
               }}>
                 <span>{currentGroup.group_name}</span>
                 <button
-                  onClick={() => setShowGroupSetting(!showGroupSetting)}
+                  onClick={() => {
+                  setShowGroupSetting(!showGroupSetting);
+                  if (!showGroupSetting) fetchGroupMembers(currentGroup.id);
+                }}
                   style={{ border: 'none', background: 'var(--ifm-color-emphasis-100)', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', color:'var(--ifm-text-color)' }}
                 >群聊设置</button>
               </div>
@@ -698,15 +787,23 @@ export default function ChatPage() {
                 {groupMsgList.map(msg => {
                   const isSelf = msg.from_user_id === myId;
                   const sender = msg.sender || {};
+                  const senderNickname = sender.nickname || '用户';
                   return (
-                    <div key={msg.id} style={{ display: 'flex', justifyContent: isSelf ? 'flex-end' : 'flex-start', marginBottom: '16px', gap: '10px', alignItems: 'flex-end' }}>
-                      {!isSelf && renderAvatar(sender.avatar_url, msg.from_user_id, 34)}
-                      <div style={{
-                        maxWidth: '65%', padding: '9px 14px', borderRadius: '20px',
-                        background: isSelf ? '#07c160' : 'var(--ifm-card-background-color)',
-                        color: isSelf ? '#fff' : 'var(--ifm-text-color)'
-                      }}>{msg.content}</div>
-                      {isSelf && renderAvatar(myAvatar, myId, 34)}
+                    <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isSelf ? 'flex-end' : 'flex-start', marginBottom: '12px' }}>
+                      {!isSelf && (
+                        <div style={{ fontSize: 11, color: '#888', marginBottom: 2, marginLeft: 44, maxWidth: '65%' }}>
+                          {senderNickname}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: isSelf ? 'flex-end' : 'flex-start', gap: '10px', alignItems: 'flex-end' }}>
+                        {!isSelf && renderAvatar(sender.avatar_url, msg.from_user_id, 34)}
+                        <div style={{
+                          maxWidth: '65%', padding: '9px 14px', borderRadius: '20px',
+                          background: isSelf ? '#07c160' : 'var(--ifm-card-background-color)',
+                          color: isSelf ? '#fff' : 'var(--ifm-text-color)'
+                        }}>{msg.content}</div>
+                        {isSelf && renderAvatar(myAvatar, myId, 34)}
+                      </div>
                     </div>
                   );
                 })}
@@ -714,18 +811,111 @@ export default function ChatPage() {
 
                 {showGroupSetting && (
                   <div style={{
-                    position: 'absolute', right: '20px', top: '20px', width: '240px',
+                    position: 'absolute', right: '20px', top: '20px', width: '280px',
+                    maxHeight: '60vh', overflowY: 'auto',
                     background: 'var(--ifm-card-background-color)', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '12px',
                     padding: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 999, color:'var(--ifm-text-color)'
                   }}>
-                    <h4 style={{ margin: '0 0 12px' }}>群聊设置</h4>
-                    <p style={{ margin: '6px 0' }}>群主：{currentGroup.owner_id === myId ? '我' : '其他成员'}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <h4 style={{ margin: 0 }}>群聊设置</h4>
+                      <button onClick={() => setShowGroupSetting(false)} style={{
+                        border: 'none', background: 'transparent', fontSize: 18, cursor: 'pointer',
+                        color: 'var(--ifm-text-color)', padding: 0, lineHeight: 1
+                      }}>✕</button>
+                    </div>
+
+                    <div style={{ fontSize: 13, marginBottom: 12 }}>
+                      <p style={{ margin: '4px 0', color: '#888' }}>
+                        群主：{currentGroup.owner_id === myId ? '我' : (groupMembers.find(m => m.id === currentGroup.owner_id)?.nickname || '其他成员')}
+                      </p>
+                      <p style={{ margin: '4px 0', color: '#888' }}>
+                        成员数：{groupMembers.length + 1}
+                      </p>
+                    </div>
+
+                    {/* 群成员列表 */}
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#888' }}>
+                        群成员
+                        {currentGroup.owner_id === myId && (
+                          <span style={{ color: '#07c160', marginLeft: 8, cursor: 'pointer' }}
+                            onClick={() => setShowTransferUI(!showTransferUI)}
+                          >[转移群主]</span>
+                        )}
+                      </div>
+                      <div style={{ maxHeight: 120, overflowY: 'auto', border: '1px solid var(--ifm-color-emphasis-200)', borderRadius: 8, padding: 6 }}>
+                        {/* 群主（自己） */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', fontSize: 12 }}>
+                          {renderAvatar(myAvatar, myId, 24)}
+                          <span style={{ flex: 1 }}>{myProfile?.nickname || '我'}</span>
+                          <span style={{ color: '#07c160', fontSize: 10 }}>群主</span>
+                        </div>
+                        {/* 其他成员 */}
+                        {groupMembers.map(m => (
+                          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', fontSize: 12, borderRadius: 4 }}>
+                            {renderAvatar(m.avatar_url, m.id, 24)}
+                            <span style={{ flex: 1 }}>{m.nickname || '用户'}</span>
+                            {m.id === currentGroup.owner_id && (
+                              <span style={{ color: '#07c160', fontSize: 10 }}>群主</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 群主转移 UI */}
+                    {showTransferUI && currentGroup.owner_id === myId && (
+                      <div style={{
+                        marginBottom: 12, padding: 10, background: '#fff8e1',
+                        borderRadius: 8, border: '1px solid #ffe082'
+                      }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#e65100' }}>
+                          ⚠️ 转移群主给：
+                        </div>
+                        <select
+                          value={transferTargetId}
+                          onChange={(e) => setTransferTargetId(e.target.value)}
+                          style={{
+                            width: '100%', padding: '6px 8px', borderRadius: 6,
+                            border: '1px solid var(--ifm-color-emphasis-300)',
+                            background: 'var(--ifm-card-background-color)',
+                            color: 'var(--ifm-text-color)', fontSize: 12, marginBottom: 8
+                          }}
+                        >
+                          <option value="">-- 选择成员 --</option>
+                          {groupMembers.filter(m => m.id !== currentGroup.owner_id).map(m => (
+                            <option key={m.id} value={m.id}>{m.nickname || '用户'}</option>
+                          ))}
+                        </select>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            onClick={() => { setShowTransferUI(false); setTransferTargetId(''); }}
+                            style={{
+                              flex: 1, padding: '5px 8px', border: '1px solid #ddd',
+                              borderRadius: 4, background: '#fff', cursor: 'pointer',
+                              fontSize: 11, color: '#666'
+                            }}
+                          >取消</button>
+                          <button
+                            onClick={transferGroupOwner}
+                            disabled={!transferTargetId}
+                            style={{
+                              flex: 1, padding: '5px 8px', border: 'none',
+                              borderRadius: 4, background: transferTargetId ? '#e65100' : '#ccc',
+                              color: '#fff', cursor: transferTargetId ? 'pointer' : 'not-allowed',
+                              fontSize: 11
+                            }}
+                          >确认转移</button>
+                        </div>
+                      </div>
+                    )}
+
                     <button
                       onClick={() => quitGroup(currentGroup.id)}
                       style={{
-                        width: '100%', padding: '8px', marginTop: '10px',
+                        width: '100%', padding: '8px', marginTop: '6px',
                         background: '#ff7875', color: '#fff', border: 'none',
-                        borderRadius: '6px', cursor: 'pointer'
+                        borderRadius: '6px', cursor: 'pointer', fontSize: 13
                       }}
                     >退出群聊</button>
                     {currentGroup.owner_id === myId && (
@@ -734,7 +924,7 @@ export default function ChatPage() {
                         style={{
                           width: '100%', padding: '8px', marginTop: '8px',
                           background: '#f5222d', color: '#fff', border: 'none',
-                          borderRadius: '6px', cursor: 'pointer'
+                          borderRadius: '6px', cursor: 'pointer', fontSize: 13
                         }}
                       >解散群聊</button>
                     )}
