@@ -9,14 +9,17 @@
 
 .navbar {
   --ifm-navbar-background-color: transparent;
-
   background: hsl(var(--navbar-bg));
   border-block-end: 1px solid hsl(var(--border) / 0.5);
   padding: 0;
-  padding-block-end: 5rem;
+  /* ❗彻底移除 padding-block-end: 5rem; */
   box-shadow: none;
-  transition: translate 0.3s ease;
+  transition: translate 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   view-transition-name: none;
+  /* 关键修复1：允许子元素下拉菜单溢出容器 */
+  overflow: visible !important;
+  /* 关键修复2：提高层级，防止被页面内容盖住 */
+  z-index: 99;
 
   @media (width >=997px) {
     backdrop-filter: blur(12px);
@@ -43,7 +46,8 @@
 .navbar__inner {
   max-inline-size: 80rem;
   margin-inline: auto;
-  padding: 1.25rem 1.5rem;
+  /* 垂直padding微调：上下1rem，舒展不臃肿；左右保持不变 */
+  padding: 1.2rem 1.5rem 1.25rem;
 }
 
 .navbar__logo {

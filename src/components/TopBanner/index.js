@@ -22,6 +22,45 @@ const getUserName = (user = null, nickName = '') => {
   );
 };
 
+// 头像渲染函数
+const renderUserAvatar = (avatarEmoji) => {
+  if (!avatarEmoji) {
+    return (
+      <div style={{
+        width: 36, height: 36, borderRadius: '50%',
+        background: 'linear-gradient(135deg, #e8f4ff, #d1eaff)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 18, boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+      }}>
+        😊
+      </div>
+    );
+  }
+  if (avatarEmoji.startsWith('http')) {
+    return (
+      <img
+        src={avatarEmoji}
+        alt="头像"
+        style={{
+          width: 36, height: 36, borderRadius: '50%',
+          objectFit: 'cover', boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+        }}
+        onError={(e) => e.target.style.display = 'none'}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: 36, height: 36, borderRadius: '50%',
+      background: 'linear-gradient(135deg, #e8f4ff, #d1eaff)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 18, boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+    }}>
+      {avatarEmoji}
+    </div>
+  );
+};
+
 export default function TopBanner({
   siteData = {},
   base = '',
@@ -35,7 +74,7 @@ export default function TopBanner({
   handleGitHubLogin = () => { },
   handleSignOut = () => { },
   timeEpoch = Math.floor(Date.now() / 1000),
-  locationName = "北京"
+  locationName = "Beijing"
 }) {
   const noticeRef = useRef(null);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -210,6 +249,9 @@ export default function TopBanner({
           currentNickname={dbNickname}
           currentAvatar={avatarEmoji}
           user={user}
+          style={{
+            animation: 'heatPulse 3.2s ease-in-out infinite'
+          }}
         />
 
         <div style={{
@@ -226,42 +268,153 @@ export default function TopBanner({
           {loading ? (
             <div style={{ textAlign: 'center', color: '#999' }}>加载中...</div>
           ) : !user ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ fontSize: 14, color: '#666' }}>
                 欢迎访客，登录解锁完整功能
               </div>
+
+              {/* 登录、注册强制同一行，弹性均分 */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Link
+                  to="/login"
+                  style={{
+                    flex: 1,
+                    textAlign: 'center',
+                    background: '#509feb',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '11px 16px',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    transition: 'all 0.25s ease',
+                    boxShadow: '0 2px 8px rgba(80,159,235,0.22)'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.background = '#3e8cd8';
+                    e.target.style.boxShadow = '0 4px 12px rgba(80,159,235,0.32)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.background = '#509feb';
+                    e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)';
+                  }}
+                >
+                  立即登录
+                </Link>
+
+                <Link
+                  to="/register"
+                  style={{
+                    flex: 1,
+                    textAlign: 'center',
+                    background: '#509feb',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '11px 16px',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    transition: 'all 0.25s ease',
+                    boxShadow: '0 2px 8px rgba(80,159,235,0.22)'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.background = '#3e8cd8';
+                    e.target.style.boxShadow = '0 4px 12px rgba(80,159,235,0.32)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.background = '#509feb';
+                    e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)';
+                  }}
+                >
+                  立即注册
+                </Link>
+              </div>
+
+              {/* B站按钮 带图标 微调亮度 */}
+              <button
+                disabled
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  background: '#fa78a0',
+                  color: '#fff',
+                  padding: '11px 16px',
+                  borderRadius: '12px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'not-allowed',
+                  opacity: 0.92,
+                  transition: 'all 0.25s ease',
+                  boxShadow: '0 2px 8px rgba(250,120,160,0.22)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8
+                }}
+              >
+                <span>📺</span>
+                Bilibili 登录（开发中）
+              </button>
+
+              {/* GitHub登录 带小猫图标 亮度微调 */}
               <button
                 onClick={handleGitHubLogin}
                 style={{
+                  width: '100%',
                   border: 'none',
-                  background: '#222',
+                  background: '#272b30',
                   color: '#fff',
-                  padding: '10px 16px',
+                  padding: '11px 16px',
                   borderRadius: '12px',
-                  cursor: 'pointer'
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.25s ease',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.13)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = '#373c42';
+                  e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.20)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = '#272b30';
+                  e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.13)';
                 }}
               >
-                GitHub 快捷登录
+                <span>🐱</span>
+                GitHub 登录
               </button>
+
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontSize: 14, color: '#333' }}>
-                👋 欢迎回来，<strong>{dbNickname || getUserName(user)}</strong>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#333' }}>
+                {renderUserAvatar(avatarEmoji)}
+                <span>👋 欢迎回来，<strong>{dbNickname || getUserName(user)}</strong></span>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <Link
                   to="/profile"
                   style={{
                     flex: 1,
+                    minWidth: '100px',
                     textAlign: 'center',
                     border: '1px solid #ccc',
-                    padding: '8px 0',
+                    padding: '9px 0',
                     borderRadius: '10px',
                     fontSize: 13,
                     color: '#333',
-                    textDecoration: 'none'
+                    textDecoration: 'none',
+                    transition: '0.2s'
                   }}
+                  onMouseOver={(e) => e.target.style.borderColor = '#509feb'}
+                  onMouseOut={(e) => e.target.style.borderColor = '#ccc'}
                 >
                   个人中心
                 </Link>
@@ -270,13 +423,15 @@ export default function TopBanner({
                   disabled={signOutLoading}
                   style={{
                     flex: 1,
+                    minWidth: '100px',
                     border: 'none',
                     background: '#f53f3f',
                     color: '#fff',
-                    padding: '8px 0',
+                    padding: '9px 0',
                     borderRadius: '10px',
                     fontSize: 13,
-                    cursor: signOutLoading ? 'not-allowed' : 'pointer'
+                    cursor: signOutLoading ? 'not-allowed' : 'pointer',
+                    transition: '0.2s'
                   }}
                 >
                   {signOutLoading ? '退出中' : '退出登录'}
