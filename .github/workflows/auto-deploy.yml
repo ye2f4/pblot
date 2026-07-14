@@ -27,24 +27,28 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: 安装指定版本 PNPM
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.5.2
-          # 用独立脚本安装编译好的 pnpm 二进制，绕过 runner 内置 Node 20 的引擎检查
-          # （pnpm 11.5.2 要求 node >=22.13，而 action 脚本运行在 runner 内置 Node 20 上）
-          standalone: true
-
-      # 依赖缓存：setup-node 自带 pnpm store 缓存（与 lockfile 绑定）
-      # 必须放在 pnpm/action-setup 之后，否则 setup-node 找不到 pnpm 计算缓存
-      - name: 配置Node 22
+      # 先装 Node 22（自带 npm），后续所有 run 步骤都运行在这个 Node 上
+      # 注意：runner 用来执行 action 脚本自身的内置 Node 仍是 20，
+      # 因此“JS action”方式装 pnpm 11（要求 node>=22.13）会失败，必须改用 npm run 步骤
+      - name: 配置 Node 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
+
+      - name: 安装 pnpm 11.5.2（在 Node 22 下，绕过 runner 内置 Node 20 的引擎限制）
+        run: npm install -g pnpm@11.5.2
+
+      # 依赖缓存：手动缓存 pnpm store（与 lockfile 绑定），替代 setup-node 的 cache:pnpm
+      - name: 缓存 pnpm 依赖 store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: 安装依赖
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --store-dir ~/.pnpm-store
 
       # 构建缓存：复用 Docusaurus faster / rspack 持久化缓存（.docusaurus）
       # 这是 CI 提速的关键 —— 不再每次都冷构建
