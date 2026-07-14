@@ -2,8 +2,13 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import { supabase } from '@/supabase/supabaseClient';
 import Link from '@docusaurus/Link';
+import { showAlert, showConfirm } from '@/utils/dialog';
 
-export const metadata = { ssr: false };
+export const metadata = {
+  ssr: false,
+  title: 'PCB 元器件资料 | Monoの小窝',
+  description: '常用 PCB 元器件参数、封装与选型参考资料。',
+};
 
 export default class PCBPage extends React.Component {
   constructor(props) {
@@ -129,7 +134,7 @@ export default class PCBPage extends React.Component {
     const name = partForm.name.trim();
     const partNumber = partForm.part_number.trim();
     if (!name || !partNumber) {
-      alert('名称和型号为必填项，不可为空/空格');
+      showAlert('名称和型号为必填项，不可为空/空格');
       return;
     }
 
@@ -156,18 +161,18 @@ export default class PCBPage extends React.Component {
       await this.refreshData();
     } catch (e) {
       console.error('保存元器件失败：', e);
-      alert(`保存失败：${e.message}`);
+      showAlert(`保存失败：${e.message}`);
     }
   };
 
   deletePart = async (id) => {
-    if (!window.confirm('确定删除该元器件？')) return;
+    if (!(await showConfirm('确定删除该元器件？'))) return;
     try {
       await supabase.from('parts').delete().eq('id', id);
       this.refreshData();
     } catch (e) {
       console.error('删除失败：', e);
-      alert('删除失败');
+      showAlert('删除失败');
     }
   };
 
@@ -207,7 +212,7 @@ export default class PCBPage extends React.Component {
     const { currentPcb, pcbForm } = this.state;
     const name = pcbForm.name.trim();
     if (!name) {
-      alert('工程名称为必填项，不可为空/空格');
+      showAlert('工程名称为必填项，不可为空/空格');
       return;
     }
 
@@ -237,18 +242,18 @@ export default class PCBPage extends React.Component {
       await this.refreshData();
     } catch (e) {
       console.error('保存PCB工程失败：', e);
-      alert(`保存失败：${e.message}`);
+      showAlert(`保存失败：${e.message}`);
     }
   };
 
   deletePcb = async (id) => {
-    if (!window.confirm('确定删除该PCB工程？')) return;
+    if (!(await showConfirm('确定删除该PCB工程？'))) return;
     try {
       await supabase.from('pcb_projects').delete().eq('id', id);
       this.refreshData();
     } catch (e) {
       console.error('删除失败：', e);
-      alert('删除失败');
+      showAlert('删除失败');
     }
   };
 

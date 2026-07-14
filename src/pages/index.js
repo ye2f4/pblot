@@ -7,6 +7,7 @@ import styles from './index.module.css';
 import siteData from '../data/siteData.json';
 import { throttle } from '../utils/common';
 import { supabase } from '../supabase/supabaseClient';
+import { showAlert } from '@/utils/dialog';
 import { AVATAR_CACHE_KEY } from '../supabase/supabaseClient';
 import { storage } from '../utils/storage';
 
@@ -49,7 +50,11 @@ import PWA from '../components/PWA';
 import SupabaseKeepAlive from '../components/SupabaseKeepAlive';
 import ChatRedDot from '../components/ChatRedDot';
 
-export const metadata = { ssr: false };
+export const metadata = {
+  ssr: false,
+  title: 'Monoの小窝 | ESP32P4·LVGL·Meshtastic 技术分享与开源硬件',
+  description: '专注 ESP32P4 智能手表、LVGL 开发、Meshtastic Mesh 网络、开源硬件、React 教程与个人技术分享。',
+};
 
 export default function Home() {
   const base = useBaseUrl('');
@@ -69,8 +74,14 @@ export default function Home() {
   const realNow = new Date(realTs);
 
   // 时钟数据源（传给MiddleStatsCard）
+  // clockTimeEpoch 始终是「绝对 UTC 时间戳(秒)」；时区偏移单独用 clockTzOffsetSec 传递，
+  // 由显示端按指定时区渲染，避免「epoch 上叠加城市偏移 + 本地时区显示」造成的双重偏移。
   const [clockTimeEpoch, setClockTimeEpoch] = useState(Math.floor(Date.now() / 1000));
   const [clockLocationName, setClockLocationName] = useState('北京');
+  const [clockTzOffsetSec, setClockTzOffsetSec] = useState(0);
+  // 优先用 IANA 时区(如 "Asia/Shanghai")传递，显示端用 Intl 渲染，
+  // 自带夏令时(DST)处理，彻底解决柏林等时区"慢 1 小时"以及北极无明确偏移的边界问题。
+  const [clockTimeZone, setClockTimeZone] = useState('');
 
   // 删掉这个！！外面不属于Home组件体内
   useEffect(() => {
@@ -104,7 +115,7 @@ export default function Home() {
       console.log('弹窗后手动拉取会话', data.session);
     } catch (err) {
       console.error("GitHub登录异常", err);
-      alert(err.message || "浏览器拦截弹窗，请切换页面跳转模式");
+      showAlert(err.message || "浏览器拦截弹窗，请切换页面跳转模式");
     }
   };
 
@@ -125,18 +136,27 @@ export default function Home() {
     try {
       const locStr = localStorage.getItem(LOCATION_STORAGE_KEY);
       if (!locStr) {
+        // 未选择城市：显示浏览器本地时间。
+        // 浏览器本地时区自带 DST，用本地相对 UTC 的偏移即可正确显示；
+        // 这里不传 IANA，交给显示端走偏移渲染。
         setClockTimeEpoch(Math.floor(realTs / 1000));
+        setClockTzOffsetSec(-new Date().getTimezoneOffset() * 60);
+        setClockTimeZone('');
         return;
       }
       const location = JSON.parse(locStr);
       setClockLocationName(location.name);
       const cacheKey = `blog_weather_cache_${location.code}`;
       const cacheRaw = localStorage.getItem(cacheKey);
+
+      // 优先取 IANA 时区：① 城市自带(静态列表已配) ② 天气缓存里 open-meteo 返回的 timezone
+      let tz = location.timezone || '';
       let offsetSec = 0;
 
       if (cacheRaw) {
         const cacheObj = JSON.parse(cacheRaw);
         const realData = cacheObj.data;
+        if (!tz && realData?.timezone) tz = realData.timezone;
         offsetSec = realData?.utc_offset_seconds;
         const tzAbbr = realData?.timezone_abbreviation;
 
@@ -149,21 +169,25 @@ export default function Home() {
         }
       }
 
-      // 如果缓存没有偏移量，尝试从经纬度估算（经度每15度约1小时）
+      // 如果缓存/城市都没有偏移量，尝试从经纬度估算（仅作最终兜底，不含 DST）
       if (!offsetSec) {
         offsetSec = Math.round(location.lon / 15) * 3600;
         console.log("从经纬度估算 offsetSec =", offsetSec, location.lon);
       }
 
-      // 核心：realTs 是网络校准后的 UTC 毫秒时间戳
-      // 目标城市本地时间戳 = UTC + offsetSec（秒）
+      // 核心：realTs 是网络校准后的绝对 UTC 毫秒时间戳。
+      // 这里只传「绝对 UTC 时间戳」+ IANA 时区(若有) + 偏移兜底。
+      // 显示端优先用 Intl 按 IANA 渲染(自动处理 DST)，无 IANA 时回退偏移渲染。
       const utcNow = Math.floor(realTs / 1000);
-      const targetLocalEpoch = utcNow + offsetSec;
-      console.log("同步城市时间", location.name, "offset", offsetSec, "城市时间戳", targetLocalEpoch);
-      setClockTimeEpoch(targetLocalEpoch);
+      console.log("同步城市时间", location.name, "timeZone", tz, "offset", offsetSec, "UTC时间戳", utcNow);
+      setClockTimeEpoch(utcNow);
+      setClockTzOffsetSec(offsetSec);
+      setClockTimeZone(tz);
     } catch (e) {
       console.error('解析报错', e);
       setClockTimeEpoch(Math.floor(realTs / 1000));
+      setClockTzOffsetSec(-new Date().getTimezoneOffset() * 60);
+      setClockTimeZone('');
     }
   };
 
@@ -213,7 +237,7 @@ export default function Home() {
     const reSyncTimer = setInterval(fetchNetworkTime, 600000);
     const renderTimer = setInterval(() => {
       if (isMountedRef.current) setRealTs(Date.now() + timeOffset);
-    }, 10);
+    }, 1000);
 
     // 滚动加载评论
     const handleScroll = throttle(() => {
@@ -234,7 +258,10 @@ export default function Home() {
     const originalSetItem = localStorage.setItem;
     localStorage.setItem = function (key, value) {
       originalSetItem.call(this, key, value);
-      if (key === LOCATION_STORAGE_KEY) syncClockData();
+      // 切换城市、或天气缓存(含 IANA 时区)就绪时，都重新同步时钟。
+      // 这样自定义地点(如北极)在 WeatherWidget 写入 open-meteo 返回的 timezone 后，
+      // 能自动切换到 Intl 按时区渲染，无需刷新页面。
+      if (key === LOCATION_STORAGE_KEY || key.startsWith('blog_weather_cache_')) syncClockData();
     };
 
     return () => {
@@ -336,15 +363,18 @@ export default function Home() {
         // 核心时钟参数
         timeEpoch={clockTimeEpoch}
         locationName={clockLocationName}
+        timeZoneOffset={clockTzOffsetSec}
+        timeZone={clockTimeZone}
       />
 
       <div ref={mainContentRef} className="main-content fadeIn" style={{
         maxWidth: 1200, margin: '20px auto', padding: '0 15px',
         display: 'flex', flexDirection: 'column', gap: 20, width: '100%',
         boxSizing: 'border-box',
+        minHeight: '600px',
         opacity: isInView(mainContentRef) ? 1 : 0,
         transform: isInView(mainContentRef) ? 'translateY(0)' : 'translateY(30px)',
-        transition: 'opacity 0.8s ease, transform 0.8s ease'
+        transition: 'opacity 0.4s ease, transform 0.4s ease'
       }}>
         <MainContentTop siteData={siteData} />
         <div className="content-row" style={{ display: 'flex', gap: 20, width: '100%', flexWrap: 'wrap', overflow: 'hidden', boxSizing: 'border-box' }}>

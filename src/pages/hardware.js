@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@theme/Layout';
 import { supabase } from '@/supabase/supabaseClient';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-export const metadata = { ssr: false };
+export const metadata = {
+  ssr: false,
+  title: '硬件监控 · ESP32 设备电量/信号/温度实时监测 | Monoの小窝',
+  description: '查看基于 ESP32 的硬件设备实时监控数据：电量、信号、温度趋势曲线，支持多城市时间与天气联动。',
+};
 
 const MOCK_DEVICES = [
   {
@@ -49,6 +53,12 @@ const generateMockMetrics = () => {
 const MOCK_METRICS = generateMockMetrics();
 
 export default function HardwareMonitor() {
+  // 本地验证模式：访问 /hardware/?source=local 时直连本地模拟器(HTTP :8787)
+  const LOCAL_API = 'http://localhost:8787';
+  const useLocal =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('source') === 'local';
+
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [metrics, setMetrics] = useState([]);
@@ -68,6 +78,127 @@ export default function HardwareMonitor() {
   });
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+
+  // ---------- 网页内提示（替代浏览器原生 alert） ----------
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error' | 'info', message }
+  const toastTimer = useRef(null);
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
+  };
+
+  // 指令成功后乐观更新本地背光状态，使按钮立即进入禁用态（重复操作检测）
+  const applyBacklightLocal = (on) => {
+    if (!selectedDevice) return;
+    const id = selectedDevice.id;
+    setDevices((prev) => prev.map((d) => (d.id === id ? { ...d, backlight_on: on } : d)));
+    setSelectedDevice((prev) => (prev && prev.id === id ? { ...prev, backlight_on: on } : prev));
+  };
+
+  // ---------- 数据源无关的数据访问层 ----------
+  // 在线状态不只看存储的 is_online，还看心跳新鲜度：
+  // 模拟器停止/崩溃后 last_heartbeat 不再更新，超过阈值即视为离线
+  const ONLINE_STALE_MS = 15000;
+  const normalizeDevices = (list) =>
+    (list || []).map((d) => {
+      const hb = d.last_heartbeat ? new Date(d.last_heartbeat).getTime() : 0;
+      const fresh = Number.isFinite(hb) && Date.now() - hb < ONLINE_STALE_MS;
+      return { ...d, is_online: Boolean(d.is_online) && fresh };
+    });
+
+  const loadDevices = async () => {
+    if (useLocal) {
+      const res = await fetch(`${LOCAL_API}/devices`);
+      if (!res.ok) throw new Error('本地设备服务未启动（请先运行 node scripts/simulate-devices.mjs）');
+      return await res.json();
+    }
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    setUser(currentUser);
+    let query = supabase.from('devices').select('*');
+    // 演示模式：公开设备（owner_id 为空的模拟器设备）对所有人可见；
+    // 登录用户额外看到自己名下的设备
+    if (currentUser) {
+      query = query.or(`owner_id.eq.${currentUser.id},owner_id.is.null`);
+    }
+    query = query.order('created_at', { ascending: false });
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  };
+
+  const loadMetrics = async (deviceId) => {
+    if (useLocal) {
+      const res = await fetch(`${LOCAL_API}/devices/${encodeURIComponent(deviceId)}/metrics?limit=80`);
+      if (!res.ok) throw new Error('metrics');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }
+    const { data, error } = await supabase
+      .from('device_metrics')
+      .select('*')
+      .eq('device_id', deviceId)
+      .order('timestamp', { ascending: false })
+      .limit(80);
+    if (error) throw error;
+    if (!data || data.length === 0) return [];
+    const timeMap = new Map();
+    data.forEach((item) => {
+      const timeStr = new Date(item.timestamp).toLocaleTimeString().slice(0, 5);
+      if (!timeMap.has(timeStr)) {
+        timeMap.set(timeStr, { time: timeStr, battery: null, signal: null, temperature: null });
+      }
+      const row = timeMap.get(timeStr);
+      if (item.metric_type === 'battery') row.battery = item.value;
+      if (item.metric_type === 'signal') row.signal = item.value;
+      if (item.metric_type === 'temperature') row.temperature = item.value;
+    });
+    // Supabase 查询按 timestamp 降序返回(最新在前)，反转成升序(最旧在前)，
+    // 使图表 X 轴保持"左旧右新"的常规顺序，与 local 模式一致
+    return Array.from(timeMap.values()).reverse();
+  };
+
+  const pushCommand = async (deviceId, command) => {
+    if (useLocal) {
+      const res = await fetch(`${LOCAL_API}/commands`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId, command }),
+      });
+      if (!res.ok) throw new Error('指令下发失败');
+      return;
+    }
+    const { error } = await supabase.from('device_commands').insert([{ device_id: deviceId, command }]);
+    if (error) throw error;
+  };
+
+  const createDevice = async (payload) => {
+    if (useLocal) {
+      const res = await fetch(`${LOCAL_API}/devices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('创建设备失败');
+      return await res.json();
+    }
+    const { data, error } = await supabase.from('devices').insert([payload]).select();
+    if (error) throw error;
+    return data && data[0];
+  };
+
+  const checkDeviceIdUnique = async (deviceId) => {
+    if (isMockMode) return true;
+    if (useLocal) {
+      const res = await fetch(`${LOCAL_API}/devices`);
+      if (!res.ok) return false;
+      const list = await res.json();
+      return !list.some((d) => d.device_id === deviceId);
+    }
+    const { data, error } = await supabase.from('devices').select('id').eq('device_id', deviceId).limit(1);
+    if (error) throw error;
+    return data.length === 0;
+  };
 
   const EmptyTip = ({ text }) => (
     <div style={{
@@ -89,35 +220,20 @@ export default function HardwareMonitor() {
       try {
         setLoading(true);
         setError('');
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        setUser(currentUser);
-
-        if (!currentUser) {
-          setIsMockMode(true);
-          setDevices(MOCK_DEVICES);
-          setSelectedDevice(MOCK_DEVICES[0]);
-          setMetrics(MOCK_METRICS);
-          setLoading(false);
-          return;
-        }
-
-        const { data, err } = await supabase
-          .from('devices')
-          .select('*')
-          .eq('owner_id', currentUser.id)
-          .order('created_at', { ascending: false });
-
-        if (err) throw err;
+        const data = await loadDevices();
 
         if (!data || data.length === 0) {
+          // 无任何真实设备时，展示演示数据，方便体验
           setIsMockMode(true);
-          setDevices(MOCK_DEVICES);
-          setSelectedDevice(MOCK_DEVICES[0]);
+          const mockNorm = normalizeDevices(MOCK_DEVICES);
+          setDevices(mockNorm);
+          setSelectedDevice(mockNorm[0]);
           setMetrics(MOCK_METRICS);
         } else {
           setIsMockMode(false);
-          setDevices(data);
-          setSelectedDevice(data[0]);
+          const norm = normalizeDevices(data);
+          setDevices(norm);
+          setSelectedDevice(norm[0]);
         }
       } catch (err) {
         console.error('加载设备失败：', err);
@@ -145,31 +261,8 @@ export default function HardwareMonitor() {
     }
     const fetchMetrics = async () => {
       try {
-        const { data, err } = await supabase
-          .from('device_metrics')
-          .select('*')
-          .eq('device_id', selectedDevice.id)
-          .order('timestamp', { ascending: false })
-          .limit(80);
-
-        if (err) throw err;
-        if (!data || data.length === 0) {
-          setMetrics([]);
-          return;
-        }
-
-        const timeMap = new Map();
-        data.forEach(item => {
-          const timeStr = new Date(item.timestamp).toLocaleTimeString().slice(0, 5);
-          if (!timeMap.has(timeStr)) {
-            timeMap.set(timeStr, { time: timeStr, battery: null, signal: null, temperature: null });
-          }
-          const row = timeMap.get(timeStr);
-          if (item.metric_type === 'battery') row.battery = item.value;
-          if (item.metric_type === 'signal') row.signal = item.value;
-          if (item.metric_type === 'temperature') row.temperature = item.value;
-        });
-        setMetrics(Array.from(timeMap.values()));
+        const data = await loadMetrics(selectedDevice.id);
+        setMetrics(data);
       } catch (err) {
         console.error('加载指标数据失败：', err);
       }
@@ -179,17 +272,30 @@ export default function HardwareMonitor() {
 
   const sendCommand = async (command) => {
     if (!selectedDevice || sending || !selectedDevice.is_online) return;
+    // 重复操作检测：背光状态已与目标一致时忽略，避免无限执行
+    if (command === 'backlight_on' && selectedDevice.backlight_on) {
+      showToast('info', '背光已处于开启状态');
+      return;
+    }
+    if (command === 'backlight_off' && !selectedDevice.backlight_on) {
+      showToast('info', '背光已处于关闭状态');
+      return;
+    }
     setSending(true);
     try {
-      if (!isMockMode) {
-        await supabase.from('device_commands').insert([{
-          device_id: selectedDevice.id,
-          command
-        }]);
+      // 演示模式：未连接真实设备，仅模拟下发成功
+      if (isMockMode) {
+        showToast('info', `指令【${command}】发送成功（演示模式，未连接真实设备）`);
+        if (command === 'backlight_on') applyBacklightLocal(true);
+        else if (command === 'backlight_off') applyBacklightLocal(false);
+        return;
       }
-      alert(`指令【${command}】发送成功，设备正在执行`);
+      await pushCommand(selectedDevice.id, command);
+      showToast('success', `指令【${command}】发送成功，设备正在执行`);
+      if (command === 'backlight_on') applyBacklightLocal(true);
+      else if (command === 'backlight_off') applyBacklightLocal(false);
     } catch (err) {
-      alert(`指令发送失败：${err.message}`);
+      showToast('error', `指令发送失败：${err.message}`);
     } finally {
       setTimeout(() => setSending(false), 1200);
     }
@@ -208,19 +314,7 @@ export default function HardwareMonitor() {
   };
 
   const validateDeviceId = async (deviceId) => {
-    if (isMockMode) return true;
-    try {
-      const { data, err } = await supabase
-        .from('devices')
-        .select('id')
-        .eq('device_id', deviceId)
-        .limit(1);
-      if (err) throw err;
-      return data.length === 0;
-    } catch (err) {
-      console.error('验证设备ID失败：', err);
-      return false;
-    }
+    return await checkDeviceIdUnique(deviceId);
   };
 
   const submitNewDevice = async () => {
@@ -232,7 +326,7 @@ export default function HardwareMonitor() {
       setFormError('请输入设备唯一ID（如MAC/UUID）');
       return;
     }
-    if (!user) {
+    if (!user && !useLocal) {
       setFormError('请先登录');
       return;
     }
@@ -268,18 +362,14 @@ export default function HardwareMonitor() {
         setDevices([newMockDevice, ...devices]);
         setSelectedDevice(newMockDevice);
       } else {
-        const { data, err } = await supabase
-          .from('devices')
-          .insert([deviceData])
-          .select();
-        if (err) throw err;
-        if (data && data.length > 0) {
-          setDevices([data[0], ...devices]);
-          setSelectedDevice(data[0]);
+        const created = await createDevice(deviceData);
+        if (created) {
+          setDevices([created, ...devices]);
+          setSelectedDevice(created);
         }
       }
       setShowAddDeviceModal(false);
-      alert('设备添加成功！等待设备上线...');
+      showToast('success', '设备添加成功！等待设备上线...');
     } catch (err) {
       console.error('添加设备失败：', err);
       setFormError(`添加失败：${err.message || '未知错误'}`);
@@ -338,6 +428,17 @@ export default function HardwareMonitor() {
                   🧪 演示模式（模拟数据）
                 </span>
               )}
+              {useLocal && (
+                <span style={{
+                  padding: '4px 12px',
+                  background: '#e8f5e9',
+                  color: '#2e7d32',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}>
+                  🖥️ 本地验证模式（localhost:8787）
+                </span>
+              )}
               {error && (
                 <span style={{
                   padding: '4px 12px',
@@ -377,7 +478,7 @@ export default function HardwareMonitor() {
                 }}>
                   我的设备
                 </h3>
-                {user && (
+                {(user || useLocal) && (
                   <button
                     onClick={openAddDeviceModal}
                     style={{
@@ -460,6 +561,9 @@ export default function HardwareMonitor() {
                             <div>⚡ 电压: {device.voltage.toFixed(2)} V</div>
                           </>
                         )}
+                        {typeof device.backlight_on === 'boolean' && (
+                          <div>💡 背光: {device.backlight_on ? '开启' : '关闭'}</div>
+                        )}
                       </div>
 
                       <div style={{
@@ -519,7 +623,7 @@ export default function HardwareMonitor() {
                     </button>
                     <button
                       onClick={() => sendCommand('backlight_on')}
-                      disabled={sending || !selectedDevice.is_online}
+                      disabled={sending || !selectedDevice.is_online || selectedDevice.backlight_on}
                       style={{
                         padding: '10px 20px',
                         background: '#2196f3',
@@ -527,12 +631,12 @@ export default function HardwareMonitor() {
                         border: 'none',
                         borderRadius: '10px',
                         fontSize: '14px',
-                        cursor: sending || !selectedDevice.is_online ? 'not-allowed' : 'pointer',
-                        opacity: sending || !selectedDevice.is_online ? 0.6 : 1,
+                        cursor: sending || !selectedDevice.is_online || selectedDevice.backlight_on ? 'not-allowed' : 'pointer',
+                        opacity: sending || !selectedDevice.is_online || selectedDevice.backlight_on ? 0.6 : 1,
                         transition: 'background 0.25s ease'
                       }}
                       onMouseOver={(e) => {
-                        if (!sending && selectedDevice.is_online) e.target.style.background = '#1976d2';
+                        if (!sending && selectedDevice.is_online && !selectedDevice.backlight_on) e.target.style.background = '#1976d2';
                       }}
                       onMouseOut={(e) => e.target.style.background = '#2196f3'}
                     >
@@ -540,7 +644,7 @@ export default function HardwareMonitor() {
                     </button>
                     <button
                       onClick={() => sendCommand('backlight_off')}
-                      disabled={sending || !selectedDevice.is_online}
+                      disabled={sending || !selectedDevice.is_online || !selectedDevice.backlight_on}
                       style={{
                         padding: '10px 20px',
                         background: '#757575',
@@ -548,12 +652,12 @@ export default function HardwareMonitor() {
                         border: 'none',
                         borderRadius: '10px',
                         fontSize: '14px',
-                        cursor: sending || !selectedDevice.is_online ? 'not-allowed' : 'pointer',
-                        opacity: sending || !selectedDevice.is_online ? 0.6 : 1,
+                        cursor: sending || !selectedDevice.is_online || !selectedDevice.backlight_on ? 'not-allowed' : 'pointer',
+                        opacity: sending || !selectedDevice.is_online || !selectedDevice.backlight_on ? 0.6 : 1,
                         transition: 'background 0.25s ease'
                       }}
                       onMouseOver={(e) => {
-                        if (!sending && selectedDevice.is_online) e.target.style.background = '#616161';
+                        if (!sending && selectedDevice.is_online && selectedDevice.backlight_on) e.target.style.background = '#616161';
                       }}
                       onMouseOut={(e) => e.target.style.background = '#757575'}
                     >
@@ -921,6 +1025,26 @@ export default function HardwareMonitor() {
           )}
         </div>
       </div>
+
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          top: 'calc(var(--ifm-navbar-height, 60px) + 16px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10000,
+          padding: '12px 22px',
+          borderRadius: '10px',
+          color: '#fff',
+          fontSize: '14px',
+          fontWeight: 500,
+          boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+          background: toast.type === 'error' ? '#c62828' : toast.type === 'success' ? '#2e7d32' : '#1565c0',
+          maxWidth: '90vw'
+        }}>
+          {toast.message}
+        </div>
+      )}
     </Layout>
   );
 }

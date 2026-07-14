@@ -16,7 +16,7 @@ jobs:
   # 第一阶段：Docusaurus 构建 + GitHub Pages 部署
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: 检出完整代码+Git标签
         uses: actions/checkout@v4
@@ -24,32 +24,35 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: PNPM 依赖缓存
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.pnpm/store
-            node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: 激活指定版本PNPM
-        run: corepack enable && corepack prepare pnpm@11.5.2 --activate
-
+      # 依赖缓存：setup-node 自带 pnpm store 缓存（与 lockfile 绑定）
       - name: 配置Node 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
+      - name: 激活指定版本PNPM
+        run: corepack enable && corepack prepare pnpm@11.5.2 --activate
+
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
+
+      # 构建缓存：复用 Docusaurus faster / rspack 持久化缓存（.docusaurus）
+      # 这是 CI 提速的关键 —— 不再每次都冷构建
+      - name: 缓存 Docusaurus 构建缓存（faster/rspack 持久化缓存）
+        uses: actions/cache@v4
+        with:
+          path: .docusaurus
+          key: ${{ runner.os }}-docusaurus-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-docusaurus-
 
       - name: 静态构建（注入Supabase环境变量供前端页面调用）
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          rm -rf .docusaurus build
+          rm -rf build
           pnpm build
 
       - name: 校验构建产物
@@ -84,6 +87,59 @@ jobs:
 
       - name: 运行脚本解析版本、标题、类型、描述
         run: ./get-commit-desc.sh
+
+      # 可选：AI 自然语言摘要（配置 GH_MODELS_TOKEN 后自动启用）
+      # 免费渠道：GitHub Models（需一个带 models:read 权限的 PAT，无需信用卡/新账号）
+      - name: AI 自然语言摘要（可选，需 GH_MODELS_TOKEN）
+        if: ${{ secrets.GH_MODELS_TOKEN != '' }}
+        continue-on-error: true
+        env:
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        run: |
+          RAW="changelog_raw.txt"
+          if [ ! -f "$RAW" ]; then
+            echo "[调试] 未找到原始材料，跳过 AI 摘要"
+            exit 0
+          fi
+
+          # 提取提交记录与文件改动，拼接为用户消息
+          USER_CONTENT=$({
+            echo "---- 提交记录 ----"
+            sed -n '/===COMMIT_LOG===/,/===END===/p' "$RAW" | sed '1d;$d'
+            echo ""
+            echo "---- 文件改动（路径列表）----"
+            sed -n '/===DIFF_STAT===/,/===END===/p' "$RAW" | sed '1d;$d'
+          })
+
+          SYS_INSTR='你是一个发布说明撰写助手。根据下面的 Git 提交记录与文件改动统计，用简体中文写一段 2-4 句话的更新摘要，面向普通用户，口语化、积极，不要列出 commit 哈希或代码细节。'
+
+          # 用 jq 安全构造 OpenAI 兼容请求体（自动转义）
+          jq -n --arg sys "$SYS_INSTR" --arg usr "$USER_CONTENT" '{
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: $sys },
+              { role: "user",   content: $usr }
+            ],
+            temperature: 0.3,
+            max_tokens: 300
+          }' > body.json
+
+          RESP=$(curl -s -m 30 "https://models.inference.ai.azure.com/chat/completions" \
+            -H "Authorization: Bearer $GH_MODELS_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data @body.json)
+
+          SUMMARY=$(echo "$RESP" | jq -r '.choices[0].message.content // empty')
+
+          if [ -n "$SUMMARY" ]; then
+            # 转义为可写入 GITHUB_ENV 与 JSON 的单行文本
+            ESC=$(printf '%s' "$SUMMARY" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+            echo "DESC=$ESC" >> "$GITHUB_ENV"
+            echo "[调试] AI 摘要已生成，覆盖规则摘要"
+          else
+            echo "[调试] AI 摘要为空，沿用规则摘要"
+            echo "$RESP" | head -c 500
+          fi
 
       - name: 写入日志到Supabase（接口失败不影响部署状态）
         continue-on-error: true

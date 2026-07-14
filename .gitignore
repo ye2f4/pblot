@@ -40,3 +40,11 @@ gen
 /playwright-report/
 /playwright/.cache/
 
+# 缓存与日志
+.cache/
+*.log
+
+# CI 临时产物（get-commit-desc.sh / GitHub Models 摘要）
+changelog_raw.txt
+body.json
+

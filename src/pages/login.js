@@ -6,6 +6,8 @@ import siteData from '@/data/siteData.json';
 
 export const metadata = {
     ssr: false,
+    title: '登录 | Monoの小窝',
+    description: '登录 Monoの小窝，参与评论、聊天与社区互动。',
 };
 
 export default function Login() {

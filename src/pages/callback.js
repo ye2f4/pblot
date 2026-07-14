@@ -6,6 +6,8 @@ import siteData from '../data/siteData.json';
 // 禁用服务端渲染（构建必需，保留）
 export const metadata = {
   ssr: false,
+  title: '登录中 | Monoの小窝',
+  description: '正在完成第三方登录授权，请稍候。',
 };
 
 export default function AuthCallback() {

@@ -27,6 +27,8 @@ export default function AdSection({ ads, base }) {
               src={`${base}img/${ad.filename}`}
               alt={`广告 ${i + 1}`}
               loading="lazy"
+              width={600}
+              height={200}
               style={{
                 display: 'block',
                 width: '100%',

@@ -17,7 +17,9 @@ const WEBMASTER_UID = "31452874-c41a-4e2e-a497-8b67e42ccafa";
 const WEBMASTER_NAME = "联系站长";
 
 export const metadata = {
-  ssr: false
+  ssr: false,
+  title: '聊天室 | Monoの小窝',
+  description: '加入社区实时聊天，与开发者们交流技术、分享想法。',
 };
 
 export default function ChatPage() {

@@ -3,8 +3,13 @@ import Layout from '@theme/Layout';
 import { supabase } from '@/supabase/supabaseClient';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { showAlert, showConfirm } from '@/utils/dialog';
 
-export const metadata = { ssr: false };
+export const metadata = {
+  ssr: false,
+  title: '代码片段库 | Monoの小窝',
+  description: '常用前端、React、嵌入式开发代码片段与速查，提升开发效率。',
+};
 
 export default function CodeSnippets() {
   const [snippets, setSnippets] = useState([]);
@@ -93,23 +98,23 @@ export default function CodeSnippets() {
   };
 
   const deleteSnippet = async (id) => {
-    if (!window.confirm('确定要删除该代码片段？此操作不可恢复！')) return;
+    if (!(await showConfirm('确定要删除该代码片段？此操作不可恢复！'))) return;
     try {
       const { error } = await supabase.from('code_snippets').delete().eq('id', id);
       if (error) throw error;
       await fetchSnippets();
     } catch (err) {
       console.error('删除失败：', err);
-      alert('删除失败，请检查权限');
+      showAlert('删除失败，请检查权限');
     }
   };
 
   const saveSnippet = async () => {
-    if (!user) { alert('请先登录后再操作'); return; }
+    if (!user) { showAlert('请先登录后再操作'); return; }
     const title = newSnippet.title.trim();
     const code = newSnippet.code.trim();
-    if (!title) { alert('请填写片段标题'); return; }
-    if (!code) { alert('代码内容不能为空'); return; }
+    if (!title) { showAlert('请填写片段标题'); return; }
+    if (!code) { showAlert('代码内容不能为空'); return; }
 
     try {
       const tagArr = newSnippet.tags.split(',').map(t => t.trim()).filter(t => t);
@@ -134,7 +139,7 @@ export default function CodeSnippets() {
       await fetchSnippets();
     } catch (err) {
       console.error('保存失败：', err);
-      alert('保存失败，请检查数据或权限');
+      showAlert('保存失败，请检查数据或权限');
     }
   };
 

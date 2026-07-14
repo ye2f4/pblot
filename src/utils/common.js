@@ -11,7 +11,8 @@ export const throttle = (fn, delay) => {
 };
 
 // 统一错误提示
+import { showAlert } from './dialog';
 export const showError = (message) => {
-    alert(message);
+    showAlert(message);
     console.error(message);
 };

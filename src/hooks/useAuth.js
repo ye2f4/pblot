@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase/supabaseClient';
 import { showError } from '../utils/common';
+import { showAlert } from '../utils/dialog';
 import siteData from '../data/siteData.json';
 
 export const useAuth = () => {
@@ -30,11 +31,11 @@ export const useAuth = () => {
                 }
             });
             if (error) {
-                alert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
+                showAlert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
                 console.error('GitHub登录弹窗异常', error);
             }
         } catch (err) {
-            alert(`${siteData.texts.loginTips.loginError}${err.message}`);
+            showAlert(`${siteData.texts.loginTips.loginError}${err.message}`);
             console.error('GitHub登录捕获异常', err);
         } finally {
             setLoading(false);
@@ -54,9 +55,9 @@ export const useAuth = () => {
                     scopes: "user:email,read:user"
                 }
             });
-            if (error) alert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
+            if (error) showAlert(`${siteData.texts.loginTips.loginFailed}${error.message}`);
         } catch (err) {
-            alert(`${siteData.texts.loginTips.loginError}${err.message}`);
+            showAlert(`${siteData.texts.loginTips.loginError}${err.message}`);
             console.error('GitHub登录捕获异常', err);
         } finally {
             setLoading(false);
@@ -80,7 +81,7 @@ export const useAuth = () => {
             }
             return data;
         } catch (err) {
-            alert(`注册失败：${err.message}`);
+            showAlert(`注册失败：${err.message}`);
             console.error('邮箱注册异常', err);
             throw err;
         } finally {
@@ -104,7 +105,7 @@ export const useAuth = () => {
             }
             return data;
         } catch (err) {
-            alert(`登录失败：${err.message}`);
+            showAlert(`登录失败：${err.message}`);
             console.error('邮箱登录异常', err);
             throw err;
         } finally {
@@ -117,14 +118,14 @@ export const useAuth = () => {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) {
-                alert(`${siteData.texts.loginTips.logoutFailed}${error.message}`);
+                showAlert(`${siteData.texts.loginTips.logoutFailed}${error.message}`);
                 console.error('登出失败', error);
             } else {
                 setUser(null);
                 clearUrlParams();
             }
         } catch (err) {
-            alert(`${siteData.texts.loginTips.logoutError}${err.message}`);
+            showAlert(`${siteData.texts.loginTips.logoutError}${err.message}`);
             console.error('登出捕获异常', err);
         }
     };

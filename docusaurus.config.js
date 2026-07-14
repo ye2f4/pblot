@@ -3,6 +3,7 @@
 // ==============================================
 import path from "node:path";
 import fs from "node:fs";
+import React from "react";
 import remarkDefList from "remark-deflist";
 import siteData from "./src/data/siteData.json" with { type: "json" };
 
@@ -63,6 +64,18 @@ const config = {
     {
       tagName: 'link',
       attributes: { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    },
+    {
+      tagName: 'meta',
+      attributes: { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    },
+    // 预加载轮播首张图片（LCP 关键资源），静态首图会立即渲染
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preload', href: '/img/0.webp', as: 'image',
+        type: 'image/webp', fetchpriority: 'high',
+      },
     },
     {
       tagName: 'link',
@@ -131,6 +144,26 @@ const config = {
         }
       }),
     },
+    // WebSite + 站内搜索动作（Sitelinks 搜索框）
+    {
+      tagName: 'script',
+      attributes: { type: 'application/ld+json' },
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": siteData.siteTitle,
+        "url": siteData.siteUrl,
+        "description": m.description,
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": `${siteData.siteUrl}/search?q={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }),
+    },
     { tagName: "meta", attributes: { name: "author", content: siteData.siteAuthor } },
     { tagName: "meta", attributes: { name: "robots", content: "index,follow" } },
     // Open Graph
@@ -189,6 +222,22 @@ const config = {
 
   plugins: [
     require.resolve("./plugins/sync-blog-plugin"),
+    // 全局 SEO：挂载 SeoCanonical，为每个路由注入 <link rel="canonical">
+    // （用 require 懒加载浏览器组件，避免在 Node 端构建时执行 React 渲染）
+    function seoCanonicalPlugin() {
+      return {
+        name: "seo-canonical-plugin",
+        wrapRootLayout(children) {
+          const SeoCanonical = require("./src/components/SeoCanonical").default;
+          return React.createElement(
+            React.Fragment,
+            null,
+            React.createElement(SeoCanonical, null),
+            children
+          );
+        },
+      };
+    },
     function AutoGenerateCNAMEPlugin() {
       return {
         name: "auto-generate-cname",

@@ -2,21 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useHistory } from '@docusaurus/router';
 import { supabase } from '@site/src/supabase/supabaseClient';
 
+export const metadata = {
+  ssr: false,
+  title: '全球位置与实时天气 | Monoの小窝',
+  description: '全球城市实时天气、经纬度与时间查询，支持 IANA 时区与夏令时自动换算。',
+};
+
 export const locationList = [
-  { name: '北京', lat: 39.9042, lon: 116.4074, code: 'beijing' },
-  { name: '上海', lat: 31.2304, lon: 121.4737, code: 'shanghai' },
-  { name: '广州', lat: 23.1291, lon: 113.2644, code: 'guangzhou' },
-  { name: '深圳', lat: 22.5431, lon: 114.0579, code: 'shenzhen' },
-  { name: '成都', lat: 30.5728, lon: 104.0668, code: 'chengdu' },
-  { name: '杭州', lat: 30.2741, lon: 120.1551, code: 'hangzhou' },
-  { name: '武汉', lat: 30.5928, lon: 114.3055, code: 'wuhan' },
-  { name: '西安', lat: 34.2644, lon: 108.9497, code: 'xian' },
-  { name: '东京', lat: 35.6762, lon: 139.6503, code: 'tokyo' },
-  { name: '纽约', lat: 40.7128, lon: -74.0060, code: 'newyork' },
-  { name: '伦敦', lat: 51.5074, lon: -0.1278, code: 'london' },
-  { name: '悉尼', lat: -33.8688, lon: 151.2093, code: 'sydney' },
-  { name: '巴黎', lat: 48.8566, lon: 2.3522, code: 'paris' },
-  { name: '首尔', lat: 37.5665, lon: 126.9780, code: 'seoul' },
+  { name: '北京', lat: 39.9042, lon: 116.4074, code: 'beijing', timezone: 'Asia/Shanghai' },
+  { name: '上海', lat: 31.2304, lon: 121.4737, code: 'shanghai', timezone: 'Asia/Shanghai' },
+  { name: '广州', lat: 23.1291, lon: 113.2644, code: 'guangzhou', timezone: 'Asia/Shanghai' },
+  { name: '深圳', lat: 22.5431, lon: 114.0579, code: 'shenzhen', timezone: 'Asia/Shanghai' },
+  { name: '成都', lat: 30.5728, lon: 104.0668, code: 'chengdu', timezone: 'Asia/Shanghai' },
+  { name: '杭州', lat: 30.2741, lon: 120.1551, code: 'hangzhou', timezone: 'Asia/Shanghai' },
+  { name: '武汉', lat: 30.5928, lon: 114.3055, code: 'wuhan', timezone: 'Asia/Shanghai' },
+  { name: '西安', lat: 34.2644, lon: 108.9497, code: 'xian', timezone: 'Asia/Shanghai' },
+  { name: '东京', lat: 35.6762, lon: 139.6503, code: 'tokyo', timezone: 'Asia/Tokyo' },
+  { name: '纽约', lat: 40.7128, lon: -74.0060, code: 'newyork', timezone: 'America/New_York' },
+  { name: '伦敦', lat: 51.5074, lon: -0.1278, code: 'london', timezone: 'Europe/London' },
+  { name: '悉尼', lat: -33.8688, lon: 151.2093, code: 'sydney', timezone: 'Australia/Sydney' },
+  { name: '巴黎', lat: 48.8566, lon: 2.3522, code: 'paris', timezone: 'Europe/Paris' },
+  { name: '首尔', lat: 37.5665, lon: 126.9780, code: 'seoul', timezone: 'Asia/Seoul' },
 ];
 
 const LOCATION_STORAGE_KEY = 'weather_selected_location';

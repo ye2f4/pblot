@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/supabase/supabaseClient";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import { useAuth } from "@/hooks/useAuth";
+import { showAlert } from "@/utils/dialog";
 
 export default function Comments(): JSX.Element {
   const { colorMode } = useColorMode();
@@ -69,7 +70,7 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
   const handleLike = async () => {
     if (!articleSlug) return;
     if (!user) {
-      alert("请先登录后点赞");
+      showAlert("请先登录后点赞");
       return;
     }
     if (hasLiked || likeLoading) return;
@@ -103,7 +104,7 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
   const submitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      alert("请先登录！");
+      showAlert("请先登录！");
       return;
     }
     const trimContent = content?.trim() || "";

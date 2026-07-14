@@ -7,6 +7,8 @@ import siteData from '@/data/siteData.json';
 
 export const metadata = {
     ssr: false,
+    title: '个人中心 | Monoの小窝',
+    description: '管理你的个人资料、昵称与头像，查看活动记录。',
 };
 
 // 同TopBanner头像渲染逻辑：兼容网络图片/Emoji/默认兜底

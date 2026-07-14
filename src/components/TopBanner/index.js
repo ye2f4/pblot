@@ -81,7 +81,9 @@ export default function TopBanner({
   handleGitHubLogin = () => { },
   handleSignOut = () => { },
   timeEpoch = Math.floor(Date.now() / 1000),
-  locationName = "Beijing"
+  locationName = "Beijing",
+  timeZoneOffset = 0,
+  timeZone = ""
 }) {
   const noticeRef = useRef(null);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -248,6 +250,8 @@ export default function TopBanner({
           key={`${locationName}-${timeEpoch}-${dbNickname}-${avatarEmoji}`}
           timeEpoch={timeEpoch}
           locationName={locationName}
+          timeZoneOffset={timeZoneOffset}
+          timeZone={timeZone}
           siteData={siteData}
           isSessionChecked={isSessionChecked}
           userCount={userCount}

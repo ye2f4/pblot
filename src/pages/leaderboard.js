@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@theme/Layout';
 import { supabase } from '@/supabase/supabaseClient';
 
-export const metadata = { ssr: false };
+export const metadata = {
+  ssr: false,
+  title: '排行榜 | Monoの小窝',
+  description: '社区活跃用户与热门主题排行榜，发现优质内容与开发者。',
+};
 
 export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState('comments');

@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@theme/Layout';
 import { supabase } from '@/supabase/supabaseClient';
+import { showAlert } from '@/utils/dialog';
 import { solarToLunar } from '../lib/calendar';
 
-export const metadata = { ssr: false };
+export const metadata = {
+  ssr: false,
+  title: '时光胶囊 | Monoの小窝',
+  description: '写下给未来的信，封存此刻的心绪与记忆。',
+};
 
 export default function TimeCapsule() {
   const [user, setUser] = useState(null);
@@ -70,11 +75,11 @@ export default function TimeCapsule() {
 
   const createCapsule = async () => {
     if (!user) {
-      alert('请先登录后再创建时光胶囊');
+      showAlert('请先登录后再创建时光胶囊');
       return;
     }
     if (!newCapsule.title.trim() || !newCapsule.content.trim() || !newCapsule.unlockDate) {
-      alert('请完整填写标题、内容和解锁日期');
+      showAlert('请完整填写标题、内容和解锁日期');
       return;
     }
 
@@ -92,7 +97,7 @@ export default function TimeCapsule() {
       await fetchCapsules();
     } catch (err) {
       console.error('创建胶囊失败：', err);
-      alert('创建失败，请稍后重试');
+      showAlert('创建失败，请稍后重试');
     }
   };
 

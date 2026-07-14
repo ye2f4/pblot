@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@theme/Layout';
 import { supabase } from '@/supabase/supabaseClient';
+import { showAlert, showConfirm } from '@/utils/dialog';
 
-export const metadata = { ssr: false };
+export const metadata = {
+  ssr: false,
+  title: '更新日志 | Monoの小窝',
+  description: '站点功能更新与版本迭代记录。',
+};
 
 // 全站通用空状态组件
 const EmptyTip = ({ text }) => (
@@ -20,11 +25,17 @@ const EmptyTip = ({ text }) => (
 );
 
 // 标签样式映射
+// 主分类为 update（版本更新）；保留旧分类仅为兼容历史数据的渲染，避免报错
 const typeMap = {
+  update: { label: '版本更新', color: '#2196f3' },
   feature: { label: '新功能', color: '#4caf50' },
   fix: { label: '问题修复', color: '#f44336' },
   improvement: { label: '体验优化', color: '#ff9800' }
 };
+
+// 未知类型的兜底样式，防止 typeMap[type] 为 undefined 时崩溃
+const fallbackType = { label: '版本更新', color: '#2196f3' };
+const getType = (type) => typeMap[type] || fallbackType;
 
 export default function Changelog() {
   // 基础数据状态
@@ -39,11 +50,16 @@ export default function Changelog() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
 
+  // 批量管理状态
+  const [selectMode, setSelectMode] = useState(false);      // 是否处于多选模式
+  const [selectedIds, setSelectedIds] = useState(new Set()); // 已勾选的日志 id 集合
+  const [batchDeleting, setBatchDeleting] = useState(false); // 批量删除进行中
+
   // 表单数据
   const [formData, setFormData] = useState({
     version: '',
     title: '',
-    type: 'feature',
+    type: 'update',
     description: '',
     release_date: new Date().toISOString().split('T')[0] // 默认今天
   });
@@ -98,7 +114,7 @@ export default function Changelog() {
     setFormData({
       version: '',
       title: '',
-      type: 'feature',
+      type: 'update',
       description: '',
       release_date: new Date().toISOString().split('T')[0]
     });
@@ -112,7 +128,7 @@ export default function Changelog() {
     setFormData({
       version: item.version || '',
       title: item.title || '',
-      type: item.type || 'feature',
+      type: item.type || 'update',
       description: item.description || '',
       release_date: item.release_date ? new Date(item.release_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     });
@@ -181,7 +197,7 @@ export default function Changelog() {
 
   // 删除日志（二次确认）
   const deleteLog = async (id) => {
-    if (!window.confirm('确定要删除该条更新日志？此操作不可恢复！')) return;
+    if (!(await showConfirm('确定要删除该条更新日志？此操作不可恢复！'))) return;
     try {
       const { error } = await supabase
         .from('update_logs')
@@ -191,7 +207,60 @@ export default function Changelog() {
       await fetchLogs();
     } catch (err) {
       console.error('删除失败：', err);
-      alert('删除失败，请重试');
+      showAlert('删除失败，请重试');
+    }
+  };
+
+  // 进入 / 退出批量管理模式（退出时清空勾选）
+  const toggleSelectMode = () => {
+    setSelectMode(prev => {
+      if (prev) setSelectedIds(new Set());
+      return !prev;
+    });
+  };
+
+  // 勾选 / 取消勾选单条日志
+  const toggleSelectOne = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // 全选 / 取消全选（基于当前筛选后的列表）
+  const toggleSelectAll = () => {
+    setSelectedIds(prev => {
+      if (prev.size === logs.length && logs.length > 0) return new Set();
+      return new Set(logs.map(l => l.id));
+    });
+  };
+
+  // 批量删除已勾选日志（二次确认）
+  const batchDelete = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) {
+      showAlert('请先勾选要删除的日志');
+      return;
+    }
+    if (!(await showConfirm(`确定要删除选中的 ${ids.length} 条更新日志？此操作不可恢复！`))) return;
+
+    setBatchDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('update_logs')
+        .delete()
+        .in('id', ids);
+      if (error) throw error;
+      setSelectedIds(new Set());
+      setSelectMode(false);
+      await fetchLogs();
+    } catch (err) {
+      console.error('批量删除失败：', err);
+      showAlert('批量删除失败，请重试');
+    } finally {
+      setBatchDeleting(false);
     }
   };
 
@@ -243,25 +312,44 @@ export default function Changelog() {
               📝 站点更新日志
             </h1>
 
-            {/* 仅登录用户显示【添加日志】按钮 */}
+            {/* 仅登录用户显示【添加日志】【批量管理】按钮 */}
             {user && (
-              <button
-                onClick={openCreateModal}
-                style={{
-                  padding: '10px 24px',
-                  background: '#4caf50',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'background 0.25s ease'
-                }}
-                onMouseOver={(e) => e.target.style.background = '#388e3c'}
-                onMouseOut={(e) => e.target.style.background = '#4caf50'}
-              >
-                ➕ 添加日志
-              </button>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={openCreateModal}
+                  style={{
+                    padding: '10px 24px',
+                    background: '#4caf50',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    transition: 'background 0.25s ease'
+                  }}
+                  onMouseOver={(e) => e.target.style.background = '#388e3c'}
+                  onMouseOut={(e) => e.target.style.background = '#4caf50'}
+                >
+                  ➕ 添加日志
+                </button>
+                {logs.length > 0 && (
+                  <button
+                    onClick={toggleSelectMode}
+                    style={{
+                      padding: '10px 24px',
+                      background: selectMode ? '#607d8b' : 'var(--ifm-card-background-color)',
+                      color: selectMode ? '#fff' : 'var(--ifm-text-color)',
+                      border: '1px solid var(--ifm-color-emphasis-300)',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.25s ease'
+                    }}
+                  >
+                    {selectMode ? '✖️ 退出管理' : '☑️ 批量管理'}
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -275,9 +363,7 @@ export default function Changelog() {
           }}>
             {[
               { key: 'all', label: '全部' },
-              { key: 'feature', label: '新功能' },
-              { key: 'fix', label: '问题修复' },
-              { key: 'improvement', label: '体验优化' }
+              { key: 'update', label: '版本更新' }
             ].map(item => (
               <button
                 key={item.key}
@@ -315,29 +401,79 @@ export default function Changelog() {
             ))}
           </div>
 
+          {/* 批量操作条：仅在批量管理模式下显示 */}
+          {user && selectMode && logs.length > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+              padding: '14px 20px',
+              marginBottom: '20px',
+              background: 'var(--ifm-card-background-color)',
+              border: '1px solid var(--ifm-color-emphasis-300)',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button
+                  onClick={toggleSelectAll}
+                  style={{
+                    padding: '8px 16px',
+                    background: 'var(--ifm-color-emphasis-100)',
+                    color: 'var(--ifm-text-color)',
+                    border: '1px solid var(--ifm-color-emphasis-300)',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {selectedIds.size === logs.length && logs.length > 0 ? '取消全选' : '全选'}
+                </button>
+                <span style={{ fontSize: '14px', color: 'var(--ifm-color-emphasis-600)' }}>
+                  已选 {selectedIds.size} / {logs.length} 条
+                </span>
+              </div>
+              <button
+                onClick={batchDelete}
+                disabled={batchDeleting || selectedIds.size === 0}
+                style={{
+                  padding: '8px 20px',
+                  background: selectedIds.size === 0 ? 'var(--ifm-color-emphasis-300)' : '#dc2626',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  cursor: (batchDeleting || selectedIds.size === 0) ? 'not-allowed' : 'pointer',
+                  opacity: batchDeleting ? 0.6 : 1,
+                  transition: 'background 0.2s ease'
+                }}
+              >
+                {batchDeleting ? '删除中...' : `🗑️ 删除选中（${selectedIds.size}）`}
+              </button>
+            </div>
+          )}
+
           {/* 日志列表 */}
           {logs.length === 0 ? (
             <EmptyTip text="暂无更新日志" />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {logs.map(log => (
+              {logs.map(log => {
+                const checked = selectedIds.has(log.id);
+                return (
                 <div
                   key={log.id}
+                  onClick={selectMode ? () => toggleSelectOne(log.id) : undefined}
                   style={{
                     background: 'var(--ifm-card-background-color)',
                     borderRadius: '16px',
-                    border: '1px solid var(--ifm-color-emphasis-300)',
+                    border: checked ? '2px solid #2196f3' : '1px solid var(--ifm-color-emphasis-300)',
                     padding: '24px',
                     transition: 'all 0.25s ease',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-4px)';
-                    e.target.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    cursor: selectMode ? 'pointer' : 'default'
                   }}
                 >
                   {/* 头部：版本标题 + 标签 + 操作按钮 */}
@@ -349,25 +485,44 @@ export default function Changelog() {
                     gap: '12px',
                     marginBottom: '16px'
                   }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--ifm-text-color)' }}>
-                        {log.version} - {log.title}
-                      </h3>
-                      <span style={{
-                        display: 'inline-block',
-                        marginTop: '8px',
-                        padding: '4px 12px',
-                        borderRadius: '12px',
-                        background: typeMap[log.type].color,
-                        color: '#fff',
-                        fontSize: '12px'
-                      }}>
-                        {typeMap[log.type].label}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      {/* 批量模式下的复选框 */}
+                      {selectMode && (
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleSelectOne(log.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            marginTop: '4px',
+                            cursor: 'pointer',
+                            accentColor: '#2196f3',
+                            flexShrink: 0
+                          }}
+                        />
+                      )}
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--ifm-text-color)' }}>
+                          {log.version} - {log.title}
+                        </h3>
+                        <span style={{
+                          display: 'inline-block',
+                          marginTop: '8px',
+                          padding: '4px 12px',
+                          borderRadius: '12px',
+                          background: getType(log.type).color,
+                          color: '#fff',
+                          fontSize: '12px'
+                        }}>
+                          {getType(log.type).label}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* 登录用户可见 编辑/删除 按钮 */}
-                    {user && (
+                    {/* 登录用户可见 编辑/删除 按钮（批量模式下隐藏） */}
+                    {user && !selectMode && (
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button
                           onClick={() => openEditModal(log)}
@@ -412,7 +567,8 @@ export default function Changelog() {
                     color: 'var(--ifm-color-emphasis-600)',
                     margin: '0',
                     lineHeight: '1.7',
-                    fontSize: '15px'
+                    fontSize: '15px',
+                    whiteSpace: 'pre-wrap'
                   }}>
                     {log.description || '无详细描述'}
                   </p>
@@ -427,7 +583,8 @@ export default function Changelog() {
                     发布时间：{new Date(log.release_date).toLocaleDateString()}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -564,9 +721,7 @@ export default function Changelog() {
                     color: 'var(--ifm-text-color)'
                   }}
                 >
-                  <option value="feature">新功能</option>
-                  <option value="fix">问题修复</option>
-                  <option value="improvement">体验优化</option>
+                  <option value="update">版本更新</option>
                 </select>
               </div>
 

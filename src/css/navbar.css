@@ -242,7 +242,7 @@ a+.navbar__link {
   --ifm-navbar-sidebar-width: min(82vw, 300px);
   --ifm-navbar-background-color: hsl(var(--background));
   background-color: hsl(var(--background)) !important;
-  z-index: 10000 !important;
+  z-index: 999999 !important;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
 }
 
@@ -250,7 +250,7 @@ a+.navbar__link {
   position: fixed !important;
   inset: 0 !important;
   background: rgb(0 0 0 / 0.6) !important;
-  z-index: 9999 !important;
+  z-index: 999998 !important;
 }
 
 .navbar-sidebar__brand {

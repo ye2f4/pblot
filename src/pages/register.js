@@ -5,6 +5,8 @@ import { supabase } from '@/supabase/supabaseClient';
 
 export const metadata = {
     ssr: false,
+    title: '注册 | Monoの小窝',
+    description: '注册 Monoの小窝账号，解锁评论、聊天等完整功能。',
 };
 
 const renderAvatarContent = (avatarStr, baseUrl = '') => {

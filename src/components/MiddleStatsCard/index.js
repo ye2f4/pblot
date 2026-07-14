@@ -98,7 +98,9 @@ export default function MiddleStatsCard({
   locationName = "北京",
   currentNickname = "",
   currentAvatar = "",
-  user = null
+  user = null,
+  timeZoneOffset = 0,
+  timeZone = ""
 }) {
   const [visitStats, setVisitStats] = useState({
     online: 0,
@@ -135,6 +137,21 @@ export default function MiddleStatsCard({
   const openCalendar = () => window.open('/calendar', '_blank');
   const padZero = (num) => String(num).padStart(2, '0');
 
+  // 基于文章发布日期 + 浏览器本地时区，实时统计今/昨/总帖子数。
+  // 替代构建时写死的 todayCount/yesterdayCount：构建产物是静态快照，不会随本地日期滚动，
+  // 且构建服务器时区（Vercel 上为 UTC）与用户本地"今天"可能差一天。
+  const computePostStats = () => {
+    const list = articlesData?.articles || [];
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const todayStr = fmt(new Date());
+    const yesterdayStr = fmt(new Date(Date.now() - 86400000));
+    return {
+      todayPosts: list.filter((a) => a.date && a.date.slice(0, 10) === todayStr).length,
+      yesterdayPosts: list.filter((a) => a.date && a.date.slice(0, 10) === yesterdayStr).length,
+      totalPosts: articlesData?.total ?? list.length,
+    };
+  };
+
   // ---- 时钟逻辑 ----
   const [baseTs, setBaseTs] = useState(timeEpoch);
   const [display, setDisplay] = useState({
@@ -150,53 +167,99 @@ export default function MiddleStatsCard({
   const weekJpMap = siteData.texts?.weekJp || ['日', '月', '火', '水', '木', '金', '土'];
   const weekEnMap = siteData.texts?.weekEn || ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  const getISOWeekNumber = (ts) => {
-    const date = new Date(ts * 1000);
-    date.setHours(0, 0, 0, 0);
-    const day = (date.getDay() + 6) % 7;
-    date.setDate(date.getDate() - day + 3);
+  // 由「墙上日期」(年/月/日) 计算 ISO 周数，与具体时区无关
+  const getISOWeekNumber = (y, m, d) => {
+    const date = new Date(Date.UTC(y, m - 1, d));
+    date.setUTCHours(0, 0, 0, 0);
+    const day = (date.getUTCDay() + 6) % 7;
+    date.setUTCDate(date.getUTCDate() - day + 3);
     const firstThursday = date.getTime();
-    const firstYear = new Date(date.getFullYear(), 0, 1);
-    const firstYearDay = (firstYear.getDay() + 6) % 7;
+    const firstYear = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const firstYearDay = (firstYear.getUTCDay() + 6) % 7;
     const firstThursdayYear = new Date(
       firstYear.getTime() - firstYearDay * 86400000 + 3 * 86400000
     );
     return 1 + Math.round((firstThursday - firstThursdayYear) / 604800000);
   };
 
-  const refreshDisplay = (ts) => {
-    const date = new Date(ts * 1000);
-    const h = padZero(date.getHours());
-    const m = padZero(date.getMinutes());
-    const s = padZero(date.getSeconds());
-    const wIdx = date.getDay();
+  // 用 Intl 在指定 IANA 时区下提取「墙上时间」各部分（自动处理夏令时/DST）
+  const readPartsByTimeZone = (ts, tz) => {
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour12: false,
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    });
+    const parts = dtf.formatToParts(new Date(ts * 1000));
+    const get = (t) => parts.find((p) => p.type === t)?.value || '';
+    let h = get('hour');
+    if (h === '24') h = '00'; // 个别环境午夜返回 24 的兜底
+    return {
+      h: padZero(parseInt(h, 10)),
+      m: padZero(parseInt(get('minute'), 10)),
+      s: padZero(parseInt(get('second'), 10)),
+      year: parseInt(get('year'), 10),
+      month: parseInt(get('month'), 10),
+      day: parseInt(get('day'), 10),
+    };
+  };
+
+  // ts 为绝对 UTC 秒。
+  // 优先用 IANA timeZone + Intl 渲染(自动夏令时)；无 timeZone 时回退到
+  // timeZoneOffset 偏移 + UTC 方法(浏览器本地/兜底场景)。
+  const refreshDisplay = (ts, tz = '', offset = 0) => {
+    let h, m, s, year, month, day;
+    if (tz) {
+      try {
+        ({ h, m, s, year, month, day } = readPartsByTimeZone(ts, tz));
+      } catch (e) {
+        // IANA 字符串无效时回退偏移方案
+        const date = new Date((ts + offset) * 1000);
+        h = padZero(date.getUTCHours());
+        m = padZero(date.getUTCMinutes());
+        s = padZero(date.getUTCSeconds());
+        year = date.getUTCFullYear();
+        month = date.getUTCMonth() + 1;
+        day = date.getUTCDate();
+      }
+    } else {
+      const date = new Date((ts + offset) * 1000);
+      h = padZero(date.getUTCHours());
+      m = padZero(date.getUTCMinutes());
+      s = padZero(date.getUTCSeconds());
+      year = date.getUTCFullYear();
+      month = date.getUTCMonth() + 1;
+      day = date.getUTCDate();
+    }
+    const wallDate = new Date(Date.UTC(year, month - 1, day));
+    const wIdx = wallDate.getUTCDay();
     setDisplay({
       time: `${h}:${m}:${s}`,
       weekJp: weekJpMap[wIdx],
       weekEn: weekEnMap[wIdx],
-      weekNum: getISOWeekNumber(ts),
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
-      second: date.getSeconds()
+      weekNum: getISOWeekNumber(year, month, day),
+      year,
+      month,
+      day,
+      second: parseInt(s, 10)
     });
   };
 
   useEffect(() => {
     setBaseTs(timeEpoch);
-    refreshDisplay(timeEpoch);
-  }, [timeEpoch, currentNickname]);
+    refreshDisplay(timeEpoch, timeZone, timeZoneOffset);
+  }, [timeEpoch, currentNickname, timeZone, timeZoneOffset]);
 
   useEffect(() => {
     const tickTimer = setInterval(() => {
       setBaseTs(prev => {
         const nextTs = prev + 1;
-        refreshDisplay(nextTs);
+        refreshDisplay(nextTs, timeZone, timeZoneOffset);
         return nextTs;
       });
     }, 1000);
     return () => clearInterval(tickTimer);
-  }, []);
+  }, [timeZone, timeZoneOffset]);
 
   // ---- 系统健康检测 ----
   const checkSystemHealth = useCallback(async () => {
@@ -449,13 +512,9 @@ export default function MiddleStatsCard({
         uv: uvCount
       });
 
-      // 6. 帖子统计（今/昨/总）已改由构建时生成的文章数据提供，
-      //    创建文章 / 重新构建即自动更新，无需查询 forum_posts。
-      setPostStats({
-        todayPosts: articlesData?.todayCount ?? 0,
-        yesterdayPosts: articlesData?.yesterdayCount ?? 0,
-        totalPosts: articlesData?.total ?? 0,
-      });
+      // 6. 帖子统计（今/昨/总）：基于文章数据 + 浏览器本地时区实时计算，
+      //    不再依赖构建时写死的 todayCount/yesterdayCount（不会随本地日期滚动且受构建服务器时区影响）
+      setPostStats(computePostStats());
 
       // 7. 上报访客位置（异步，不阻塞）
       reportLocation(sessionId);

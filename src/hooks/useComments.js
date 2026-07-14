@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase/supabaseClient';
 import { showError } from '../utils/common';
+import { showAlert } from '../utils/dialog';
 import siteData from '../data/siteData.json';
 
 export const useComments = (isClient, user, base) => {
@@ -24,7 +25,7 @@ export const useComments = (isClient, user, base) => {
 
     const handleSubmitComment = async (e) => {
         e.preventDefault();
-        if (!user) return alert(siteData.texts.comments.loginTip);
+        if (!user) return showAlert(siteData.texts.comments.loginTip);
         if (!commentContent.trim()) return;
 
         setCommentLoading(true);
@@ -48,7 +49,7 @@ export const useComments = (isClient, user, base) => {
 
             setCommentContent('');
             fetchComments();
-            alert(siteData.texts.comments.success);
+            showAlert(siteData.texts.comments.success);
         } catch (err) {
             showError(err);
         } finally {
