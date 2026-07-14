@@ -13,22 +13,112 @@ const TILE_PROVIDERS = (siteData.tileProviders && siteData.tileProviders.length 
   { name: 'CartoDB', url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://carto.com/">CartoDB</a>', maxZoom: 19 },
 ];
 
-// 获取访客位置（优先浏览器GPS，兜底 IP 服务）
+// ============ IP 地理信息查询（多源兜底，保证国家/城市/IP 不为「未知」）============
+const fetchIpInfo = async () => {
+  // 依次尝试多个免费 IP 定位服务，任一成功即返回，避免单点被限流导致全为 null
+  const providers = [
+    {
+      url: 'https://ipapi.co/json/',
+      map: (d) => ({
+        latitude: d.latitude, longitude: d.longitude,
+        city: d.city, country: d.country_name, country_code: d.country_code,
+        region: d.region, timezone: d.timezone, ip_address: d.ip, isp: d.org,
+      }),
+    },
+    {
+      url: 'https://ipwho.is/',
+      map: (d) => (d && d.success !== false ? {
+        latitude: d.latitude, longitude: d.longitude,
+        city: d.city, country: d.country, country_code: d.country_code,
+        region: d.region, timezone: d.timezone?.id || d.timezone,
+        ip_address: d.ip, isp: d.connection?.isp || d.connection?.org,
+      } : null),
+    },
+    {
+      url: 'https://get.geojs.io/v1/ip/geo.json',
+      map: (d) => ({
+        latitude: parseFloat(d.latitude), longitude: parseFloat(d.longitude),
+        city: d.city, country: d.country, country_code: d.country_code,
+        region: d.region, timezone: d.timezone, ip_address: d.ip, isp: d.organization_name,
+      }),
+    },
+  ];
+
+  for (const p of providers) {
+    try {
+      const resp = await fetch(p.url, { signal: AbortSignal.timeout(5000) });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const info = p.map(data);
+      if (info && (info.ip_address || info.country || info.city)) return info;
+    } catch (e) { /* 尝试下一个源 */ }
+  }
+  return null;
+};
+
+// 获取访客位置：始终查询 IP 信息（拿到国家/城市/IP/ISP），
+// 若浏览器 GPS 可用则用更精确的 GPS 坐标覆盖经纬度。
 const fetchLocation = async () => {
+  const ipInfo = await fetchIpInfo();
+  const base = ipInfo || {};
+
   if (navigator.geolocation) {
     try {
       const pos = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 300000 });
       });
-      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy, source: 'gps' };
-    } catch (e) { /* GPS 失败，降级 */ }
+      return {
+        ...base,
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        source: ipInfo ? 'gps+ip' : 'gps',
+      };
+    } catch (e) { /* GPS 失败，用 IP 结果 */ }
   }
-  try {
-    const resp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
-    if (!resp.ok) throw new Error('IP lookup failed');
-    const data = await resp.json();
-    return { latitude: data.latitude, longitude: data.longitude, city: data.city, country: data.country_name, country_code: data.country_code, region: data.region, timezone: data.timezone, ip_address: data.ip, isp: data.org, source: 'ip' };
-  } catch (e) { return null; }
+
+  if (ipInfo && (ipInfo.latitude || ipInfo.longitude)) {
+    return { ...ipInfo, source: 'ip' };
+  }
+  return null;
+};
+
+// ============ UA 解析：浏览器 / 系统 / 设备型号（替换「未知」）============
+const parseDevice = (ua) => {
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+
+  let browser = '其他浏览器';
+  if (ua.includes('Edg/')) browser = 'Edge';
+  else if (ua.includes('OPR/') || ua.includes('Opera')) browser = 'Opera';
+  else if (ua.includes('Firefox/')) browser = 'Firefox';
+  else if (ua.includes('Chrome/')) browser = 'Chrome';
+  else if (ua.includes('Safari/')) browser = 'Safari';
+
+  let os = '其他系统';
+  if (ua.includes('Windows NT 10.0')) os = 'Windows 10/11';
+  else if (ua.includes('Windows')) os = 'Windows';
+  else if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad') || ua.includes('iPod')) os = 'iOS';
+  else if (ua.includes('Mac OS')) os = 'macOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+
+  // 设备型号推断
+  let deviceModel = isMobile ? '移动设备' : '桌面电脑';
+  if (ua.includes('iPhone')) deviceModel = 'iPhone';
+  else if (ua.includes('iPad')) deviceModel = 'iPad';
+  else if (ua.includes('Macintosh')) deviceModel = 'Mac';
+  else {
+    // 从 Android UA 中提取型号：形如 "Android 13; Pixel 7 Build/..."
+    const m = ua.match(/Android[^;]*;\s*([^;)]+?)(?:\s+Build|\))/i);
+    if (m && m[1]) {
+      const model = m[1].trim();
+      if (model && !/^wv$/i.test(model)) deviceModel = model;
+    } else if (ua.includes('Windows')) {
+      deviceModel = 'Windows PC';
+    }
+  }
+
+  return { isMobile, browser, os, deviceModel };
 };
 
 function MapCore() {
@@ -39,6 +129,10 @@ function MapCore() {
   const tileLoadCount = useRef(0);
   const tileErrorCount = useRef(0);
   const LRef = useRef(null);
+  // 仅在首次加载标记时自动定位视图，避免之后每次刷新都强行 fitBounds 造成卡顿/跳动
+  const boundsInitializedRef = useRef(false);
+  // 标记数据签名：仅当数据真正变化时才重绘标记，避免每 30s 刷新都闪烁
+  const lastMarkersSigRef = useRef('');
 
   const [locations, setLocations] = useState([]);
   const [stats, setStats] = useState({
@@ -75,20 +169,10 @@ function MapCore() {
         localStorage.setItem('map_last_report_time', Date.now().toString());
         try {
           const loc = await fetchLocation();
-          if (loc) {
+          // 仅在拿到有效经纬度时上报，避免写入无意义（无坐标）记录
+          if (loc && loc.latitude && loc.longitude) {
             const ua = navigator.userAgent;
-            const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
-            let browser = 'Unknown';
-            if (ua.includes('Edg/')) browser = 'Edge';
-            else if (ua.includes('Chrome/')) browser = 'Chrome';
-            else if (ua.includes('Firefox/')) browser = 'Firefox';
-            else if (ua.includes('Safari/')) browser = 'Safari';
-            let os = 'Unknown';
-            if (ua.includes('Windows')) os = 'Windows';
-            else if (ua.includes('Mac OS')) os = 'macOS';
-            else if (ua.includes('Linux')) os = 'Linux';
-            else if (ua.includes('Android')) os = 'Android';
-            else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+            const { isMobile, browser, os, deviceModel } = parseDevice(ua);
 
             const payload = {
               session_id: sessionId, latitude: loc.latitude, longitude: loc.longitude,
@@ -96,7 +180,7 @@ function MapCore() {
               country_code: loc.country_code || null, region: loc.region || null,
               timezone: loc.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
               ip_address: loc.ip_address || null, isp: loc.isp || null,
-              is_mobile: isMobile, browser, os,
+              is_mobile: isMobile, browser, os, device_model: deviceModel,
               last_active: new Date().toISOString()
             };
             const { data: existing } = await supabase
@@ -266,6 +350,11 @@ function MapCore() {
     const L = LRef.current;
     if (!mapInstanceRef.current || !markersLayerRef.current || !L) return;
 
+    // 仅当标记数据真正变化时才重绘，避免每 30s 刷新都闪烁/重绘
+    const sig = locations.map(l => `${l.id}:${l.last_active}:${l.visit_count}:${l.latitude},${l.longitude}`).join('|');
+    if (sig === lastMarkersSigRef.current) return;
+    lastMarkersSigRef.current = sig;
+
     markersLayerRef.current.clearLayers();
 
     if (locations.length === 0) return;
@@ -310,23 +399,42 @@ function MapCore() {
             ${countryFlag} ${loc.city || ''} ${loc.country || '未知'}
           </div>
           <div style="color:#666;font-size:11px;">
-            ${loc.region ? loc.region + ' · ' : ''}${deviceIcon} ${loc.browser || ''} / ${loc.os || ''}
+            ${loc.region ? loc.region + ' · ' : ''}${deviceIcon} ${loc.device_model || loc.browser || ''} / ${loc.os || ''}
           </div>
           <div style="color:#999;font-size:10px;margin-top:2px;">
             最近活跃: ${timeAgo} · 访问${loc.visit_count || 1}次
           </div>
           ${loc.isp ? `<div style="color:#aaa;font-size:10px;">ISP: ${loc.isp}</div>` : ''}
+          ${loc.ip_address ? `<div style="color:#aaa;font-size:10px;">IP: ${loc.ip_address}</div>` : ''}
         </div>
       `;
 
       marker.bindPopup(popupContent, { maxWidth: 280 });
     });
 
-    if (locations.length > 1) {
-      mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 5 });
-    } else if (locations.length === 1) {
-      mapInstanceRef.current.setView([locations[0].latitude, locations[0].longitude], 6);
+    // 仅首次有数据时自动定位；后续刷新只更新标记，不移动用户当前视图，避免卡顿重载
+    if (!boundsInitializedRef.current && locations.length > 0) {
+      if (locations.length > 1) {
+        mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 5 });
+      } else if (locations.length === 1) {
+        mapInstanceRef.current.setView([locations[0].latitude, locations[0].longitude], 6);
+      }
+      boundsInitializedRef.current = true;
     }
+  }, [locations]);
+
+  // 手动“显示全部访客”重新定位视图
+  const resetView = useCallback(() => {
+    const L = LRef.current;
+    const map = mapInstanceRef.current;
+    if (!map || locations.length === 0) return;
+    if (locations.length > 1) {
+      const b = L.latLngBounds(locations.map(l => [l.latitude, l.longitude]));
+      map.fitBounds(b, { padding: [40, 40], maxZoom: 5 });
+    } else {
+      map.setView([locations[0].latitude, locations[0].longitude], 6);
+    }
+    boundsInitializedRef.current = true;
   }, [locations]);
 
   const getTimeAgo = (date) => {
@@ -395,6 +503,12 @@ function MapCore() {
             background: '#fff', cursor: 'pointer', fontSize: 13, color: '#555',
           }}>
             🔄 刷新
+          </button>
+          <button onClick={resetView} style={{
+            padding: '6px 14px', border: '1px solid #ddd', borderRadius: '8px',
+            background: '#fff', cursor: 'pointer', fontSize: 13, color: '#555',
+          }}>
+            🗺️ 显示全部
           </button>
           {stats.lastUpdate && (
             <span style={{ fontSize: 11, color: '#999' }}>更新于 {stats.lastUpdate}</span>

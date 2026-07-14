@@ -62,6 +62,8 @@ export default function Profile() {
 
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [pageReady, setPageReady] = useState(false);
+    const [notFound, setNotFound] = useState(false);
     const [msg, setMsg] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -103,36 +105,28 @@ export default function Profile() {
     useEffect(() => {
         const initUser = async () => {
             const { data: { user: authUser } } = await supabase.auth.getUser();
-            if (!authUser) {
+
+            // 查看他人主页无需登录；仅查看/编辑自己主页时才要求登录
+            if (!authUser && !isViewOther) {
                 window.location.href = '/login';
                 return;
             }
             setCurrentUser(authUser);
             const targetId = targetUid || authUser.id;
 
-            let { data: profileData, error } = await supabase
+            // 用 maybeSingle：不存在时返回 null 而不抛错，避免误判
+            let { data: profileData } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', targetId)
-                .single();
+                .maybeSingle();
 
-            // 不存在资料则新建
-            if (error && !isViewOther) {
+            // 查看自己且资料行缺失（如异地注册触发器未生效的历史账号）：自动补建
+            if (!profileData && !isViewOther && authUser) {
                 const metaUsername = authUser.user_metadata?.username;
                 const defaultNick = metaUsername || '新用户';
 
-                await supabase.from('profiles').upsert({
-                    id: authUser.id,
-                    username: metaUsername || null,
-                    nickname: defaultNick,
-                    signature: '这家伙很懒~',
-                    gender: 'unknown',
-                    avatar_url: '😀',
-                    real_name: '',
-                    birthday: null,
-                    address: ''
-                });
-                profileData = {
+                const newRow = {
                     id: authUser.id,
                     username: metaUsername || null,
                     nickname: defaultNick,
@@ -143,8 +137,12 @@ export default function Profile() {
                     birthday: null,
                     address: ''
                 };
-            } else if (error) {
-                setMsg('❌ 用户不存在');
+                await supabase.from('profiles').upsert(newRow, { onConflict: 'id' });
+                profileData = newRow;
+            } else if (!profileData) {
+                // 查看他人但资料不存在
+                setNotFound(true);
+                setPageReady(true);
                 return;
             }
 
@@ -154,9 +152,10 @@ export default function Profile() {
                 real_name: profileData.real_name || '',
                 birthday: profileData.birthday ?? "",
                 address: profileData.address || '',
-                email: targetUid ? '保密' : authUser.email
+                email: isViewOther ? '保密' : (authUser?.email || '')
             });
             setNickAvailable(true);
+            setPageReady(true);
         };
         initUser();
     }, [targetUid, isViewOther]);
@@ -279,7 +278,24 @@ export default function Profile() {
         setLoading(false);
     };
 
-    if (!currentUser) return null;
+    if (!pageReady) return null;
+
+    if (notFound) {
+        return (
+            <Layout title={`用户不存在 - ${siteData.title}`}>
+                <div style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', color: 'var(--ifm-color-emphasis-600)' }}>
+                    <div style={{ fontSize: '48px' }}>🔍</div>
+                    <div style={{ fontSize: '18px' }}>该用户不存在或资料未公开</div>
+                    <button
+                        onClick={() => window.history.back()}
+                        style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: '#4285f4', color: '#fff', cursor: 'pointer' }}
+                    >
+                        ← 返回
+                    </button>
+                </div>
+            </Layout>
+        );
+    }
 
     return (
         <Layout title={`${isViewOther ? `${profile.nickname}的个人主页` : '个人中心'} - ${siteData.title}`}>

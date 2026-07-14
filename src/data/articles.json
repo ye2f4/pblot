@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-07-14T13:07:17.704Z",
-  "total": 22,
-  "todayCount": 9,
+  "generatedAt": "2026-07-14T13:37:20.003Z",
+  "total": 23,
+  "todayCount": 10,
   "yesterdayCount": 2,
   "articles": [
     {
@@ -110,6 +110,24 @@
       "url": "/blog/react-fullstack",
       "excerpt": "React 不仅是 UI 库，更是现代全栈开发的基石。本文梳理从组件化到前后端一体的能力边界与最佳实践。",
       "sourcePath": "blog\\2026\\July\\react-fullstack.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "用真实文章驱动站点统计",
+      "date": "2026-07-14",
+      "tags": [
+        "统计",
+        "站点",
+        "数据",
+        "工程实践"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/site-stats-verify",
+      "excerpt": "站点首页的「今日/昨日/总文章数」与「最新更新」「热门话题」现在直接由构建时扫描 blog 与 docs 生成，新增文章重新构建即自动更新。",
+      "sourcePath": "blog\\2026\\July\\site-stats-verify.mdx"
     },
     {
       "type": "blog",

@@ -256,7 +256,8 @@ export default function Home() {
         setUserCount(count || 0);
       } catch (e) { setUserCount(0); }
       try {
-        const { data } = await supabase.from("profiles").select("nickname,real_name,email").order("id", { ascending: false }).limit(1);
+        // 按注册时间倒序取最新用户（id 是 UUID 非时间序，不能用于排序）
+        const { data } = await supabase.from("profiles").select("nickname,real_name,email,created_at").order("created_at", { ascending: false }).limit(1);
         if (data?.[0]) {
           const u = data[0];
           setLatestUser(u.nickname || u.real_name || u.email?.split('@')[0] || '新用户');
