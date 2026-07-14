@@ -72,7 +72,7 @@
           { "label": "系列项目", "to": "/series" },
           { "label": "隐私政策", "to": "/privacy/" },
           { "label": "用户协议", "to": "/terms/" },
-          { "label": "RSS订阅", "to": "/blog/rss.xml" }
+          { "label": "RSS订阅", "to": "/rss" }
         ]
       },
       { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" },
@@ -98,7 +98,7 @@
           { "label": "全球访问地图", "to": "/visit-map/" },
           { "label": "排行榜", "to": "/leaderboard/" },
           { "label": "资料下载", "to": "/downloads/" },
-          { "label": "RSS订阅", "to": "/rss/" }
+          { "label": "RSS订阅", "to": "/rss" }
         ]
       },
       {

@@ -1,4 +1,4 @@
-@tailwind components;
+﻿@tailwind components;
 @tailwind utilities;
 
 @import "./variables.css";
@@ -8,6 +8,7 @@
 
 /* ========== 全局主题变量 最高优先级锁定 ========== */
 :root {
+  --ifm-navbar-height: 4.5rem;
   --ifm-color-primary: #2E7D9E !important;
   --ifm-color-primary-dark: #29708e !important;
   --ifm-color-primary-darker: #276a85 !important;
@@ -57,7 +58,7 @@
   border: 1px solid var(--ifm-toc-border-color) !important;
   border-radius: 8px;
   padding: 12px 16px;
-  transition: all 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .stat-card:hover {
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -115,7 +116,9 @@
     font-size: 14px;
   }
   .navbar__logo {
-    height: 24px;
+    height: 24px !important;
+    width: 24px !important;
+    margin-inline-end: 0.25rem;
   }
 
   /* 移动端：聊天页适配 - 使用固定高度避免纵向拉长 */
@@ -219,12 +222,11 @@
 }
 .footer__link-item {
   color: #555 !important;
-  transition: color 0.2s, transform 0.2s;
+  transition: color 0.2s ease;
   display: inline-block;
 }
 .footer__link-item:hover {
   color: var(--ifm-color-primary) !important;
-  transform: translateX(3px);
 }
 [data-theme='dark'] .footer__link-item {
   color: #aaa !important;
@@ -254,31 +256,31 @@
 
 /* ========== 全局动画 加:global 防止样式隔离失效 ========== */
 /* 跑马灯公告滚动 */
-:global(@keyframes marquee) {
+::global(@keyframes marquee) {
   0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
 }
 
 /* 卡片呼吸动画 */
-:global(@keyframes breathe) {
+::global(@keyframes breathe) {
   0%,100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.95; transform: scale(1.01); }
 }
 
 /* 像素图标弹跳 */
-:global(@keyframes pixelBounce) {
+::global(@keyframes pixelBounce) {
   0%,100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
 
 /* 时钟数字闪烁 */
-:global(@keyframes digitPulse) {
+::global(@keyframes digitPulse) {
   0%,100% { opacity: 1; }
   50% { opacity: 0.9; }
 }
 
 /* 渐入加载动画 */
-:global(@keyframes fadeIn) {
+::global(@keyframes fadeIn) {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }

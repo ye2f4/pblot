@@ -9,7 +9,8 @@ export default function RSSPage() {
     json: '/blog/feed.json',
   };
 
-  const feedDomain = 'https://monoblog.cc.cd';
+  // 用当前站点 origin 动态拼接 feed 绝对地址，避免写死旧域名
+  const feedDomain = typeof window !== 'undefined' ? window.location.origin : '';
 
   return (
     <Layout title="RSS订阅">

@@ -135,7 +135,7 @@ body {
 
 /* 按钮通用悬浮动画 */
 .btn-hover {
-  transition: all 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
   position: relative;
   overflow: hidden;
 }
@@ -195,7 +195,7 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: all 0.3s ease !important;
+  transition: background-color 0.3s ease, transform 0.3s ease !important;
 }
 
 .slick-prev:hover,
@@ -254,7 +254,7 @@ body {
   border-radius: 8px;
   text-decoration: none;
   color: var(--ifm-text-color);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
   background-color: #f8f9fa;
 }
 
@@ -285,7 +285,7 @@ body {
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease;
 }
 
 .update-item:last-child {
@@ -293,7 +293,6 @@ body {
 }
 
 .update-item:hover {
-  transform: translateX(5px);
   background-color: rgba(0, 0, 0, 0.02);
 }
 
@@ -323,7 +322,7 @@ body {
   border-radius: 20px;
   font-size: 13px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .tag-item:hover {
@@ -351,12 +350,11 @@ body {
   text-decoration: none;
   color: var(--ifm-text-color);
   font-size: 14px;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease;
 }
 
 .friend-link:hover {
   background-color: #e9ecef;
-  transform: translateY(-2px);
 }
 
 /* 关于本站 */

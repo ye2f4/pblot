@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from '@docusaurus/router';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import { supabase } from '../supabase/supabaseClient';
@@ -20,6 +21,8 @@ const FORUM_CATEGORIES = [
 ];
 
 export default function ForumTopics() {
+  const location = useLocation();
+
   // 从 URL 参数读取初始 tab
   const getInitialTab = () => {
     if (typeof window !== 'undefined') {
@@ -30,7 +33,17 @@ export default function ForumTopics() {
     return 'latest';
   };
 
+  // 从 URL 参数读取初始 tag（技术标签点击跳转而来）
+  const getInitialTag = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tag') || '';
+    }
+    return '';
+  };
+
   const [activeTab, setActiveTab] = useState(getInitialTab);
+  const [activeTag, setActiveTag] = useState(getInitialTag);
   const [activeCategory, setActiveCategory] = useState('all');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +53,13 @@ export default function ForumTopics() {
   const [stats, setStats] = useState({ totalPosts: 0, totalReplies: 0, todayPosts: 0 });
   const [user, setUser] = useState(null);
   const initialTab = getInitialTab();
+
+  // SPA 导航时同步 tag 参数（从首页标签云点击跳转而来）
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const t = params.get('tag');
+    setActiveTag(t || '');
+  }, [location.search]);
 
   // 获取当前用户
   useEffect(() => {
@@ -130,7 +150,12 @@ export default function ForumTopics() {
       const { data, error: dbErr } = await query;
       if (dbErr) throw dbErr;
 
-      setPosts(data || []);
+      let result = data || [];
+      if (activeTag) {
+        result = result.filter(p => Array.isArray(p.tags) && p.tags.includes(activeTag));
+      }
+
+      setPosts(result);
     } catch (e) {
       console.error('加载帖子失败', e);
       if (e.message?.includes('relation') && e.message?.includes('does not exist')) {
@@ -141,7 +166,7 @@ export default function ForumTopics() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, activeCategory]);
+  }, [activeTab, activeCategory, activeTag]);
 
   useEffect(() => {
     loadPosts();
@@ -307,6 +332,32 @@ export default function ForumTopics() {
             </button>
           ))}
         </div>
+
+        {/* 技术标签筛选提示（从首页标签云跳转而来） */}
+        {activeTag && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '6px 12px', marginBottom: 16,
+            background: '#e8f0fe', borderRadius: '16px', fontSize: 13, color: '#1a73e8',
+          }}>
+            <span>🏷️ 标签：{activeTag}</span>
+            <button
+              onClick={() => {
+                setActiveTag('');
+                if (typeof window !== 'undefined') {
+                  window.history.replaceState({}, '', '/forum');
+                }
+              }}
+              style={{
+                border: 'none', background: 'transparent', color: '#1a73e8',
+                cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0,
+              }}
+              aria-label="清除标签筛选"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* 错误提示 */}
         {error && (

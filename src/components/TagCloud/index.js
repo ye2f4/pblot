@@ -75,7 +75,7 @@ export default function TagCloud({ siteData }) {
           {tags.map((tag, i) => (
             <Link
               key={i}
-              to={`/tags/${tag.name.toLowerCase()}`}
+              to={`/forum?tag=${encodeURIComponent(tag.name)}`}
               className={styles.tagItem}
               style={{
                 backgroundColor: `${tag.color}20`,

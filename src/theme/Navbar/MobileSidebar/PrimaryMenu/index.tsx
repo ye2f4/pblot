@@ -14,6 +14,41 @@ export default function PrimaryMenu(): React.ReactNode {
       item.type !== "localeDropdown" && item.type !== "search",
   );
 
+// 为导航项匹配图标
+const getNavIcon = (label: string) => {
+  const map: Record<string, string> = {
+    博客: '📝',
+    文章: '📖',
+    资源: '📚',
+    工具箱: '🧰',
+    关于: 'ℹ️',
+    更多: '⋯',
+    聊天: '💬',
+    GitHub: '🔗',
+  };
+  return map[label] || '';
+};
+
+// 为子项匹配小图标
+const getSubIcon = (label: string) => {
+  const map: Record<string, string> = {
+    资料下载: '📥',
+    开源项目: '🚀',
+    开发工具: '🔧',
+    硬件监控: '💻',
+    代码片段: '💡',
+    PCB元器件: '📦',
+    时光胶囊: '🕐',
+    排行榜: '🏆',
+    更新日志: '📋',
+    系列项目: '✨',
+    隐私政策: '🔒',
+    用户协议: '📄',
+    'RSS订阅': '📡',
+  };
+  return map[label] || '•';
+};
+
   // 点击下拉菜单项时，使用内联展开/收起（不依赖不稳定的 Docusaurus 内部 API）
   const handleDropdownClick = useCallback((item: NavbarItem) => {
     const label = item.label as string;
@@ -30,47 +65,36 @@ export default function PrimaryMenu(): React.ReactNode {
       const isExpanded = expandedDropdown === label;
       const subItems = (item.items || []) as NavbarItem[];
 
-      return (
-        <li key={label} className="menu__list-item">
+        return (
+        <li key={label} className="menu__list-item mobile-nav-dropdown">
           <button
-            className="menu__link"
+            className="menu__link mobile-nav-dropdown__toggle"
             type="button"
-            style={{
-              background: "none",
-              border: "none",
-              width: "100%",
-              textAlign: "left",
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              fontSize: "inherit",
-              fontFamily: "inherit",
-              padding: "var(--ifm-menu-link-padding-vertical) var(--ifm-menu-link-padding-horizontal)",
-              color: "var(--ifm-menu-color)",
-              borderRadius: "var(--ifm-global-radius)",
-              lineHeight: "var(--ifm-menu-link-padding-vertical)",
-            }}
             onClick={() => handleDropdownClick(item)}
           >
-            <span>{label}</span>
-            <span style={{ fontSize: "1.2em", opacity: 0.5, transition: "transform 0.2s", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}>
-              ›
+            <span className="mobile-nav-item__icon">{getNavIcon(label)}</span>
+            <span className="mobile-nav-item__label">{label}</span>
+            <span
+              className="mobile-nav-dropdown__arrow"
+              style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
+            >
+              ▶
             </span>
           </button>
           {/* 降级模式：内联展开子菜单 */}
           {isExpanded && (
-            <ul className="menu__list" style={{ paddingLeft: "12px" }}>
+            <ul className="menu__list mobile-nav-submenu">
               {subItems
                 .filter((si) => si.label && (si.to || si.href))
                 .map((si) => (
-                  <li key={si.label as string} className="menu__list-item">
+                  <li key={si.label as string} className="menu__list-item mobile-nav-submenu__item">
                     <Link
-                      className="menu__link"
+                      className="menu__link mobile-nav-submenu__link"
                       to={(si as any).to ?? si.href ?? ""}
                       onClick={() => mobileSidebar.toggle()}
                     >
-                      {si.label}
+                      <span className="mobile-nav-submenu__dot">{getSubIcon(si.label as string)}</span>
+                      <span>{si.label}</span>
                     </Link>
                   </li>
                 ))}
@@ -83,13 +107,17 @@ export default function PrimaryMenu(): React.ReactNode {
     // 嵌套在 dropdown 内的子项（如 Navbar 中 dropdown 的子项）
     if (item.to || item.href) {
       return (
-        <li key={item.label as string} className="menu__list-item">
+        <li key={item.label as string} className="menu__list-item mobile-nav-item">
           <Link
-            className="menu__link"
+            className="menu__link mobile-nav-item__link"
             to={(item as any).to ?? item.href ?? ""}
             onClick={() => mobileSidebar.toggle()}
           >
-            {item.label}
+            <span className="mobile-nav-item__icon">{getNavIcon(item.label as string)}</span>
+            <span className="mobile-nav-item__label">{item.label}</span>
+            {item.href && (
+              <span className="mobile-nav-item__external">↗</span>
+            )}
           </Link>
         </li>
       );
@@ -100,10 +128,12 @@ export default function PrimaryMenu(): React.ReactNode {
 
   return (
     <>
-      <div className="mt-2 border-t border-[var(--ifm-toc-border-color)] px-[var(--ifm-menu-link-padding-horizontal)] pt-3 text-md font-bold uppercase tracking-wide text-[var(--ifm-color-emphasis-600)]">
-        Navigation
+      <div className="mobile-nav-section-title">
+        <span className="mobile-nav-section-title__icon">📍</span>
+        <span>导航</span>
+        <span className="mobile-nav-section-title__line" />
       </div>
-      <ul className="menu__list">
+      <ul className="menu__list mobile-nav-menu">
         {navItems.map(renderItem)}
       </ul>
     </>
