@@ -31,6 +31,9 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 11.5.2
+          # 用独立脚本安装编译好的 pnpm 二进制，绕过 runner 内置 Node 20 的引擎检查
+          # （pnpm 11.5.2 要求 node >=22.13，而 action 脚本运行在 runner 内置 Node 20 上）
+          standalone: true
 
       # 依赖缓存：setup-node 自带 pnpm store 缓存（与 lockfile 绑定）
       # 必须放在 pnpm/action-setup 之后，否则 setup-node 找不到 pnpm 计算缓存
