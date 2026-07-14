@@ -17,6 +17,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # 提升到 job 级 env：step 的 if 无法引用 secrets 上下文
+      GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
     steps:
       - name: 检出完整代码+Git标签
         uses: actions/checkout@v4
@@ -91,10 +94,8 @@ jobs:
       # 可选：AI 自然语言摘要（配置 GH_MODELS_TOKEN 后自动启用）
       # 免费渠道：GitHub Models（需一个带 models:read 权限的 PAT，无需信用卡/新账号）
       - name: AI 自然语言摘要（可选，需 GH_MODELS_TOKEN）
-        if: ${{ secrets.GH_MODELS_TOKEN != '' }}
+        if: ${{ env.GH_MODELS_TOKEN != '' }}
         continue-on-error: true
-        env:
-          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
         run: |
           RAW="changelog_raw.txt"
           if [ ! -f "$RAW" ]; then
