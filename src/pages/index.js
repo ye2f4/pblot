@@ -176,20 +176,36 @@ export default function Home() {
     const cacheOffset = localStorage.getItem('time_offset_cache');
     if (cacheOffset) setTimeOffset(Number(cacheOffset));
 
-    // 服务器时间同步
+    // 服务器时间同步：优先读取 /api/time（世界时 API，真实服务器时间戳），
+    // 失败则回退 supabase.rpc，再回退本地时间。
     const fetchNetworkTime = async () => {
       try {
-        const { data } = await supabase.rpc('get_current_timestamp');
-        const serverTimestamp = +data;
+        const res = await fetch('/api/time');
+        const json = await res.json();
+        if (!json || json.success !== true || !json.timestamp) throw new Error('time api invalid');
+        const serverTimestamp = json.timestamp; // 毫秒
         const offset = serverTimestamp - Date.now();
         setTimeOffset(offset);
         localStorage.setItem('time_offset_cache', offset);
         setShowTimeErrModal(false);
+        return;
       } catch (e) {
-        setTimeOffset(0);
-        localStorage.removeItem('time_offset_cache');
-        setShowTimeErrModal(true);
-        setErrModalText("无法同步服务器时间，使用本地系统时间");
+        // 回退：supabase 服务器时间戳
+        try {
+          const { data } = await supabase.rpc('get_current_timestamp');
+          const serverTimestamp = +data;
+          const offset = serverTimestamp - Date.now();
+          setTimeOffset(offset);
+          localStorage.setItem('time_offset_cache', offset);
+          setShowTimeErrModal(false);
+          return;
+        } catch (e2) {
+          // 最终回退：本地时间
+          setTimeOffset(0);
+          localStorage.removeItem('time_offset_cache');
+          setShowTimeErrModal(true);
+          setErrModalText("无法同步服务器时间，使用本地系统时间");
+        }
       }
     };
 

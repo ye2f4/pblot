@@ -1,0 +1,56 @@
+---
+title: ESP32P4 智能手表开发实战
+date: 2026-07-14
+slug: esp32p4-smartwatch
+authors: [workbuddy, mono]
+tags: [ESP32P4, 智能手表, 嵌入式, 开源硬件]
+excerpt: 从芯片选型到固件框架，带你搭建一套基于 ESP32P4 的智能手表开发环境，打通显示屏、传感器与低功耗管理。
+---
+
+# ESP32P4 智能手表开发实战
+
+ESP32P4 是乐鑫推出的一款高性能双核 RISC-V 芯片，凭借丰富的外设与较强的算力，非常适合用于智能手表这类带屏幕、需处理多传感器数据的可穿戴设备。
+
+{/* truncate */}
+
+## 一、为什么选择 ESP32P4
+
+- **双核 RISC-V**：主频可达 400MHz，足以驱动 UI 与后台任务并行。
+- **丰富显示接口**：原生支持 RGB/LVDS/MIPI-DSI，方便接入圆形或方形 LCD。
+- **低功耗设计**：支持多种休眠模式，配合 RTC 外设可实现"抬腕亮屏"。
+- **生态成熟**：Arduino 与 ESP-IDF 双框架支持，社区资料充足。
+
+## 二、最小系统搭建
+
+一个典型的开发板需要以下核心模块：
+
+| 模块 | 作用 |
+| --- | --- |
+| ESP32P4 核心板 | 主控与运算 |
+| 1.5" 圆形 LCD | 人机交互 |
+| 加速度计 | 计步 / 抬腕检测 |
+| 心率传感器 | 健康监测 |
+| 锂电池 + 充电 IC | 供电 |
+
+## 三、点亮第一屏
+
+使用 LVGL 初始化显示屏的简化流程：
+
+```cpp
+#include "lvgl.h"
+#include "esp_lcd_panel_io.h"
+
+void lvgl_init_display() {
+    lv_init();
+    // 1. 初始化 LCD 面板
+    // 2. 创建 draw buffer
+    static lv_color_t buf[480 * 40];
+    static lv_disp_draw_buf_t disp_buf;
+    lv_disp_draw_buf_init(&disp_buf, buf, NULL, 480 * 40);
+    // 3. 注册 flush 回调并创建 disp_drv
+}
+```
+
+## 四、下一步
+
+后续文章会拆解低功耗调度、表盘 UI 设计以及 OTA 升级，欢迎在聊天页与我们交流你的项目进展。

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../supabase/supabaseClient';
 import siteData from '../../data/siteData.json';
+import articlesData from '../../data/articles.json';
 import styles from '../../pages/index.module.css';
 
 const statColors = (siteData.statColors && siteData.statColors.length > 0) ? siteData.statColors : [
@@ -106,11 +107,11 @@ export default function MiddleStatsCard({
     total: 0,
     uv: 0
   });
-  // 帖子统计（今/昨/总）
+  // 帖子统计（今/昨/总）——直接来自构建时生成的文章数据（博客 + 文档），创建文章后重新构建即自动更新
   const [postStats, setPostStats] = useState({
-    todayPosts: 0,
-    yesterdayPosts: 0,
-    totalPosts: 0
+    todayPosts: articlesData?.todayCount ?? 0,
+    yesterdayPosts: articlesData?.yesterdayCount ?? 0,
+    totalPosts: articlesData?.total ?? 0
   });
   const [sysHealth, setSysHealth] = useState({
     apiHealth: true,
@@ -448,31 +449,13 @@ export default function MiddleStatsCard({
         uv: uvCount
       });
 
-      // 6. 获取帖子统计（今/昨/总，独立 try/catch）
-      try {
-        const { count: totalPosts } = await supabase
-          .from('forum_posts')
-          .select('*', { count: 'exact', head: true });
-
-        const { count: todayPosts } = await supabase
-          .from('forum_posts')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', todayISO);
-
-        const { count: yesterdayPosts } = await supabase
-          .from('forum_posts')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', yesterdayISO)
-          .lt('created_at', todayISO);
-
-        setPostStats({
-          todayPosts: todayPosts || 0,
-          yesterdayPosts: yesterdayPosts || 0,
-          totalPosts: totalPosts || 0,
-        });
-      } catch (e) {
-        console.warn('[统计] 帖子统计读取失败', e.message);
-      }
+      // 6. 帖子统计（今/昨/总）已改由构建时生成的文章数据提供，
+      //    创建文章 / 重新构建即自动更新，无需查询 forum_posts。
+      setPostStats({
+        todayPosts: articlesData?.todayCount ?? 0,
+        yesterdayPosts: articlesData?.yesterdayCount ?? 0,
+        totalPosts: articlesData?.total ?? 0,
+      });
 
       // 7. 上报访客位置（异步，不阻塞）
       reportLocation(sessionId);

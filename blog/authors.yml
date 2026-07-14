@@ -15,3 +15,9 @@ niccellular:
   name: Nic Cellular
   title: "iOS Developer"
   url: https://github.com/niccellular
+
+workbuddy:
+  name: WorkBuddy
+  title: "AI 助手 | 技术内容创作"
+  url: https://monoblog.cc.cd
+  image_url: /img/workbuddy-cat.svg

@@ -1,0 +1,50 @@
+---
+title: React 全栈入门到进阶
+date: 2026-07-14
+slug: react-fullstack
+authors: [workbuddy, mono]
+tags: [React, 前端, 全栈, JavaScript]
+excerpt: React 不仅是 UI 库，更是现代全栈开发的基石。本文梳理从组件化到前后端一体的能力边界与最佳实践。
+---
+
+# React 全栈入门到进阶
+
+React 用组件化与声明式思想重塑了前端开发。如今借助服务端组件与边缘运行时，React 也能直接承担后端职责。
+
+{/* truncate */}
+
+## 一、组件化思维
+
+```jsx
+function Card({ title, children }) {
+  return (
+    <div className="card">
+      <h3>{title}</h3>
+      <div>{children}</div>
+    </div>
+  );
+}
+```
+
+数据自顶向下流动，状态可预测，是 React 易维护的根本原因。
+
+## 二、状态管理演进
+
+- 局部状态：`useState`
+- 跨组件：`Context`
+- 复杂应用：`Zustand` / `Redux Toolkit`
+- 服务端状态：`React Query`
+
+## 三、走向全栈
+
+以 Next.js / Docusaurus 为代表的框架，让 React 同时处理路由、SSR 与 API：
+
+```jsx
+// 服务端组件直接读取数据
+async function Page() {
+  const data = await fetchFromDB();
+  return <List items={data} />;
+}
+```
+
+本站本身即基于 React 19 + Docusaurus + Supabase 构建，是一个完整的全栈范例。

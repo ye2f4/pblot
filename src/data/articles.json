@@ -1,0 +1,405 @@
+{
+  "generatedAt": "2026-07-14T13:07:17.704Z",
+  "total": 22,
+  "todayCount": 9,
+  "yesterdayCount": 2,
+  "articles": [
+    {
+      "type": "blog",
+      "title": "ESP32P4 智能手表开发实战",
+      "date": "2026-07-14",
+      "tags": [
+        "ESP32P4",
+        "智能手表",
+        "嵌入式",
+        "开源硬件"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/esp32p4-smartwatch",
+      "excerpt": "从芯片选型到固件框架，带你搭建一套基于 ESP32P4 的智能手表开发环境，打通显示屏、传感器与低功耗管理。",
+      "sourcePath": "blog\\2026\\July\\esp32p4-smartwatch.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "LVGL 图形界面开发指南",
+      "date": "2026-07-14",
+      "tags": [
+        "LVGL",
+        "嵌入式GUI",
+        "UI设计",
+        "开源"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/lvgl-gui-dev",
+      "excerpt": "LVGL 是嵌入式领域最流行的开源图形库之一。本文梳理其核心概念、对象模型与在 MCU 上的移植要点。",
+      "sourcePath": "blog\\2026\\July\\lvgl-gui-dev.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "Meshtastic 远距离 Mesh 网络入门",
+      "date": "2026-07-14",
+      "tags": [
+        "Meshtastic",
+        "Mesh网络",
+        "LoRa",
+        "开源硬件"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/meshtastic-intro",
+      "excerpt": "Meshtastic 利用 LoRa 无线电构建去中心化的远距离通信网络，无需基站即可实现离线消息与位置共享。",
+      "sourcePath": "blog\\2026\\July\\meshtastic-intro.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "Monoの小窝：记录与分享",
+      "date": "2026-07-14",
+      "tags": [
+        "站点动态",
+        "技术分享",
+        "社区"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/mono-tech-blog",
+      "excerpt": "Monoの小窝是一个专注技术分享与开源硬件的个人站点，持续更新 ESP32P4、LVGL、Meshtastic 与全栈开发内容。",
+      "sourcePath": "blog\\2026\\July\\mono-tech-blog.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "开源硬件项目分享",
+      "date": "2026-07-14",
+      "tags": [
+        "开源硬件",
+        "PCB",
+        "DIY",
+        "ESP32"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/open-source-hardware",
+      "excerpt": "从一块 PCB 到一件可量产的小玩意，开源硬件让每个人都能动手创造。本文分享项目立项、设计与发布的全流程。",
+      "sourcePath": "blog\\2026\\July\\open-source-hardware.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "React 全栈入门到进阶",
+      "date": "2026-07-14",
+      "tags": [
+        "React",
+        "前端",
+        "全栈",
+        "JavaScript"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/react-fullstack",
+      "excerpt": "React 不仅是 UI 库，更是现代全栈开发的基石。本文梳理从组件化到前后端一体的能力边界与最佳实践。",
+      "sourcePath": "blog\\2026\\July\\react-fullstack.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "Supabase 后端即服务实战",
+      "date": "2026-07-14",
+      "tags": [
+        "Supabase",
+        "PostgreSQL",
+        "BaaS",
+        "后端"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/blog/supabase-baas",
+      "excerpt": "Supabase 以 PostgreSQL 为内核，提供认证、数据库、存储与边缘函数，让前端开发者也能快速拥有完整后端。",
+      "sourcePath": "blog\\2026\\July\\supabase-baas.mdx"
+    },
+    {
+      "type": "docs",
+      "title": "刷题效率提升——精选练习，查漏补缺",
+      "date": "2026-07-14",
+      "tags": [
+        "学习备考",
+        "刷题",
+        "高效学习",
+        "查漏补缺"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/docs/practice-efficiency",
+      "excerpt": "刷题效率提升——精选练习，查漏补缺 很多人刷题陷入“题海战术”：做得多、错得也多，却总觉得没长进。真正高效的刷题，不是比数量，而是比 单位时间的收获 。 一、先诊断，再开刷 刷题前先回答三个问题： 1. 这个知识点我哪里不会？ 2. 这类题的通用解法是什么？ 3. 我之前在哪一步卡住过？ 带着问题刷，才能把每一道题变成",
+      "sourcePath": "docs\\practice-efficiency.mdx"
+    },
+    {
+      "type": "docs",
+      "title": "暑假学习充电站——规划学习，也发展热爱",
+      "date": "2026-07-14",
+      "tags": [
+        "学习备考",
+        "暑假",
+        "时间规划",
+        "兴趣发展"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/docs/summer-study-hub",
+      "excerpt": "暑假学习充电站——规划学习，也发展热爱 暑假是一年里最完整、最自由的整块时间。很多人要么彻底躺平，开学后悔；要么排满补习班，开学倦怠。真正高效的暑假，是 把“充电”和“热爱”都安排进去 ——既要补弱科、前置新课，也要留出发展兴趣的空间。 一、先给暑假画一张地图 把暑假分成三段更容易坚持： 1. 启动期（前 2 周） ：",
+      "sourcePath": "docs\\summer-study-hub.mdx"
+    },
+    {
+      "type": "docs",
+      "title": "高考备考指南——高效规划，稳步提升",
+      "date": "2026-07-13",
+      "tags": [
+        "学习备考",
+        "高考",
+        "备考规划",
+        "高效学习"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/docs/gaokao-guide",
+      "excerpt": "高考备考指南——高效规划，稳步提升 高考不是冲刺百米，而是马拉松。胜负往往在 规划能力 上就已分出高下。一份能落地的备考规划，比十套押题卷更有价值。 一、三轮复习法 一轮（现在—次年 2 月） ：地毯式过课本，不留死角，重基础。 二轮（3—4 月） ：专题突破，建立知识网络，重综合。 三轮（5 月—考前） ：套卷限时训",
+      "sourcePath": "docs\\gaokao-guide.mdx"
+    },
+    {
+      "type": "docs",
+      "title": "复习时间管理——每天进步一点点",
+      "date": "2026-07-13",
+      "tags": [
+        "学习备考",
+        "时间管理",
+        "复习方法",
+        "高效学习"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/docs/review-time-management",
+      "excerpt": "复习时间管理——每天进步一点点 时间管理的本质不是“挤更多时间”，而是 把有限的精力放在最高价值的任务上 。 一、精力曲线优先 大多数人上午专注力最好，下午易困，晚上适合输出型任务。按精力分配任务： 上午：攻克最难、最需要思考的内容。 下午：整理笔记、做中等难度练习。 晚上：回顾当日、预习次日、发展兴趣。 二、番茄工作",
+      "sourcePath": "docs\\review-time-management.mdx"
+    },
+    {
+      "type": "docs",
+      "title": "错题复盘方法——把失误变成经验",
+      "date": "2026-07-12",
+      "tags": [
+        "学习备考",
+        "错题复盘",
+        "查漏补缺",
+        "高效学习"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/docs/mistake-review",
+      "excerpt": "错题复盘方法——把失误变成经验 错题本不是“收集错误的地方”，而是 把失误转化为能力 的工厂。很多人的错题本看完就忘，问题出在“只抄不析”。 一、错题四问法 每道错题都要能回答： 1. 错在哪一步 ？（计算 / 概念 / 审题 / 粗心） 2. 正确思路是什么 ？ 3. 我当时为什么那样想 ？ 4. 同类题怎么不再错 ",
+      "sourcePath": "docs\\mistake-review.mdx"
+    },
+    {
+      "type": "docs",
+      "title": "高考冲刺季——稳住节奏，不负努力",
+      "date": "2026-07-11",
+      "tags": [
+        "学习备考",
+        "高考",
+        "冲刺",
+        "心态"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/docs/gaokao-sprint",
+      "excerpt": "高考冲刺季——稳住节奏，不负努力 冲刺阶段比的不是谁更拼命，而是谁更 稳 。越临近考试，节奏感越重要。 一、保持正常节奏 不突然熬夜，不突然加量。 维持已有的作息和饮食。 把“平时当考试，考试当平时”。 二、抓大放小 最后阶段，果断放弃“性价比极低”的偏难点，把时间留给： 高频考点 自己的易错点 能稳定拿分的中档题 三",
+      "sourcePath": "docs\\gaokao-sprint.mdx"
+    },
+    {
+      "type": "docs",
+      "title": "轻松备考心态——保持节奏，减少焦虑",
+      "date": "2026-07-10",
+      "tags": [
+        "学习备考",
+        "备考心态",
+        "焦虑调节",
+        "高效学习"
+      ],
+      "authors": [
+        "workbuddy",
+        "mono"
+      ],
+      "url": "/docs/exam-mindset",
+      "excerpt": "轻松备考心态——保持节奏，减少焦虑 备考拼的不仅是脑力，更是 心理韧性 。焦虑不会消失，但可以被管理。 一、区分“有用焦虑”和“内耗” 有用焦虑：提醒你“该复习了”→ 转化为行动。 内耗：反复想“考砸了怎么办”→ 立刻打断，回到手头任务。 二、把担心写下来 拿一张纸，把脑中的担忧全部写下，然后逐条写上“我能做的应对”。",
+      "sourcePath": "docs\\exam-mindset.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "No Plugins, No Problem: Integrating TAK, Meshtastic, and iOS",
+      "date": "2026-02-17T09:00",
+      "tags": [
+        "Meshtastic",
+        "iOS",
+        "TAK",
+        "iTAK",
+        "ATAK",
+        "integration",
+        "situational awareness"
+      ],
+      "authors": [
+        "thebentern",
+        "niccellular"
+      ],
+      "url": "/blog/tak-server-integration-ios",
+      "excerpt": "Announcing native TAK Server integration in the Meshtastic iOS app, bridging mesh networking with situational awareness tools.",
+      "sourcePath": "blog\\2026\\February\\tak-server-integration-ios.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "React 入门到进阶实战教程",
+      "date": "2025-06-08",
+      "tags": [
+        "React",
+        "前端框架",
+        "JavaScript",
+        "JSX",
+        "Hooks"
+      ],
+      "authors": [
+        "mono"
+      ],
+      "url": "/blog/react",
+      "excerpt": "从零开始系统讲解 React 核心概念，包含组件化开发、Hooks、状态管理、路由配置等完整知识体系。",
+      "sourcePath": "blog\\2025\\June\\react.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "前端响应式布局实战指南",
+      "date": "2025-06-07",
+      "tags": [
+        "CSS",
+        "响应式",
+        "前端开发",
+        "Flex",
+        "Grid"
+      ],
+      "authors": [
+        "mono"
+      ],
+      "url": "/blog/frontend",
+      "excerpt": "讲解移动端、PC端适配方案，包含Flex、Grid、媒体查询、容器查询等现代布局技巧。",
+      "sourcePath": "blog\\2025\\June\\frontend.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "Node.js + Express 快速搭建后端接口",
+      "date": "2025-06-06",
+      "tags": [
+        "Node.js",
+        "Express",
+        "后端",
+        "API",
+        "RESTful"
+      ],
+      "authors": [
+        "mono"
+      ],
+      "url": "/blog/backend",
+      "excerpt": "使用 Node.js + Express 快速搭建轻量后端服务，实现 RESTful 接口开发、中间件配置与跨域处理。",
+      "sourcePath": "blog\\2025\\June\\backend.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "使用 GitHub Pages 免费部署前端项目",
+      "date": "2025-06-06",
+      "tags": [
+        "GitHub Pages",
+        "部署",
+        "CI/CD",
+        "前端",
+        "域名"
+      ],
+      "authors": [
+        "mono"
+      ],
+      "url": "/blog/github-pages",
+      "excerpt": "手把手教你用 GitHub Pages + GitHub Actions 免费部署 React/Docusaurus 等前端项目，含自定义域名、HTTPS 和自动化工作流。",
+      "sourcePath": "blog\\2025\\June\\github-pages.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "提升开发效率的 VSCode 必备插件",
+      "date": "2025-06-05",
+      "tags": [
+        "开发工具",
+        "VSCode",
+        "效率工具",
+        "IDE"
+      ],
+      "authors": [
+        "mono"
+      ],
+      "url": "/blog/tools",
+      "excerpt": "分享日常开发高频使用的 VSCode 插件和配置，覆盖代码格式化、语法检查、Git 管理、AI 辅助等全场景。",
+      "sourcePath": "blog\\2025\\June\\tools.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "Minecraft 模组开发从入门到发布",
+      "date": "2025-06-04",
+      "tags": [
+        "Minecraft",
+        "游戏模组",
+        "Java",
+        "Forge",
+        "物品注册"
+      ],
+      "authors": [
+        "mono"
+      ],
+      "url": "/blog/minecraft",
+      "excerpt": "系统讲解 Minecraft Forge 模组开发全流程，涵盖环境搭建、物品方块注册、合成配方、事件监听到最终打包发布。",
+      "sourcePath": "blog\\2025\\June\\minecraft.mdx"
+    },
+    {
+      "type": "blog",
+      "title": "从零搭建开源博客：Docusaurus + Supabase 全栈实践",
+      "date": "2025-06-03",
+      "tags": [
+        "开源",
+        "Docusaurus",
+        "Supabase",
+        "博客系统",
+        "Vercel"
+      ],
+      "authors": [
+        "mono"
+      ],
+      "url": "/blog/opensource",
+      "excerpt": "从零到一搭建现代化个人博客，详解 Docusaurus 静态站点框架 + Supabase BaaS 后端服务的全栈实践。",
+      "sourcePath": "blog\\2025\\June\\opensource.mdx"
+    }
+  ]
+}

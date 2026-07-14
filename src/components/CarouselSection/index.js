@@ -3,6 +3,7 @@ const Slider = lazy(() => import('react-slick'));
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import siteData from '../../data/siteData.json';
+import Link from '@docusaurus/Link';
 import styles from '../../pages/index.module.css';
 
 // 自定义箭头组件（React 函数组件，避免 currentSlide/slideCount 等 react-slick 内部 props 落到 DOM 上）
@@ -116,28 +117,38 @@ export default function CarouselSection({ base, isClient }) {
             }>
                 {isClient && (
                     <Slider {...carouselSettings}>
-                        {images.map((img, i) => (
-                            <div key={i} style={{ textAlign: 'center', maxWidth: '100%' }}>
-                                <img
-                                    src={`${base}img/${img.filename}`}
-                                    alt={img.title || ''}
-                                    loading={i === 0 ? "eager" : "lazy"}
-                                    fetchPriority={i === 0 ? "high" : "auto"}
-                                    style={{
-                                        width: '100%',
-                                        maxWidth: '100%',
-                                        aspectRatio: '16 / 9',
-                                        minHeight: '150px',
-                                        objectFit: 'cover',
-                                        display: 'block',
-                                        backgroundColor: 'var(--ifm-color-emphasis-100)'
-                                    }}
-                                />
-                                <p style={{ marginTop: 8, marginBottom: 8, fontSize: 14, color: 'var(--ifm-text-color)' }}>
-                                    {img.title}
-                                </p>
-                            </div>
-                        ))}
+                        {images.map((img, i) => {
+                            const slideContent = (
+                                <div style={{ textAlign: 'center', maxWidth: '100%' }}>
+                                    <img
+                                        src={`${base}img/${img.filename}`}
+                                        alt={img.title || ''}
+                                        loading={i === 0 ? "eager" : "lazy"}
+                                        fetchPriority={i === 0 ? "high" : "auto"}
+                                        style={{
+                                            width: '100%',
+                                            maxWidth: '100%',
+                                            aspectRatio: '16 / 9',
+                                            minHeight: '150px',
+                                            objectFit: 'cover',
+                                            display: 'block',
+                                            backgroundColor: 'var(--ifm-color-emphasis-100)'
+                                        }}
+                                    />
+                                    <p style={{ marginTop: 8, marginBottom: 8, fontSize: 14, color: 'var(--ifm-text-color)' }}>
+                                        {img.title}
+                                    </p>
+                                </div>
+                            );
+                            if (img.link) {
+                                return (
+                                    <Link key={i} to={img.link} style={{ textDecoration: 'none', display: 'block' }}>
+                                        {slideContent}
+                                    </Link>
+                                );
+                            }
+                            return <div key={i}>{slideContent}</div>;
+                        })}
                     </Slider>
                 )}
             </Suspense>

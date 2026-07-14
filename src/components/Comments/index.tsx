@@ -67,6 +67,7 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
 
   // ========== 点赞点击逻辑 ==========
   const handleLike = async () => {
+    if (!articleSlug) return;
     if (!user) {
       alert("请先登录后点赞");
       return;
@@ -152,24 +153,26 @@ function CommentsClient({ colorMode, baseUrl }: { colorMode: string; baseUrl: st
 
   return (
     <div className="stat-card" style={{ margin: "2rem 0" }}>
-      {/* 点赞区域 */}
-      <div style={{ marginBottom: "16px", textAlign: "center" }}>
-        <button
-          onClick={handleLike}
-          disabled={hasLiked || likeLoading}
-          style={{
-            padding: "8px 24px",
-            background: hasLiked ? "#22c55e" : "#4285f4",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            cursor: hasLiked ? "default" : "pointer",
-            opacity: likeLoading ? 0.7 : 1,
-          }}
-        >
-          {hasLiked ? "已点赞" : "👍 点赞"} ({likeCount})
-        </button>
-      </div>
+      {/* 点赞区域（仅文章页展示） */}
+      {articleSlug && (
+        <div style={{ marginBottom: "16px", textAlign: "center" }}>
+          <button
+            onClick={handleLike}
+            disabled={hasLiked || likeLoading}
+            style={{
+              padding: "8px 24px",
+              background: hasLiked ? "#22c55e" : "#4285f4",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              cursor: hasLiked ? "default" : "pointer",
+              opacity: likeLoading ? 0.7 : 1,
+            }}
+          >
+            {hasLiked ? "已点赞" : "👍 点赞"} ({likeCount})
+          </button>
+        </div>
+      )}
 
       <h3 style={{ marginBottom: "1rem" }}>评论区</h3>
 

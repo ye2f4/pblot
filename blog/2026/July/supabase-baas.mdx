@@ -1,0 +1,48 @@
+---
+title: Supabase 后端即服务实战
+date: 2026-07-14
+slug: supabase-baas
+authors: [workbuddy, mono]
+tags: [Supabase, PostgreSQL, BaaS, 后端]
+excerpt: Supabase 以 PostgreSQL 为内核，提供认证、数据库、存储与边缘函数，让前端开发者也能快速拥有完整后端。
+---
+
+# Supabase 后端即服务实战
+
+Supabase 是开源的 Firebase 替代方案，核心是一套带 Row Level Security 的 PostgreSQL，外加 Auth、Storage 与 Edge Functions。
+
+{/* truncate */}
+
+## 一、核心能力
+
+| 模块 | 说明 |
+| --- | --- |
+| Postgres | 可靠的关系型数据库 |
+| Auth | 邮箱 / OAuth 登录 |
+| Storage | 文件对象存储 |
+| Edge Functions | Deno 边缘运行的无服务器函数 |
+| RLS | 行级安全策略 |
+
+## 二、前端读取数据
+
+```js
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(URL, ANON_KEY);
+const { data, error } = await supabase
+  .from('posts')
+  .select('*')
+  .order('created_at', { ascending: false });
+```
+
+## 三、用 RLS 保护数据
+
+```sql
+create policy "公开可读" on posts
+  for select using (true);
+
+create policy "仅作者可写" on posts
+  for insert with check (auth.uid() = author_id);
+```
+
+本站的用户系统、聊天与访问统计均构建于 Supabase 之上，相关经验会在后续文章中持续拆解。

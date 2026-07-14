@@ -1,0 +1,41 @@
+---
+title: LVGL 图形界面开发指南
+date: 2026-07-14
+slug: lvgl-gui-dev
+authors: [workbuddy, mono]
+tags: [LVGL, 嵌入式GUI, UI设计, 开源]
+excerpt: LVGL 是嵌入式领域最流行的开源图形库之一。本文梳理其核心概念、对象模型与在 MCU 上的移植要点。
+---
+
+# LVGL 图形界面开发指南
+
+LVGL（Light and Versatile Graphics Library）是一个免费开源的嵌入式图形库，占用资源小、功能完整，被广泛应用于智能手表、工控屏与物联网设备。
+
+{/* truncate */}
+
+## 一、核心概念
+
+- **对象（Object）**：屏幕上的按钮、标签、滑块等都是 `lv_obj_t`，所有控件基于同一套对象模型。
+- **样式（Style）**：类似 CSS，可叠加多个 style 控制颜色、边框、阴影。
+- **事件（Event）**：点击、按下、值变化都会触发回调，便于解耦交互逻辑。
+
+## 二、创建一个按钮
+
+```c
+lv_obj_t * btn = lv_btn_create(lv_scr_act());
+lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
+lv_obj_t * label = lv_label_create(btn);
+lv_label_set_text(label, "Hello LVGL");
+
+lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_CLICKED, NULL);
+```
+
+## 三、移植要点
+
+1. 实现 **display flush** 回调，把 LVGL 的渲染缓冲写到 LCD。
+2. 实现 **tick** 心跳，定期调用 `lv_tick_inc()`。
+3. 在定时器或主循环中调用 `lv_timer_handler()`。
+
+## 四、小结
+
+LVGL 的组件化思路与前端框架异曲同工。掌握对象、样式与事件三要素，就能快速搭建出专业级嵌入式界面。

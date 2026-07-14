@@ -1,0 +1,40 @@
+---
+title: Meshtastic 远距离 Mesh 网络入门
+date: 2026-07-14
+slug: meshtastic-intro
+authors: [workbuddy, mono]
+tags: [Meshtastic, Mesh网络, LoRa, 开源硬件]
+excerpt: Meshtastic 利用 LoRa 无线电构建去中心化的远距离通信网络，无需基站即可实现离线消息与位置共享。
+---
+
+# Meshtastic 远距离 Mesh 网络入门
+
+在山区、海上或灾害现场，蜂窝网络常常失效。Meshtastic 基于 LoRa 技术，把一群设备组成一个自愈的 mesh 网络，让离线通信成为可能。
+
+{/* truncate */}
+
+## 一、它解决了什么问题
+
+- **无基础设施**：不依赖基站、WiFi 或卫星。
+- **远距离**：LoRa 在开阔环境下可达数公里。
+- **低功耗**：节点可用电池长期运行。
+- **去中心化**：任意节点掉线，网络自动绕行。
+
+## 二、典型硬件
+
+| 部件 | 说明 |
+| --- | --- |
+| ESP32 主控 | 运行 Meshtastic 固件 |
+| LoRa 射频模块 | 如 SX1262，负责无线收发 |
+| GPS | 位置共享与追踪 |
+| 屏幕/按键 | 离线交互 |
+
+## 三、快速体验
+
+1. 购买一块预刷 Meshtastic 固件的开发板（如 T-Lora、RAK 系列）。
+2. 手机安装 Meshtastic App，通过蓝牙连接。
+3. 与朋友各持一台，走进户外即可互发加密消息。
+
+## 四、进阶
+
+Meshtastic 提供 Python CLI 与 HTTP API，可接入 Home Assistant 或自建网关。想深入可阅读本站关于 TAK 与 Meshtastic 集成的文章。

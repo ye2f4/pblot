@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from '@docusaurus/Link';
-import { supabase } from '../../supabase/supabaseClient';
 import styles from '../../pages/index.module.css';
+import articlesData from '../../data/articles.json';
 
 export default function RankList({ siteData }) {
     const [posts, setPosts] = useState([]);
@@ -9,53 +9,27 @@ export default function RankList({ siteData }) {
     const [activeFilter, setActiveFilter] = useState('hot'); // hot | latest
 
     useEffect(() => {
-        const fetchRankings = async () => {
-            setLoading(true);
-            try {
-                if (!supabase) {
-                    // 降级使用静态数据
-                    setPosts(siteData.rankList || []);
-                    setLoading(false);
-                    return;
-                }
+        const all = (articlesData?.articles || []).filter((a) => a.date);
 
-                let query = supabase.from('forum_posts').select('title, view_count, reply_count, created_at');
+        // 最新：按日期倒序
+        const latest = [...all].sort((a, b) => b.date.localeCompare(a.date));
 
-                if (activeFilter === 'hot') {
-                    query = query.order('view_count', { ascending: false });
-                } else {
-                    query = query.order('created_at', { ascending: false });
-                }
+        // 热门：以标签数量作为热度代理（覆盖主题越广，通常越受欢迎），再按日期兜底
+        const hot = [...all].sort((a, b) => {
+            const ta = (b.tags?.length || 0) - (a.tags?.length || 0);
+            if (ta !== 0) return ta;
+            return b.date.localeCompare(a.date);
+        });
 
-                query = query.limit(7);
+        const picked = (activeFilter === 'hot' ? hot : latest).slice(0, 7);
 
-                const { data, error } = await query;
-
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    setPosts(data.map(p => ({
-                        title: p.title,
-                        link: `/forum?tab=${activeFilter}`,
-                        date: new Date(p.created_at).toLocaleDateString('zh-CN'),
-                        views: p.view_count || 0,
-                        replies: p.reply_count || 0,
-                    })));
-                } else {
-                    setPosts(siteData.rankList || []);
-                }
-            } catch (e) {
-                // 表不存在时降级为静态数据
-                console.log('RankList 数据库读取失败，使用静态数据', e.message);
-                setPosts(siteData.rankList || []);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRankings();
-        const timer = setInterval(fetchRankings, 60000);
-        return () => clearInterval(timer);
+        setPosts(picked.length > 0 ? picked.map((p) => ({
+            title: p.title,
+            link: p.url,
+            date: p.date,
+            views: (p.tags?.length || 0) * 100, // 仅作展示用的热度代理
+        })) : (siteData.rankList || []));
+        setLoading(false);
     }, [activeFilter, siteData.rankList]);
 
     return (
@@ -164,7 +138,7 @@ export default function RankList({ siteData }) {
                                     fontSize: 11, color: 'var(--ifm-color-emphasis-400)',
                                     whiteSpace: 'nowrap', marginLeft: 8, flexShrink: 0,
                                 }}>
-                                    {activeFilter === 'hot' && item.views ? `👁${item.views}` : item.date}
+                                    {activeFilter === 'hot' && item.views ? `🔥${item.views}` : item.date}
                                 </span>
                             </div>
                         );

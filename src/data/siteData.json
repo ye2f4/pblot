@@ -242,16 +242,17 @@
   ],
 
   "carouselImages": [
-    { "filename": "0.webp", "title": "" },
-    { "filename": "1.webp", "title": "" },
-    { "filename": "2.webp", "title": "" },
-    { "filename": "3.webp", "title": "" },
-    { "filename": "4.webp", "title": "" },
-    { "filename": "5.webp", "title": "" },
-    { "filename": "6.webp", "title": "" }
+    { "filename": "0.webp", "title": "暑假学习充电站——规划学习，也发展热爱", "link": "/docs/summer-study-hub" },
+    { "filename": "1.webp", "title": "刷题效率提升——精选练习，查漏补缺", "link": "/docs/practice-efficiency" },
+    { "filename": "2.webp", "title": "高考备考指南——高效规划，稳步提升", "link": "/docs/gaokao-guide" },
+    { "filename": "3.webp", "title": "复习时间管理——每天进步一点点", "link": "/docs/review-time-management" },
+    { "filename": "4.webp", "title": "错题复盘方法——把失误变成经验", "link": "/docs/mistake-review" },
+    { "filename": "5.webp", "title": "高考冲刺季——稳住节奏，不负努力", "link": "/docs/gaokao-sprint" },
+    { "filename": "6.webp", "title": "轻松备考心态——保持节奏，减少焦虑", "link": "/docs/exam-mindset" }
   ],
 
   "quickNav": [
+    { "name": "全部文章", "icon": "📚", "color": "#8b5cf6", "link": "/articles" },
     { "name": "React教程", "icon": "⚛️", "color": "#61dafb", "link": "/blog/react" },
     { "name": "前端开发", "icon": "🎨", "color": "#ff6b6b", "link": "/blog/frontend" },
     { "name": "后端技术", "icon": "⚙️", "color": "#4ecdc4", "link": "/blog/backend" },
