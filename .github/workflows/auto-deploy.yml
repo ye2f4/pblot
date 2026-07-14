@@ -34,8 +34,10 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: 激活指定版本PNPM
-        run: corepack enable && corepack prepare pnpm@11.5.2 --activate
+      - name: 安装指定版本 PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.2
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
