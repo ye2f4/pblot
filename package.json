@@ -34,6 +34,7 @@
     "simulate-devices": "node scripts/simulate-devices.mjs",
     "simulate-devices:local": "node scripts/simulate-devices.mjs --local",
     "simulate-esp32": "node scripts/esp32-device-sim.mjs",
+    "simulate-visitors": "node scripts/simulate-visitors.mjs",
     "test": "echo \"No test specified\" && exit 0",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
