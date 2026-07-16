@@ -8,10 +8,19 @@ const FETCH_TIMEOUT = 8000;
 
 // 瓦片源配置（优先使用 siteData，兜底硬编码）
 const TILE_PROVIDERS = (siteData.tileProviders && siteData.tileProviders.length > 0) ? siteData.tileProviders : [
-  { name: '高德地图', url: 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', subdomains: ['1', '2', '3', '4'], attribution: '&copy; 高德地图', maxZoom: 18 },
-  { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19 },
-  { name: 'CartoDB', url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://carto.com/">CartoDB</a>', maxZoom: 19 },
+  { name: '高德地图', url: 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', subdomains: ['1', '2', '3', '4'], attribution: '&copy; 高德地图', maxZoom: 18, minZoom: 3 },
+  { name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19, minZoom: 0 },
+  { name: 'CartoDB', url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://carto.com/">CartoDB</a>', maxZoom: 19, minZoom: 0 },
 ];
+
+// 不同瓦片源支持的最小缩放不同（高德最低 ~z3，OSM/CartoDB 可到 z0）。
+// 地图 minZoom 必须随当前瓦片源动态调整，否则在全局视图(低缩放)下对应源无瓦片可加载 → 地图空白。
+const providerMinZoom = (p) => {
+  if (typeof p.minZoom === 'number') return p.minZoom;
+  if (p.name && p.name.includes('高德')) return 3;
+  return 0;
+};
+const providerMaxZoom = (p) => p.maxZoom || 18;
 
 // ============ IP 地理信息查询（多源兜底，保证国家/城市/IP 不为「未知」）============
 const fetchIpInfo = async () => {
@@ -253,12 +262,21 @@ function MapCore() {
     }
 
     const provider = TILE_PROVIDERS[index];
+    const minZ = providerMinZoom(provider);
+    const maxZ = providerMaxZoom(provider);
+    // 切换源时同步约束地图缩放范围，避免落到当前源不支持的层级（低层级无瓦片 → 空白）
+    map.setMinZoom(minZ);
+    map.setMaxZoom(maxZ);
+    if (map.getZoom() < minZ || map.getZoom() > maxZ) {
+      map.setZoom(Math.min(Math.max(map.getZoom(), minZ), maxZ));
+    }
     tileLoadCount.current = 0;
     tileErrorCount.current = 0;
 
     const tileLayer = L.tileLayer(provider.url, {
       attribution: provider.attribution,
-      maxZoom: provider.maxZoom,
+      minZoom: minZ,
+      maxZoom: maxZ,
       noWrap: false,
       ...(provider.subdomains ? { subdomains: provider.subdomains } : {}),
     });
@@ -279,6 +297,8 @@ function MapCore() {
     tileLayerRef.current = tileLayer;
     setActiveProvider(index);
     setError(null);
+    // 源切换后容器尺寸可能变化，强制重算一次，避免瓦片错位/空白
+    setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 50);
   }, []);
 
   // Leaflet 加载就绪状态（避免 ref 作为依赖）
@@ -318,8 +338,8 @@ function MapCore() {
     const map = L.map(mapRef.current, {
       center: [30, 10],
       zoom: 2,
-      minZoom: 2,
-      maxZoom: 18,
+      minZoom: providerMinZoom(TILE_PROVIDERS[0]),
+      maxZoom: providerMaxZoom(TILE_PROVIDERS[0]),
       worldCopyJump: true,
       zoomControl: true,
       attributionControl: true
@@ -329,17 +349,25 @@ function MapCore() {
     mapInstanceRef.current = map;
     setMapReady(true);
 
+    // 多次 invalidateSize 兜底：容器在首屏布局稳定前高度为 0 会导致瓦片加载不出来，
+    // 在 300ms / rAF / window.load / 瓦片加载后多时机刷新，确保地图正常渲染。
+    const fixSize = () => { try { map.invalidateSize(); } catch (e) {} };
     // 延迟加载瓦片，确保容器已渲染
     setTimeout(() => {
       switchProvider(0);
-      map.invalidateSize();
+      fixSize();
     }, 300);
+    requestAnimationFrame(fixSize);
+    window.addEventListener('load', fixSize);
+    map.on('load', fixSize);
 
     const resizeHandler = () => map.invalidateSize();
     window.addEventListener('resize', resizeHandler);
 
     return () => {
       window.removeEventListener('resize', resizeHandler);
+      window.removeEventListener('load', fixSize);
+      map.off('load', fixSize);
       map.remove();
       mapInstanceRef.current = null;
     };

@@ -4,9 +4,28 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 10
+
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "daily"
-
-
+    labels:
+      - "dependencies"
+      - "npm"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      # 把相关 npm 包的安全/版本更新合并到同一个 PR，避免刷屏
+      npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+      npm-major:
+        update-types:
+          - "major"

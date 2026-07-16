@@ -24,3 +24,13 @@ entrypoint = "./functions/admin-auth/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/admin-config/index.ts"
+
+[functions.admin-warnings]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/admin-warnings/index.ts"
+
+[functions.fetch-quake]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/fetch-quake/index.ts"

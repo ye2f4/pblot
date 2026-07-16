@@ -114,3 +114,34 @@ curl -X POST "https://xwhwcmorcmgpfpocmgez.supabase.co/functions/v1/admin-auth" 
 对应组件读取 `siteData.features?.showChat` 即可生效。key 即写入 `site_config` 表的 key（点路径会自动合并进 siteData）。
 
 > 注意：`meta.*` 类参数（SEO 描述、og 标题）是 Docusaurus **构建期**注入的，运行时改不会刷新搜索引擎已抓取的 meta，需要重新构建部署才对 SEO 生效；其余运行时参数（公告、标题、标语、板块开关、关于）改完立即生效。
+
+---
+
+## 九、全站灾害/应急预警系统
+
+在「后台 + 自动地震速报」之上新增了全站预警能力：**有生效预警时，所有页面弹出全屏预警窗**，支持地震/恶劣天气/防空/核应急(人防)等分类与红橙黄蓝四级。
+
+### 1. 执行 SQL
+`supabase/migrations/20260717_site_warnings.sql` 全文粘贴到 SQL Editor 执行，建 `site_warnings` 表（公开读、禁匿名写）。
+
+### 2. 部署两个函数
+```bash
+supabase functions deploy admin-warnings --no-verify-jwt
+supabase functions deploy fetch-quake --no-verify-jwt
+```
+- `admin-warnings`：需管理员 token，提供预警的列表/发布/编辑/启停/删除。
+- `fetch-quake`：匿名可调用，拉取 USGS 全球地震速报（M≥4.5、近 24h）写入 `site_warnings`，自动去重。
+
+### 3. 自动更新机制
+前端 `WarningsProvider` 每次加载拉取一次，并**每 10 分钟自动调用 `fetch-quake`** 刷新地震数据；后台「预警管理」页也有「立即拉取地震速报」按钮手动触发。
+
+### 4. 手动发布 / 验证（无需任何 API key）
+进入 `/admin` → 「预警管理」标签页：
+- 点「🌍 立即拉取地震速报」→ 若全球近期有 M≥4.5 地震，会自动出现并弹窗（验证自动链路）。
+- 填表手动发布一条（类型/等级/区域/标题/正文/过期时间）→ 保存后全站立即弹窗（验证手动链路）。
+- 列表可「停用/启用/删除」。
+
+### 5. 弹窗交互
+全屏遮罩弹窗按等级排序（红>橙>黄>蓝），点「我已知晓，关闭」后本次浏览器不再提示（localStorage 记忆，按预警 id 区分；新预警或新地震事件会再次弹出）。
+
+> 说明：`nuclear`(核应急/人防) 分类仅作展示位，内容请只转发**官方权威通报**，切勿伪造。地震源用的是 USGS 全球接口（免 key），如需国内源（如地震局/成都高新减灾所）替换 `fetch-quake/index.ts` 里的 `FEED` 即可。

@@ -134,12 +134,18 @@ const PixelClock = memo(({
             <div className={`pixel-font ${styles.dateText}`} style={{
                 fontSize: 13,
                 color: '#333',
-                fontWeight: 600
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'center',
+                gap: 6,
+                flexWrap: 'wrap'
             }}>
-                {display.year}-
-                {padZero(display.month)}-
-                {padZero(display.day)}
-                第{display.weekNum}周
+                <span>{display.year}-{padZero(display.month)}-{padZero(display.day)}</span>
+                <span style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: 'normal' }}>
+                    第{display.weekNum}周
+                </span>
             </div>
         </div>
     );
