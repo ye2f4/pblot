@@ -798,7 +798,7 @@ export default function MiddleStatsCard({
             <div>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#d97706' }}>{siteData.texts?.siteNotice || '站点公告'}</span>
               <p style={{ fontSize: 10, color: '#555', margin: '2px 0 0', lineHeight: 1.4 }}>
-                {siteData.siteAnnouncement || '本站持续更新React与嵌入式教程，欢迎交流~'}
+                {siteData?.texts?.announcement || siteData?.siteAnnouncement || '本站持续更新React与嵌入式教程，欢迎交流~'}
               </p>
             </div>
           </div>

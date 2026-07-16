@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from '@docusaurus/Link';
+import articlesData from '../../data/articles.json';
 import styles from '../../pages/index.module.css';
 import { supabase, AVATAR_CACHE_EXPIRE } from '../../supabase/supabaseClient';
 import { isBrowser } from '../../utils/env';
 import { storage } from '../../utils/storage';
 import MiddleStatsCard from '../MiddleStatsCard';
 import { triggerGlobalProfileRefresh, AVATAR_CACHE_KEY } from '../../utils/globalProfileUtil';
-
-const SCROLL_MODE = false;
 
 // 登录主题色配置
 const loginTheme = {
@@ -85,9 +84,11 @@ export default function TopBanner({
   timeZoneOffset = 0,
   timeZone = ""
 }) {
-  const noticeRef = useRef(null);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const announcement = siteData?.texts?.announcement || '本站持续更新技术教程和资源分享';
+  // 最新博客速览：取 articles.json 中 type==='blog' 的文章，按日期倒序取前 4 篇
+  const blogList = (articlesData?.articles || [])
+    .filter((a) => a.type === 'blog' && a.date)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 4);
   const [avatarEmoji, setAvatarEmoji] = useState('');
   const [dbNickname, setDbNickname] = useState('');
 
@@ -188,26 +189,6 @@ export default function TopBanner({
 
   }, [user]);
 
-  // 公告滚动逻辑
-  useEffect(() => {
-    if (!SCROLL_MODE || !noticeRef.current || !isBrowser) return;
-    const rafId = requestAnimationFrame(() => {
-      const noticeElement = noticeRef.current;
-      const containerWidth = noticeElement.offsetWidth;
-      const contentWidth = noticeElement.scrollWidth;
-      if (contentWidth > containerWidth) {
-        setIsScrolling(true);
-        const duration = contentWidth * 0.03;
-        noticeElement.style.animation = 'none';
-        void noticeElement.offsetWidth;
-        noticeElement.style.animation = `marquee ${duration}s linear infinite`;
-      } else {
-        setIsScrolling(false);
-      }
-    });
-    return () => cancelAnimationFrame(rafId);
-  }, [announcement]);
-
   return (
     <section className={styles.topBannerWrap} style={{
       backgroundImage: `url(${base}img/bg_big.webp)`,
@@ -239,10 +220,46 @@ export default function TopBanner({
               {siteData?.texts?.welcomeTitle || '欢迎来到Monoの小窝'}
             </h3>
           </div>
-          <div style={{ paddingLeft: 44, overflowY: 'auto', maxHeight: 60 }}>
-            <p ref={noticeRef} style={{ margin: 0, fontSize: 13, color: '#666', lineHeight: 1.6 }}>
-              {announcement}
-            </p>
+          <div style={{ paddingLeft: 44, overflowY: 'auto', maxHeight: 160 }}>
+            {siteData?.features?.showBlogPreview !== false ? (
+              <>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 4 }}>
+                  📝 最新博客
+                </div>
+                {blogList.length > 0 ? (
+                  blogList.map((p) => (
+                    <Link
+                      key={p.url}
+                      to={p.url}
+                      style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+                        fontSize: 13, color: '#333', padding: '5px 0', textDecoration: 'none',
+                        borderBottom: '1px dashed #eee',
+                      }}
+                      onMouseOver={(e) => { e.currentTarget.style.color = '#509feb'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.color = '#333'; }}
+                    >
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
+                      <span style={{ color: '#999', flexShrink: 0, fontSize: 12 }}>{p.date}</span>
+                    </Link>
+                  ))
+                ) : (
+                  <div style={{ fontSize: 13, color: '#999', padding: '6px 0' }}>暂无博客文章</div>
+                )}
+                <div style={{ marginTop: 8 }}>
+                  <Link
+                    to="/blog/"
+                    style={{ fontSize: 13, color: '#509feb', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    浏览全部博客 →
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13, color: '#666', padding: '6px 0', lineHeight: 1.6 }}>
+                {siteData?.branding?.tagline || '欢迎来到本站，探索更多技术分享~'}
+              </div>
+            )}
           </div>
         </div>
 

@@ -22,6 +22,9 @@ export default function ChatRedDot() {
     if (!btn) return;
 
     const oldBadge = btn.querySelector('.chat-unread-badge');
+    // 避免 MutationObserver 自激：已显示的徽标数量与传入一致时，不修改 DOM
+    const label = count > 99 ? '99+' : String(count);
+    if (count > 0 && oldBadge && oldBadge.textContent === label) return;
     if (oldBadge) oldBadge.remove();
 
     if (count > 0) {

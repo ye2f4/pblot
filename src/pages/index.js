@@ -1,10 +1,11 @@
 
 
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react';
 import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
 import siteData from '../data/siteData.json';
+import { useSiteConfig, applySiteConfig } from '../theme/SiteConfigProvider';
 import { throttle } from '../utils/common';
 import { supabase } from '../supabase/supabaseClient';
 import { showAlert } from '@/utils/dialog';
@@ -61,6 +62,10 @@ export default function Home() {
   const isMountedRef = useRef(true);
   const [isClient, setIsClient] = useState(false);
   const mainContentRef = useRef(null);
+
+  // 合并后台动态配置（site_config 表）到静态 siteData，覆盖公告/标题等参数
+  const { config } = useSiteConfig();
+  const mergedSiteData = useMemo(() => applySiteConfig(siteData, config), [config]);
 
   const [signOutLoading, setSignOutLoading] = useState(false);
   const [userCount, setUserCount] = useState(0);
@@ -346,7 +351,7 @@ export default function Home() {
 
       {/* TopBanner 彻底移除clockTimeEpoch、clockLocationName两个参数 */}
       <TopBanner
-        siteData={siteData}
+        siteData={mergedSiteData}
         base={base}
         user={user}
         loading={loading}
@@ -376,14 +381,14 @@ export default function Home() {
         transform: isInView(mainContentRef) ? 'translateY(0)' : 'translateY(30px)',
         transition: 'opacity 0.4s ease, transform 0.4s ease'
       }}>
-        <MainContentTop siteData={siteData} />
+        <MainContentTop siteData={mergedSiteData} />
         <div className="content-row" style={{ display: 'flex', gap: 20, width: '100%', flexWrap: 'wrap', overflow: 'hidden', boxSizing: 'border-box' }}>
           <div className="left-container" style={{ flex: '7 1 320px', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box' }}>
             <CarouselSection base={base} isClient={isClient} />
-            <QuickNav siteData={siteData} />
-            <UpdatesList siteData={siteData} />
-            <TagCloud siteData={siteData} />
-            <FriendsAndAbout siteData={siteData} />
+            <QuickNav siteData={mergedSiteData} />
+            <UpdatesList siteData={mergedSiteData} />
+            <TagCloud siteData={mergedSiteData} />
+            <FriendsAndAbout siteData={mergedSiteData} />
           </div>
           <div className="sidebar-container" style={{ flex: '3 1 260px', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box' }}>
             {/* 侧边栏早已删除PixelClock渲染块 */}
@@ -392,7 +397,7 @@ export default function Home() {
             </Suspense>
 
             <div className="stat-card">
-              <RankList siteData={siteData} />
+              <RankList siteData={mergedSiteData} />
             </div>
             <Suspense fallback={<div className="stat-card" style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载中...</div>}>
               {commentsLoaded && (
@@ -404,7 +409,7 @@ export default function Home() {
                   submitComment={submitComment}
                   user={user}
                   base={base}
-                  siteData={siteData}
+                  siteData={mergedSiteData}
                 />
               )}
             </Suspense>

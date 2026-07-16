@@ -14,3 +14,13 @@ entrypoint = "./functions/getWeather/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/admin-delete-users/index.ts"
+
+[functions.admin-auth]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/admin-auth/index.ts"
+
+[functions.admin-config]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/admin-config/index.ts"
