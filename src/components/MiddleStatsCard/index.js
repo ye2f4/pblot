@@ -44,49 +44,75 @@ const getDeviceInfo = () => {
   return { isMobile, browser, os, userAgent: ua };
 };
 
-// 获取访客位置（优先浏览器GPS，兜底 IP 服务）
+// ============ IP 地理信息查询（多源兜底，保证国家/城市/IP 不为「未知」）============
+const fetchIpInfo = async () => {
+  const providers = [
+    {
+      url: 'https://ipapi.co/json/',
+      map: (d) => ({
+        latitude: d.latitude, longitude: d.longitude,
+        city: d.city, country: d.country_name, country_code: d.country_code,
+        region: d.region, timezone: d.timezone, ip_address: d.ip, isp: d.org,
+      }),
+    },
+    {
+      url: 'https://ipwho.is/',
+      map: (d) => (d && d.success !== false ? {
+        latitude: d.latitude, longitude: d.longitude,
+        city: d.city, country: d.country, country_code: d.country_code,
+        region: d.region, timezone: d.timezone?.id || d.timezone,
+        ip_address: d.ip, isp: d.connection?.isp || d.connection?.org,
+      } : null),
+    },
+    {
+      url: 'https://get.geojs.io/v1/ip/geo.json',
+      map: (d) => ({
+        latitude: parseFloat(d.latitude), longitude: parseFloat(d.longitude),
+        city: d.city, country: d.country, country_code: d.country_code,
+        region: d.region, timezone: d.timezone, ip_address: d.ip, isp: d.organization_name,
+      }),
+    },
+  ];
+
+  for (const p of providers) {
+    try {
+      const resp = await fetch(p.url, { signal: AbortSignal.timeout(5000) });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const info = p.map(data);
+      if (info && (info.ip_address || info.country || info.city)) return info;
+    } catch (e) { /* 尝试下一个源 */ }
+  }
+  return null;
+};
+
+// 获取访客位置：始终先查 IP 信息（拿到国家/城市/IP/ISP），
+// 若浏览器 GPS 可用则用更精确的 GPS 坐标覆盖经纬度。
+// 注意：必须先拿 IP 地理信息，否则 GPS 成功时只会写入坐标而丢失国家/城市，
+// 导致地图的「国家/地区」「城市」统计始终为 0。
 const fetchLocation = async () => {
-  // 尝试浏览器地理位置
+  const ipInfo = await fetchIpInfo();
+  const base = ipInfo || {};
+
   if (navigator.geolocation) {
     try {
       const pos = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 5000,
-          maximumAge: 300000
-        });
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 300000 });
       });
       return {
+        ...base,
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
         accuracy: pos.coords.accuracy,
-        source: 'gps'
+        source: ipInfo ? 'gps+ip' : 'gps',
       };
-    } catch (e) {
-      console.log('GPS定位未授权或失败，使用IP定位');
-    }
+    } catch (e) { /* GPS 失败，用 IP 结果 */ }
   }
 
-  // 兜底：通过 IP API 获取位置
-  try {
-    const resp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
-    if (!resp.ok) throw new Error('IP lookup failed');
-    const data = await resp.json();
-    return {
-      latitude: data.latitude,
-      longitude: data.longitude,
-      city: data.city,
-      country: data.country_name,
-      country_code: data.country_code,
-      region: data.region,
-      timezone: data.timezone,
-      ip_address: data.ip,
-      isp: data.org,
-      source: 'ip'
-    };
-  } catch (e) {
-    console.log('IP定位失败', e.message);
-    return null;
+  if (ipInfo && (ipInfo.latitude || ipInfo.longitude)) {
+    return { ...ipInfo, source: 'ip' };
   }
+  return null;
 };
 
 export default function MiddleStatsCard({
@@ -523,14 +549,19 @@ export default function MiddleStatsCard({
       checkSystemHealth();
       loadHourlyData();
 
-      // 错误累积检测：连续失败 N 次则停止轮询
+      // 错误累积检测：连续失败 N 次则暂停轮询，但 60 秒后自动恢复，
+      // 避免 Supabase 免费项目「唤醒期间」的短暂失败导致统计永久停摆
       if (anySuccess) {
         consecutiveErrors = 0;
       } else {
         consecutiveErrors++;
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           pollingActive = false;
-          console.warn('[统计] Supabase 连续不可用，已停止轮询。请检查数据库迁移是否已执行。');
+          console.warn('[统计] Supabase 连续不可用，60 秒后自动重试（若项目被暂停，唤醒期间属正常）。');
+          setTimeout(() => {
+            pollingActive = true;
+            consecutiveErrors = 0;
+          }, 60000);
         }
       }
     };

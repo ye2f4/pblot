@@ -1,40 +1,40 @@
 <div align="center">
 
-<img src="/img/pblot_logo.png" alt="PBLOT Logo" width="90" style={{marginBottom: "12px"}}/>
+<img src="/img/logo.svg" alt="Monoの小窝 Logo" width="90" style={{marginBottom: "12px"}}/>
 
-# 🧩 PBLOT 社区平台
-### 基于 Docusaurus + Supabase 构建的现代化社区 | 个人中心 | 实时聊天系统
+# 🛰️ Monoの小窝
+### 专注 ESP32P4 智能手表 · LVGL · Meshtastic · 开源硬件 与全栈技术分享
 
-> 轻量化、易部署、全开源的一体化社区解决方案，集成文档、用户体系、即时通讯与后台数据管理
+> 一半黑发藏温柔，一半白发载星网。
 
 <br />
 
-[![GitHub CI](https://img.shields.io/github/actions/workflow/status/ye2f4/pblot/auto-deploy.yml?branch=master&label=Build&logo=github&color=yellow)](https://github.com/ye2f4/pblot/actions)
 [![Docusaurus](https://img.shields.io/badge/Powered-Docusaurus-2E85E5?logo=docusaurus&logoColor=white)](https://docusaurus.io/)
+[![React](https://img.shields.io/badge/Frontend-React%2019-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
-[![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-2088FF?logo=github&logoColor=white)](https://ye2f4.github.io/pblot/)
+[![PWA](https://img.shields.io/badge/Offline-PWA-5A0FC8?logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+[![Site](https://img.shields.io/badge/Online-monoblog.cc.cd-2088FF?logo=githubpages&logoColor=white)](https://monoblog.cc.cd)
 
 <br />
 
-[![GitHub Stars](https://img.shields.io/github/stars/ye2f4/pblot?logo=github&color=blue)](https://github.com/ye2f4/pblot/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/ye2f4/pblot?logo=github&color=lightblue)](https://github.com/ye2f4/pblot/fork)
-[![GitHub Issues](https://img.shields.io/github/issues/ye2f4/pblot?logo=github&color=red)](https://github.com/ye2f4/pblot/issues)
-[![License](https://img.shields.io/github/license/ye2f4/pblot?color=green)](https://github.com/ye2f4/pblot/blob/master/LICENSE)
-[![Node Version](https://img.shields.io/github/package-json/node-version/ye2f4/pblot?logo=node.js&color=339933)](https://nodejs.org/)
+[![GitHub](https://img.shields.io/badge/GitHub-ye2f4-181717?logo=github&logoColor=white)](https://github.com/ye2f4)
+[![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 
 </div>
 
 ---
 
 ## 📖 项目简介
-**PBLOT** 是一款融合「静态文档站点 + 动态社区 + 实时聊天」的全栈开源平台。
-依托 **Docusaurus** 搭建前端界面与文档系统，搭配 **Supabase（PostgreSQL + 实时订阅）** 提供完整后端能力，无需独立搭建服务器、数据库与接口服务，开箱即用、部署简单。
+**Monoの小窝** 是一个由 Mono 打造的个人技术分享站点，基于 **Docusaurus + Supabase** 全栈架构，融合「静态文档 / 博客 + 动态社区 + 实时数据」于一体。
+
+站点聚焦 **ESP32P4 智能手表、LVGL 图形开发、Meshtastic Mesh 网络、开源硬件** 等硬核主题，同时涵盖 React 全栈教程、游戏模组、个人随笔与开源项目。依托 Supabase 提供身份认证、PostgreSQL 数据存储与 Realtime 实时订阅，无需自建后端即可实现评论、聊天、硬件监控等动态能力。
 
 ### 设计理念
-- ✅ **低门槛**：基于主流技术栈，新手也能快速上手二次开发
-- ✅ **全功能**：文档展示 + 用户登录/个人中心 + 即时聊天三位一体
-- ✅ **易部署**：支持 Vercel、GitHub Pages、自有服务器 多种部署方案
-- ✅ **高扩展**：基于 Supabase 原生能力，支持数据存储、权限控制、实时推送
+- ✅ **内容优先**：以技术文章、教程文档与开源项目为核心，沉淀长期价值
+- ✅ **全栈一体**：Docusaurus 负责界面与文档，Supabase 提供后端与实时能力，开箱即用
+- ✅ **社区互动**：评论、聊天室、论坛、排行榜、签到，让阅读与交流自然融合
+- ✅ **工具赋能**：硬件监控、代码片段、PCB、全球天气时区等实用工具随取随用
+- ✅ **轻量可部署**：支持 Vercel / GitHub Pages / 自有服务器，CI/CD 自动构建
 
 ---
 
@@ -42,25 +42,27 @@
 <details open>
 <summary>点击展开 / 收起 全部功能</summary>
 
-### 🏠 基础站点能力
-- 基于 Docusaurus 标准文档结构，支持 Markdown 文档渲染、分类、标签、搜索
-- 响应式布局，完美适配 PC / 平板 / 手机 多端访问
-- 自定义页面、导航栏、侧边栏、站点样式，高度可定制
+### 🏠 首页与内容体系
+- 统计卡片（MiddleStatsCard）、轮播、最新用户、标签云等丰富的首页模块
+- 博客系统（Docusaurus 内置，支持 RSS 订阅）与文档系统（技术文章、教程）
+- 「全部文章」聚合页：按标签自动分类博客与文档
 
-### 👤 用户系统
-- 对接 Supabase 原生账号体系，支持邮箱登录/注册
-- 独立个人中心：资料编辑、头像设置、基础信息管理
-- 数据库权限隔离，保障用户数据安全
+### 👤 用户与社区
+- 用户系统：GitHub / 第三方登录、注册、个人中心与资料管理
+- 实时聊天室（Supabase Realtime 全双工通讯）、论坛、评论区
+- 全站排行榜（活跃用户 / 热门主题）、每日签到、时光胶囊
 
-### 💬 实时聊天系统
-- 基于 Supabase Realtime 实现**全双工即时通讯**
-- 消息持久化存储，历史记录可回溯
-- 标准消息表结构，支持后续扩展表情包、文件传输等功能
+### 🧰 工具箱
+- 硬件监控：基于 ESP32 的设备电量 / 信号 / 温度实时曲线，多城市时间天气联动
+- 代码片段库：前端 / React / 嵌入式常用片段与速查
+- PCB 设计、开发工具合集
+- 全球位置与实时天气：经纬度、时间查询，支持 IANA 时区与夏令时自动换算
+- 全球访问地图：访客分布可视化
 
-### 🛡️ 数据底层
-- 基于 PostgreSQL 关系型数据库，数据结构规范、稳定可靠
-- 完整外键约束、数据校验机制，保证数据完整性
-- 可视化后台（Supabase Dashboard），一键管理数据表、数据、权限
+### 📚 资源与其他
+- 资源中心：资料下载（教程 / 工具 / 源码 / 素材 / 硬件手册）、开源项目
+- 老黄历：干支、时辰、卦象、宜忌、方位、太岁全套传统黄历
+- 随机抽贴、关于本站、更新日志（Changelog）等
 
 </details>
 
@@ -70,23 +72,29 @@
 | 分类 | 技术/框架 | 说明 |
 | :--- | :--- | :--- |
 | **前端框架** | Docusaurus 3.x | 静态站点生成器，基于 React，专注文档 & 社区页面 |
-| **后端服务** | Supabase | 开源 Firebase 替代方案，内置 PostgreSQL + 实时订阅 + 身份认证 |
+| **UI 框架** | React 19 | 组件化前端，配合 Rspack 极速构建 |
+| **样式** | Tailwind CSS | 原子化样式，定制主题（主色 `#2E7D9E`） |
+| **语言** | TypeScript | 类型安全，提升可维护性 |
+| **后端服务** | Supabase | 开源 Firebase 替代：PostgreSQL + 实时订阅 + 身份认证 |
 | **数据库** | PostgreSQL | 关系型数据库，支持外键、事务、复杂查询 |
-| **包管理器** | pnpm | 快速、节省磁盘空间的现代包管理工具 |
-| **部署平台** | Vercel / GitHub Pages | 免费静态站点托管，自动 CI/CD 构建部署 |
-| **实时通信** | Supabase Realtime | 数据库变更实时推送，实现聊天消息即时同步 |
+| **边缘函数** | Edge Functions (Deno) | 服务端逻辑与定时任务（如防休眠心跳） |
+| **部署平台** | Vercel / GitHub Pages | 免费静态托管，自动 CI/CD 构建部署 |
+| **离线能力** | PWA | 渐进式 Web 应用，支持离线访问 |
+| **图表** | Mermaid | 文档内图表渲染 |
+| **搜索** | Algolia | 全文站点搜索 |
 
 ---
 
 ## 🌐 在线预览
-> 线上访问地址（持续更新）
-- GitHub Pages：https://ye2f4.github.io/pblot/
-- Vercel 部署地址：待补充
+> 线上访问地址
+
+- 官方站点：https://monoblog.cc.cd
+- GitHub：https://github.com/ye2f4
 
 <br />
 <div align="center">
-<img src=".github/preview_demo.png" alt="PBLOT 站点预览" width="800"/>
-<p><i>站点预览示意图（可替换为实际截图）</i></p>
+<img src="/img/logo.svg" alt="Monoの小窝" width="200"/>
+<p><i>站点 Logo（可替换为实际预览截图）</i></p>
 </div>
 
 ---
@@ -101,3 +109,22 @@
    全局安装 pnpm（终端执行）：
    ```bash
    npm install -g pnpm
+   ```
+3. **（可选）Supabase 账号**
+   用于后端能力（登录、评论、聊天、数据存储），注册地址：[Supabase 官网](https://supabase.com/)
+
+### 本地启动
+```bash
+# 安装依赖
+pnpm install
+
+# 本地开发预览
+pnpm start
+
+# 生产构建
+pnpm build
+```
+
+---
+
+> 本文档结合 **Monoの小窝** 实际站点内容整理。更多模块可直接在站点顶部导航栏体验。

@@ -3,7 +3,7 @@ import EmojiPicker from 'emoji-picker-react';
 import Layout from '@theme/Layout';
 import { supabase } from '@site/src/supabase/supabaseClient';
 import { triggerGlobalProfileRefresh } from '@site/src/utils/globalProfileUtil';
-import { markAsRead, incrementUnread, recordActivity, getActivityMap } from '../utils/chatNotification';
+import { markAsRead, recordActivity, getActivityMap, EVENT_NEW_MSG } from '../utils/chatNotification';
 
 // 固定常量
 const PROFILE_PAGE = '/profile';
@@ -517,40 +517,28 @@ export default function ChatPage() {
     };
   }, [currentUser?.id]);
 
-  // 实时消息监听（含未读跟踪）
+  // 实时消息监听：不再自己订阅 postgres_changes（避免与全局 ChatRedDot 重复计数），
+  // 改为监听 ChatRedDot 派发的 EVENT_NEW_MSG，仅负责「正在查看该会话时自动刷新」
   useEffect(() => {
     if (!currentUser) return;
-    const channel = supabase.channel('chat-real-time')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        const msg = payload.new;
-        // 忽略自己发的消息
-        if (msg.from_user_id === currentUser.id) return;
 
-        // 私聊：正在看该会话则刷新，否则增加未读
-        if (!msg.group_id) {
-          const convId = `private:${msg.from_user_id}`;
-          recordActivity(convId);
-          if (targetUser?.id === msg.from_user_id) {
-            fetchPrivateMessages(targetUser.id);
-          } else {
-            incrementUnread(convId);
-          }
+    const onNewMessage = (e) => {
+      const { fromUserId, groupId } = e.detail || {};
+      if (groupId) {
+        if (currentGroup?.id === groupId) {
+          fetchGroupMessages(currentGroup.id);
+          markAsRead(`group:${groupId}`);
         }
-        // 群聊：正在看该群则刷新，否则增加未读
-        if (msg.group_id) {
-          const convId = `group:${msg.group_id}`;
-          recordActivity(convId);
-          if (currentGroup?.id === msg.group_id) {
-            fetchGroupMessages(currentGroup.id);
-          } else {
-            incrementUnread(convId);
-          }
+      } else if (fromUserId) {
+        if (targetUser?.id === fromUserId) {
+          fetchPrivateMessages(targetUser.id);
+          markAsRead(`private:${fromUserId}`);
         }
-      }).subscribe();
-
-    return () => {
-      channel?.unsubscribe();
+      }
     };
+
+    window.addEventListener(EVENT_NEW_MSG, onNewMessage);
+    return () => window.removeEventListener(EVENT_NEW_MSG, onNewMessage);
   }, [currentUser, targetUser, currentGroup]);
 
   useEffect(() => {

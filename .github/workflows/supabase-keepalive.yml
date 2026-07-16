@@ -1,0 +1,35 @@
+name: Supabase 防休眠心跳
+
+# 作用：Supabase 免费项目在无活动一段时间后会自动暂停（休眠），
+# 造成“首屏加载连不上数据库 / 统计拿不到数据”。
+# 本工作流每隔数小时用 anon key 向数据库发一次只读查询，制造活动，
+# 阻止项目休眠。这是 server 端心跳，比纯前端的 SupabaseKeepAlive 更可靠。
+on:
+  schedule:
+    # 每 6 小时的第 17 分钟执行一次（避开整点高峰），足以阻止 7 天休眠窗口
+    - cron: '17 */6 * * *'
+  # 允许手动触发，便于验证
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 向 Supabase 发送心跳查询（只读，防止项目休眠）
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "未配置 SUPABASE_URL / SUPABASE_ANON_KEY，跳过心跳"
+            exit 0
+          fi
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/visit_stats?select=id&limit=1")
+          echo "心跳 HTTP 状态码: ${CODE}"
+          if [ "$CODE" != "200" ]; then
+            echo "::warning::心跳返回非 200，项目可能已暂停或密钥无效"
+          fi

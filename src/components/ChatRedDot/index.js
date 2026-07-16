@@ -84,11 +84,13 @@ export default function ChatRedDot() {
             const convId = `group:${msg.group_id}`;
             recordActivity(convId);
             incrementUnread(convId);
+            notifyNewMessage({ convId, fromUserId: msg.from_user_id, groupId: msg.group_id, content: msg.content });
           } else if (msg.to_user_id === user.id) {
             // 私聊：检查是否发给自己的
             const convId = `private:${msg.from_user_id}`;
             recordActivity(convId);
             incrementUnread(convId);
+            notifyNewMessage({ convId, fromUserId: msg.from_user_id, groupId: null, content: msg.content });
           }
         })
         .subscribe();

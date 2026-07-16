@@ -88,6 +88,7 @@ jobs:
     env:
       SUPA_URL: ${{ secrets.SUPABASE_URL }}
       SUPA_API_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
     steps:
       - name: 重新拉取完整代码与标签
         uses: actions/checkout@v4

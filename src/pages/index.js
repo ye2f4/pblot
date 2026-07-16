@@ -48,7 +48,7 @@ import VisitorCount from '../components/VisitorCount';
 import MobileAdapt from '../components/MobileOptimization';
 import PWA from '../components/PWA';
 import SupabaseKeepAlive from '../components/SupabaseKeepAlive';
-import ChatRedDot from '../components/ChatRedDot';
+
 
 export const metadata = {
   ssr: false,
@@ -342,7 +342,7 @@ export default function Home() {
       <MobileAdapt />
       <PWA />
       <SupabaseKeepAlive />
-      <ChatRedDot />
+
 
       {/* TopBanner 彻底移除clockTimeEpoch、clockLocationName两个参数 */}
       <TopBanner
