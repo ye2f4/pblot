@@ -123,7 +123,7 @@ jobs:
             sed -n '/===DIFF_STAT===/,/===END===/p' "$RAW" | sed '1d;$d'
           })
 
-          SYS_INSTR='你是一个发布说明撰写助手。根据下面的 Git 提交记录与文件改动统计，用简体中文写一段 2-4 句话的更新摘要，面向普通用户，口语化、积极，不要列出 commit 哈希或代码细节。'
+          SYS_INSTR='你是一个发布说明撰写助手。根据下面的 Git 提交记录与文件改动统计，用简体中文写200字左右的更新摘要，面向普通用户，积极，不要列出 commit 哈希或代码细节。'
 
           # 用 jq 安全构造 OpenAI 兼容请求体（自动转义）
           jq -n --arg sys "$SYS_INSTR" --arg usr "$USER_CONTENT" '{

@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 /**
- * download-music.mjs —— 通过公开解析网关下载网易云音乐到本地
+ * download-music.mjs —— 下载网易云音乐到本地（官方直连优先，解析网关回退）
  *
- * 原理：
- *   api.injahow.cn/meting 是一个第三方 NetEase 解析代理：
- *     - type=playlist&id=<歌单ID>  -> 列出歌单内歌曲，每首 url 形如 ...type=url&id=<歌曲ID>
- *     - type=song&id=<歌曲ID>      -> 歌曲元数据(name/artist/url/lrc)
- *     - type=url&id=<歌曲ID>       -> 直接返回 mp3 二进制流
- *     - type=lrc&id=<歌曲ID>       -> 返回 LRC 歌词文本(UTF-8)
- *   服务端/命令行 fetch 下载二进制不受浏览器 CORS/版权拦截限制，故可落地为本地文件。
+ * 两种取音源方式：
+ *   1) 官方 Linux API 直连（默认，推荐）
+ *      - https://music.163.com/api/song/enhance/player/url?ids=[id]&br=320000
+ *          返回完整音轨的真实 CDN 直链（实测 320kbps、整曲、非 30s 预览）
+ *      - https://music.163.com/api/song/detail?ids=[id]      取歌名/歌手
+ *      - https://music.163.com/api/playlist/detail?id=pid     取歌单曲目 id 列表
+ *      - https://music.163.com/api/song/lyric?id=id          取 LRC 歌词
+ *      注意：CDN 直链带时效(expi≈20min)与 Referer 校验，下载时必须带 Referer。
+ *
+ *   2) 第三方解析网关回退（官方被限流/无直链时）
+ *      - api.injahow.cn/meting  （注意：该网关对部分歌曲只返回 30s 试听）
  *
  * 用法：
  *   node scripts/download-music.mjs <歌曲ID或歌单ID> [选项]
@@ -17,7 +21,9 @@
  *   --playlist      把参数当作“歌单ID”，下载歌单内所有歌曲
  *   --list          仅列出歌曲（歌名/歌手/ID），不下载（常与 --playlist 配合查看歌单内容）
  *   --out <目录>    输出目录（默认 ./static/music）
+ *   --br <码率>     音质码率，默认 320000（320kbps），可填 128000/192000/320000
  *   --no-lrc        不下载歌词
+ *   --no-official   强制只用第三方解析网关（跳过官方直连）
  *   -h, --help      显示帮助
  *
  * 示例：
@@ -33,7 +39,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const API = 'https://api.injahow.cn/meting/';
+const OFF = 'https://music.163.com/api/';
+const MET = 'https://api.injahow.cn/meting/';
+const UA = 'Mozilla/5.0';
+const REF = 'https://music.163.com/';
 
 const HELP = `
 网易云音乐下载工具（.mjs / 需 Node 18+）
@@ -41,11 +50,15 @@ const HELP = `
 用法:
   node download-music.mjs <歌曲ID|歌单ID> [选项]
 
+默认走 music.163.com 官方直连（完整音轨）；官方不可用时回退到解析网关。
+
 选项:
   --playlist     把参数当“歌单ID”，下载歌单内全部歌曲
   --list         仅列出歌曲(歌名/歌手/ID)，不下载
   --out <dir>    输出目录 (默认 ./static/music)
+  --br <码率>    音质码率，默认 320000（可 128000/192000/320000）
   --no-lrc       不下载歌词
+  --no-official  强制只用第三方解析网关
   -h, --help     显示本帮助
 
 示例:
@@ -65,13 +78,17 @@ let isPlaylist = false;
 let onlyList = false;
 let outDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'static', 'music');
 let withLrc = true;
+let br = 320000;
+let useOfficial = true;
 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--playlist') isPlaylist = true;
   else if (a === '--list') onlyList = true;
   else if (a === '--out') outDir = path.resolve(args[++i] || '.');
+  else if (a === '--br') br = parseInt(args[++i] || '320000', 10);
   else if (a === '--no-lrc') withLrc = false;
+  else if (a === '--no-official') useOfficial = false;
   else if (!a.startsWith('--')) id = a;
 }
 if (!id) {
@@ -79,9 +96,16 @@ if (!id) {
   process.exit(1);
 }
 
+async function offFetch(sub, params, asJson = true) {
+  const url = OFF + sub + (params ? '?' + new URLSearchParams(params).toString() : '');
+  const res = await fetch(url, { headers: { 'User-Agent': UA, 'Referer': REF } });
+  if (!res.ok) throw new Error('官方 HTTP ' + res.status + ' @ ' + sub);
+  return asJson ? res.json() : res;
+}
+
 async function meting(params) {
-  const url = API + '?' + new URLSearchParams(params).toString();
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const url = MET + '?' + new URLSearchParams(params).toString();
+  const res = await fetch(url, { headers: { 'User-Agent': UA } });
   if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
   return res;
 }
@@ -99,22 +123,86 @@ function sanitize(name) {
     .slice(0, 120);
 }
 
+/* ---------- 解析歌曲列表（官方优先，代理回退） ---------- */
+
 async function resolveSongs() {
+  if (useOfficial) {
+    try {
+      if (isPlaylist) {
+        console.log('[官方] 解析歌单 ' + id + ' ...');
+        const j = await offFetch('playlist/detail', { id });
+        const ids = (j.playlist?.trackIds || []).map((t) => t.id);
+        if (!ids.length) throw new Error('歌单为空');
+        const songs = [];
+        for (let i = 0; i < ids.length; i += 200) {
+          const chunk = ids.slice(i, i + 200);
+          const dj = await offFetch('song/detail', { ids: '[' + chunk.join(',') + ']' });
+          (dj.songs || []).forEach((s) =>
+            songs.push({ id: String(s.id), name: s.name, artist: (s.artists || []).map((a) => a.name).join('/') })
+          );
+        }
+        return songs;
+      }
+      console.log('[官方] 解析单曲 ' + id + ' ...');
+      const dj = await offFetch('song/detail', { ids: '[' + id + ']' });
+      const s = dj.songs && dj.songs[0];
+      if (!s) throw new Error('未找到该歌曲');
+      return [{ id, name: s.name, artist: (s.artists || []).map((a) => a.name).join('/') }];
+    } catch (e) {
+      console.log('[官方] 解析失败，回退解析网关：' + e.message);
+    }
+  }
+
+  // 回退：第三方解析网关
   if (isPlaylist) {
-    console.log('解析歌单 ' + id + ' ...');
-    const res = await meting({ server: 'netease', type: 'playlist', id });
-    const list = await res.json();
+    console.log('[网关] 解析歌单 ' + id + ' ...');
+    const list = await (await meting({ server: 'netease', type: 'playlist', id })).json();
     return list
       .map((s) => ({ id: extractId(s.url) || '', name: s.name, artist: s.artist }))
       .filter((s) => s.id);
   }
-  console.log('解析单曲 ' + id + ' ...');
-  const res = await meting({ server: 'netease', type: 'song', id });
-  const list = await res.json();
+  console.log('[网关] 解析单曲 ' + id + ' ...');
+  const list = await (await meting({ server: 'netease', type: 'song', id })).json();
   const s = list[0];
   if (!s) throw new Error('未找到该歌曲');
   return [{ id, name: s.name, artist: s.artist }];
 }
+
+/* ---------- 取真实音频直链（官方优先，网关回退） ---------- */
+
+async function resolveAudio(songId) {
+  if (useOfficial) {
+    try {
+      const j = await offFetch('song/enhance/player/url', { ids: '[' + songId + ']', br });
+      const d = j.data && j.data[0];
+      if (d && d.url) return { url: d.url, size: d.size, br: d.br };
+    } catch (e) {
+      console.log('    [官方] 取直链失败，回退网关：' + e.message);
+    }
+  }
+  // 回退：网关直接返回 mp3 流
+  const res = await meting({ server: 'netease', type: 'url', id: songId });
+  return { stream: res, size: null, br: null };
+}
+
+/* ---------- 取歌词（官方优先，网关回退） ---------- */
+
+async function resolveLrc(songId) {
+  if (useOfficial) {
+    try {
+      const j = await offFetch('song/lyric', { id: songId, lv: 1, kv: 1, tv: -1 });
+      const text = j.lrc && j.lrc.lyric;
+      if (text && text.includes('[')) return text;
+    } catch (_) { /* ignore */ }
+  }
+  try {
+    const text = await (await meting({ server: 'netease', type: 'lrc', id: songId })).text();
+    if (text && text.includes('[')) return text;
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
+/* ---------- 下载 ---------- */
 
 async function downloadSong(song) {
   const base = sanitize(song.name + ' - ' + song.artist);
@@ -125,22 +213,34 @@ async function downloadSong(song) {
     return;
   }
 
-  const urlRes = await meting({ server: 'netease', type: 'url', id: song.id });
-  const buf = Buffer.from(await urlRes.arrayBuffer());
-  if (buf.length < 1024) throw new Error('文件过小，可能不是有效音频');
-  fs.writeFileSync(mp3Path, buf);
-  console.log('  mp3: ' + base + '.mp3  (' + (buf.length / 1024 / 1024).toFixed(2) + ' MB)');
+  const audio = await resolveAudio(song.id);
+  let len = 0;
+  if (audio.stream) {
+    // 网关直出二进制流
+    const buf = Buffer.from(await audio.stream.arrayBuffer());
+    if (buf.length < 1024) throw new Error('文件过小，可能不是有效音频');
+    fs.writeFileSync(mp3Path, buf);
+    len = buf.length;
+  } else {
+    // 官方 CDN 直链：必须带 Referer，否则 403
+    const res = await fetch(audio.url, { headers: { 'User-Agent': UA, 'Referer': REF } });
+    if (!res.ok) throw new Error('音频 HTTP ' + res.status);
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length < 1024) throw new Error('文件过小，可能不是有效音频');
+    fs.writeFileSync(mp3Path, buf);
+    len = buf.length;
+    if (audio.size && len < audio.size * 0.9) {
+      console.log('  ⚠ 下载大小(' + len + ') 明显小于官方声明(' + audio.size + ')，可能不完整');
+    }
+  }
+  const brInfo = audio.br ? '  (' + (audio.br / 1000) + 'kbps)' : '';
+  console.log('  mp3: ' + base + '.mp3  (' + (len / 1024 / 1024).toFixed(2) + ' MB)' + brInfo);
 
   if (withLrc) {
-    try {
-      const lrcRes = await meting({ server: 'netease', type: 'lrc', id: song.id });
-      const text = await lrcRes.text();
-      if (text && text.includes('[')) {
-        fs.writeFileSync(path.join(outDir, base + '.lrc'), text, 'utf8');
-        console.log('  lrc: ' + base + '.lrc');
-      }
-    } catch (e) {
-      console.log('  lrc 跳过: ' + e.message);
+    const text = await resolveLrc(song.id);
+    if (text) {
+      fs.writeFileSync(path.join(outDir, base + '.lrc'), text, 'utf8');
+      console.log('  lrc: ' + base + '.lrc');
     }
   }
 }
