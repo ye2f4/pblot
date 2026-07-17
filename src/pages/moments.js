@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '@theme/Layout';
+import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabase/supabaseClient';
@@ -26,7 +27,7 @@ function timeAgo(iso) {
 
 export default function MomentsPage() {
   const { siteConfig } = useDocusaurusContext();
-  const { user, handleGitHubLogin } = useAuth();
+  const { user } = useAuth();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
@@ -110,7 +111,7 @@ export default function MomentsPage() {
           ) : (
             <div className={styles.loginTip}>
               登录后即可发布说说
-              <button className={styles.loginBtn} onClick={handleGitHubLogin}>GitHub 登录</button>
+              <Link className={styles.loginBtn} to="/login">前往登录中心</Link>
             </div>
           )}
         </section>

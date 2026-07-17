@@ -14,16 +14,22 @@
  *   2) 第三方解析网关回退（官方被限流/无直链时）
  *      - api.injahow.cn/meting  （注意：该网关对部分歌曲只返回 30s 试听）
  *
+ * 付费/VIP 曲：官方免费接口通常不返回整曲直链；默认自动跳过，避免下到 30s 试听。
+ *              加 --include-paid 可强制尝试（走网关，仍可能只是试听）。
+ *
+ * 输出目录优先级：--out > 环境变量 MUSIC_OUT > download-music.config.json > 默认 ./static/music
+ *
  * 用法：
  *   node scripts/download-music.mjs <歌曲ID或歌单ID> [选项]
  *
  * 选项：
  *   --playlist      把参数当作“歌单ID”，下载歌单内所有歌曲
  *   --list          仅列出歌曲（歌名/歌手/ID），不下载（常与 --playlist 配合查看歌单内容）
- *   --out <目录>    输出目录（默认 ./static/music）
+ *   --out <目录>    输出目录（命令行最高优先级）
  *   --br <码率>     音质码率，默认 320000（320kbps），可填 128000/192000/320000
  *   --no-lrc        不下载歌词
- *   --no-official   强制只用第三方解析网关（跳过官方直连）
+ *   --no-official   强制只用第三方解析网关
+ *   --include-paid  不排除付费/VIP 曲（默认跳过，避免下载 30s 试听）
  *   -h, --help      显示帮助
  *
  * 示例：
@@ -51,14 +57,18 @@ const HELP = `
   node download-music.mjs <歌曲ID|歌单ID> [选项]
 
 默认走 music.163.com 官方直连（完整音轨）；官方不可用时回退到解析网关。
+付费/VIP 曲默认自动跳过（避免下载 30s 试听），--include-paid 可强制尝试。
+
+输出目录优先级：--out > 环境变量 MUSIC_OUT > download-music.config.json > 默认 ./static/music
 
 选项:
   --playlist     把参数当“歌单ID”，下载歌单内全部歌曲
   --list         仅列出歌曲(歌名/歌手/ID)，不下载
-  --out <dir>    输出目录 (默认 ./static/music)
+  --out <dir>    输出目录（命令行最高优先级）
   --br <码率>    音质码率，默认 320000（可 128000/192000/320000）
   --no-lrc       不下载歌词
   --no-official  强制只用第三方解析网关
+  --include-paid 不排除付费/VIP 曲（默认跳过，避免下载 30s 试听）
   -h, --help     显示本帮助
 
 示例:
@@ -67,19 +77,36 @@ const HELP = `
   node download-music.mjs 3778678 --playlist --list
 `;
 
+// 输出目录配置：--out > 环境变量 MUSIC_OUT > download-music.config.json > 默认 ./static/music
+function loadOutDir() {
+  let dir;
+  try {
+    const cf = path.resolve(process.cwd(), 'download-music.config.json');
+    if (fs.existsSync(cf)) {
+      const j = JSON.parse(fs.readFileSync(cf, 'utf8'));
+      if (j && j.outDir) dir = path.resolve(j.outDir);
+    }
+  } catch (_) { /* 配置缺失或损坏则忽略 */ }
+  if (process.env.MUSIC_OUT) dir = path.resolve(process.env.MUSIC_OUT);
+  return dir;
+}
+
 const args = process.argv.slice(2);
 if (args.length === 0 || args.includes('-h') || args.includes('--help')) {
   console.log(HELP);
   process.exit(args.length === 0 ? 1 : 0);
 }
 
+const builtinOut = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'static', 'music');
 let id = '';
 let isPlaylist = false;
 let onlyList = false;
-let outDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'static', 'music');
+let outDir = loadOutDir() || builtinOut;
 let withLrc = true;
 let br = 320000;
 let useOfficial = true;
+let skipPaid = true;
+let skippedCount = 0;
 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
@@ -89,6 +116,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a === '--br') br = parseInt(args[++i] || '320000', 10);
   else if (a === '--no-lrc') withLrc = false;
   else if (a === '--no-official') useOfficial = false;
+  else if (a === '--include-paid') skipPaid = false;
   else if (!a.startsWith('--')) id = a;
 }
 if (!id) {
@@ -168,21 +196,35 @@ async function resolveSongs() {
   return [{ id, name: s.name, artist: s.artist }];
 }
 
-/* ---------- 取真实音频直链（官方优先，网关回退） ---------- */
+/* ---------- 取真实音频直链（官方优先，网关回退；付费曲自动跳过） ---------- */
 
 async function resolveAudio(songId) {
   if (useOfficial) {
     try {
       const j = await offFetch('song/enhance/player/url', { ids: '[' + songId + ']', br });
       const d = j.data && j.data[0];
-      if (d && d.url) return { url: d.url, size: d.size, br: d.br };
+      if (d && d.url) {
+        const trial = d.freeTimeTrialPrivilege && d.freeTimeTrialPrivilege.type !== 0;
+        if (trial && skipPaid) {
+          return { skip: true, reason: '付费/VIP 试听曲(freeTrial)，官方无免费整曲直链' };
+        }
+        return { url: d.url, size: d.size, br: d.br, via: 'official' };
+      }
+      if (d && d.fee && d.fee !== 0 && skipPaid) {
+        return { skip: true, reason: '付费/VIP 歌曲(fee=' + d.fee + ')，官方无免费整曲直链' };
+      }
+      if (d) console.log('    [官方] 无可用直链(fee=' + d.fee + ')，回退解析网关');
     } catch (e) {
-      console.log('    [官方] 取直链失败，回退网关：' + e.message);
+      console.log('    [官方] 取直链失败，回退解析网关：' + e.message);
     }
+  }
+  // 走到这里：官方无可用整曲直链
+  if (skipPaid) {
+    return { skip: true, reason: '付费/VIP 歌曲，代理仅含试听片段，已按设置跳过' };
   }
   // 回退：网关直接返回 mp3 流
   const res = await meting({ server: 'netease', type: 'url', id: songId });
-  return { stream: res, size: null, br: null };
+  return { stream: res, size: null, br: null, via: 'proxy' };
 }
 
 /* ---------- 取歌词（官方优先，网关回退） ---------- */
@@ -214,6 +256,11 @@ async function downloadSong(song) {
   }
 
   const audio = await resolveAudio(song.id);
+  if (audio.skip) {
+    console.log('  ⏭️  跳过(付费): ' + base + ' —— ' + audio.reason);
+    skippedCount++;
+    return;
+  }
   let len = 0;
   if (audio.stream) {
     // 网关直出二进制流
@@ -235,6 +282,9 @@ async function downloadSong(song) {
   }
   const brInfo = audio.br ? '  (' + (audio.br / 1000) + 'kbps)' : '';
   console.log('  mp3: ' + base + '.mp3  (' + (len / 1024 / 1024).toFixed(2) + ' MB)' + brInfo);
+  if (audio.via === 'proxy' && len < 2 * 1024 * 1024) {
+    console.log('  ⚠ 来自解析网关且体积偏小，疑似 30s 试听片段（该曲官方无免费整曲直链）');
+  }
 
   if (withLrc) {
     const text = await resolveLrc(song.id);
@@ -262,7 +312,7 @@ async function main() {
     return;
   }
 
-  fs.mkdirSync(outDir, { recursive: true });
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
   console.log('\n共 ' + songs.length + ' 首，输出到 ' + outDir);
   for (const s of songs) {
     try {
@@ -272,6 +322,7 @@ async function main() {
     }
   }
   console.log('完成 -> ' + outDir);
+  if (skippedCount) console.log('（其中 ' + skippedCount + ' 首付费曲已自动跳过）');
 }
 
 main().catch((e) => {

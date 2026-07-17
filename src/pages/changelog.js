@@ -119,45 +119,12 @@ export default function Changelog() {
     }
   };
 
-  // 统计概览 + AI 智能摘要（基于真实日志数据规则生成，无需外部 LLM）
+  // 统计概览（基于真实日志数据）
   const stats = useMemo(() => {
-    const byType = { update: 0, feature: 0, fix: 0, improvement: 0 };
-    logs.forEach((l) => {
-      if (byType[l.type] !== undefined) byType[l.type]++;
-      else byType.update++;
-    });
     // logs 已按 release_date 降序，首项即最新
     const latest = logs[0] || null;
-    const dates = logs
-      .map((l) => new Date(l.release_date).getTime())
-      .filter((t) => !isNaN(t));
-    const firstDate = dates.length ? new Date(Math.min(...dates)) : null;
-    const lastDate = dates.length ? new Date(Math.max(...dates)) : null;
-    return { total: logs.length, byType, latest, firstDate, lastDate };
+    return { total: logs.length, latest };
   }, [logs]);
-
-  const aiSummary = useMemo(() => {
-    if (!stats.total) return null;
-    const t = stats.byType;
-    const parts = [`本站共沉淀 ${stats.total} 条更新记录`];
-    const typeDesc = [];
-    if (t.update) typeDesc.push(`版本更新 ${t.update} 次`);
-    if (t.feature) typeDesc.push(`新功能 ${t.feature} 项`);
-    if (t.fix) typeDesc.push(`问题修复 ${t.fix} 处`);
-    if (t.improvement) typeDesc.push(`体验优化 ${t.improvement} 项`);
-    if (typeDesc.length) parts.push(`（${typeDesc.join('、')}）`);
-    if (stats.latest) {
-      parts.push(
-        `最近一次为 ${stats.latest.version}「${stats.latest.title}」，发布于 ` +
-        `${new Date(stats.latest.release_date).toLocaleDateString()}（${formatRelative(stats.latest.release_date)}）`
-      );
-    }
-    if (stats.firstDate && stats.lastDate) {
-      const span = Math.max(0, Math.floor((stats.lastDate - stats.firstDate) / 86400000));
-      parts.push(`更新跨度约 ${span} 天（${stats.firstDate.toLocaleDateString()} 至今）`);
-    }
-    return parts.join('，') + '。';
-  }, [stats]);
 
   // 打开【新建日志】弹窗
   const openCreateModal = () => {
@@ -453,68 +420,29 @@ export default function Changelog() {
             ))}
           </div>
 
-          {/* 统计概览 + AI 智能摘要 */}
-          {!loading && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '28px' }}>
-              {/* 统计概览 */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                gap: '12px'
-              }}>
-                {[
-                  { l: '更新总数', v: stats.total, c: '#2196f3' },
-                  { l: '版本更新', v: stats.byType.update, c: typeMap.update.color },
-                  { l: '新功能', v: stats.byType.feature, c: typeMap.feature.color },
-                  { l: '问题修复', v: stats.byType.fix, c: typeMap.fix.color },
-                  { l: '体验优化', v: stats.byType.improvement, c: typeMap.improvement.color },
-                ].map((m) => (
-                  <div key={m.l} style={{
-                    background: 'var(--ifm-card-background-color)',
-                    borderRadius: '12px',
-                    padding: '14px 16px',
-                    border: '1px solid var(--ifm-color-emphasis-300)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                  }}>
-                    <div style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-600)' }}>{m.l}</div>
-                    <div style={{ fontSize: '24px', fontWeight: 700, color: m.c, marginTop: '4px' }}>{m.v}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* AI 智能摘要 */}
-              {aiSummary && (
-                <div style={{
-                  background: 'linear-gradient(135deg, #f8fbff 0%, #eef4fb 100%)',
-                  border: '1px solid #d6e4f5',
+          {/* 统计概览 */}
+          {!loading && logs.length > 0 && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+              gap: '12px',
+              marginBottom: '28px'
+            }}>
+              {[
+                { l: '更新总数', v: stats.total, c: '#2196f3' },
+                { l: '最新版本', v: stats.latest?.version || '—', c: typeMap.update.color },
+              ].map((m) => (
+                <div key={m.l} style={{
+                  background: 'var(--ifm-card-background-color)',
                   borderRadius: '12px',
-                  padding: '16px 18px'
+                  padding: '14px 16px',
+                  border: '1px solid var(--ifm-color-emphasis-300)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '16px' }}>🤖</span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>AI 智能摘要</span>
-                    <span style={{
-                      marginLeft: 'auto', fontSize: '11px', color: '#fff', fontWeight: 600,
-                      padding: '2px 10px', borderRadius: 20, background: '#4285f4'
-                    }}>自动生成</span>
-                  </div>
-                  <p style={{
-                    margin: 0, fontSize: '13.5px', color: '#444', lineHeight: 1.8
-                  }}>
-                    {aiSummary}
-                  </p>
-                  {stats.latest && stats.latest.description && (
-                    <div style={{
-                      marginTop: '10px', fontSize: '12.5px', color: '#666', lineHeight: 1.7,
-                      background: '#fff', borderRadius: '8px', padding: '10px 12px',
-                      border: '1px solid #eef'
-                    }}>
-                      <b style={{ color: '#333' }}>最新动态：</b>
-                      {stats.latest.description}
-                    </div>
-                  )}
+                  <div style={{ fontSize: '12px', color: 'var(--ifm-color-emphasis-600)' }}>{m.l}</div>
+                  <div style={{ fontSize: '24px', fontWeight: 700, color: m.c, marginTop: '4px' }}>{m.v}</div>
                 </div>
-              )}
+              ))}
             </div>
           )}
 

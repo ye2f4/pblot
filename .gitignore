@@ -48,3 +48,6 @@ gen
 changelog_raw.txt
 body.json
 
+# 双轨部署本地配置（含 GitHub Token 等密钥，绝不推送/打包）
+scripts/deploy.config.mjs
+

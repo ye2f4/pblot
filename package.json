@@ -36,6 +36,7 @@
     "simulate-esp32": "node scripts/esp32-device-sim.mjs",
     "simulate-visitors": "node scripts/simulate-visitors.mjs",
     "deploy:push": "node scripts/github-push.mjs",
+    "deploy:ui": "node scripts/deploy-server.mjs",
     "test": "echo \"No test specified\" && exit 0",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
