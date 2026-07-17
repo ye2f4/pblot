@@ -1,6 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import Link from '@docusaurus/Link';
 import styles from '../../pages/index.module.css';
 import { supabase } from '../../supabase/supabaseClient';
+
+function FriendAvatar({ friend }) {
+  const [err, setErr] = useState(false);
+  const initial = (friend.name || '?').trim().charAt(0).toUpperCase();
+  if (friend.avatar && !err) {
+    return (
+      <img
+        src={friend.avatar}
+        alt={friend.name}
+        onError={() => setErr(true)}
+        style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+      />
+    );
+  }
+  return (
+    <span style={{
+      width: 22, height: 22, borderRadius: '50%', flexShrink: 0, fontSize: 12, fontWeight: 700,
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+      background: 'linear-gradient(135deg, var(--ifm-color-primary-lighter), var(--ifm-color-primary))',
+    }}>{initial}</span>
+  );
+}
 
 export default function FriendsAndAbout({ siteData }) {
   const [friends, setFriends] = useState(siteData.friends || []);
@@ -17,14 +40,14 @@ export default function FriendsAndAbout({ siteData }) {
           return;
         }
 
-        // 尝试读取数据库中的友情链接
+        // 优先读取新的 friend_links 表（后台可管理），失败降级到静态数据
         try {
           const { data: friendData } = await supabase
-            .from('site_links')
-            .select('name, url')
-            .eq('type', 'friend')
+            .from('friend_links')
+            .select('name, url, avatar')
+            .eq('is_approved', true)
             .order('sort_order', { ascending: true })
-            .limit(6);
+            .limit(8);
 
           if (friendData && friendData.length > 0) {
             setFriends(friendData);
@@ -67,11 +90,16 @@ export default function FriendsAndAbout({ siteData }) {
     <div className={styles.friendAndAboutWrap}>
       {/* 友情链接 */}
       <div className={styles.sectionCard}>
-        <h3 className={styles.sectionTitle}>{siteData.texts.friendsTitle}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 className={styles.sectionTitle} style={{ marginBottom: 0 }}>{siteData.texts.friendsTitle}</h3>
+          <Link to="/friends" style={{ fontSize: 13, color: 'var(--ifm-color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            查看全部 →
+          </Link>
+        </div>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 16, color: '#ccc' }}>⏳ 加载中...</div>
         ) : (
-          <div className={styles.friendList}>
+          <div className={styles.friendList} style={{ marginTop: 14 }}>
             {friends.map((friend, i) => (
               <a
                 key={i}
@@ -79,8 +107,11 @@ export default function FriendsAndAbout({ siteData }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.friendLink}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}
+                title={friend.name}
               >
-                {friend.name}
+                <FriendAvatar friend={friend} />
+                <span>{friend.name}</span>
               </a>
             ))}
           </div>

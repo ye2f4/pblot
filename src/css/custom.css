@@ -66,15 +66,18 @@
 }
 
 /* ========== 导航栏按钮统一绿色样式 ========== */
-.navbar-chat-btn, .navbar-github-btn {
+.navbar-chat-btn, .navbar-github-btn, .navbar-contribute-btn {
   background-color: #22c55e !important;
   color: white !important;
   border-radius: 6px;
   padding: 4px 12px;
   margin-left: 8px;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.navbar-chat-btn:hover, .navbar-github-btn:hover {
+.navbar-chat-btn:hover, .navbar-github-btn:hover, .navbar-contribute-btn:hover {
   background-color: #16a34a !important;
   color: white !important;
 }

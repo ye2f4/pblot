@@ -8,6 +8,7 @@ import {
   getGlobalUnreadTotal,
   incrementUnread,
   recordActivity,
+  notifyNewMessage,
   EVENT_UNREAD_CHANGE,
 } from '../../utils/chatNotification';
 
@@ -72,7 +73,11 @@ export default function ChatRedDot() {
       updateBadge(getGlobalUnreadTotal());
 
       // 实时监听所有新消息
-      const channel = supabase.channel('chat-notif-global')
+      // 注意：频道名必须唯一。复用固定名（如 'chat-notif-global'）在 StrictMode 双挂载时，
+      // 会拿到一个「已订阅但未退订完成」的频道，此时再 .on(postgres_changes) 会抛错：
+      // "cannot add postgres_changes callbacks ... after subscribe()"
+      const channelName = `chat-notif-${user.id}-${Math.random().toString(36).slice(2, 8)}`;
+      const channel = supabase.channel(channelName)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
@@ -105,7 +110,10 @@ export default function ChatRedDot() {
 
     return () => {
       isMounted = false;
-      channelRef.current?.unsubscribe();
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, []);
 

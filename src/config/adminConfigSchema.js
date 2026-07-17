@@ -77,6 +77,43 @@ export const ADMIN_CONFIG_SCHEMA = [
         type: 'toggle',
         default: true,
       },
+      {
+        key: 'music.mode',
+        label: '音乐数据源模式',
+        help: 'netease=网易云直链（需填歌单/歌曲 ID）；local=本地 MP3（需配置 mp3List 文件）',
+        type: 'select',
+        options: [
+          { value: 'netease', label: '网易云直链 (Cloud Music)' },
+          { value: 'local', label: '本地 MP3 (Local Music)' },
+        ],
+        default: 'netease',
+      },
+      {
+        key: 'music.playlistId',
+        label: '网易云歌单 / 单曲 ID',
+        help: 'netease 模式：填网易云歌单 ID（如 3778678）或单曲 ID；留空则改用下方歌曲 ID 列表',
+        type: 'text',
+        placeholder: '例如 3778678',
+      },
+      {
+        key: 'music.songIds',
+        label: '网易云歌曲 ID 列表（可选，优先于歌单）',
+        help: '每行一个，或用英文逗号分隔的网易云歌曲 ID；填写后将优先于歌单 ID 播放',
+        type: 'list',
+        placeholder: '19723756\n123456789',
+      },
+      {
+        key: 'music.autoplay',
+        label: '音乐自动播放',
+        type: 'toggle',
+        default: false,
+      },
+      {
+        key: 'music.title',
+        label: '音乐挂件标题',
+        type: 'text',
+        placeholder: '🎵 背景音乐',
+      },
     ],
   },
 ];

@@ -4,6 +4,7 @@ import Link from '@docusaurus/Link';
 import { supabase, AVATAR_CACHE_KEY, AVATAR_CACHE_EXPIRE } from '@/supabase/supabaseClient';
 import useIsBrowser from '@docusaurus/useIsBrowser';
 import siteData from '@/data/siteData.json';
+import ContributionHeatmap from '../components/ContributionHeatmap';
 
 export const metadata = {
     ssr: false,
@@ -690,6 +691,11 @@ export default function Profile() {
                                 )}
                             </div>
                         )}
+                    </div>
+
+                    {/* 贡献度热力图 */}
+                    <div style={{ marginTop: '20px' }}>
+                        <ContributionHeatmap userId={targetUid || currentUser?.id} />
                     </div>
                 </div>
             </div>

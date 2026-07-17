@@ -30,6 +30,16 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/admin-warnings/index.ts"
 
+[functions.admin-submissions]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/admin-submissions/index.ts"
+
+[functions.admin-friends]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/admin-friends/index.ts"
+
 [functions.fetch-quake]
 enabled = true
 verify_jwt = false

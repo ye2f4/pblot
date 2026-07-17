@@ -121,7 +121,7 @@ export default function ChatPage() {
             width: size, height: size, borderRadius: '50%', objectFit: 'cover',
             flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', cursor: 'pointer'
           }}
-          onClick={(e) => { e.stopPropagation(); window.location.href = `${PROFILE_PAGE}?uid=${userId}`; }}
+          onClick={(e) => { e.stopPropagation(); openProfile(userId); }}
           onError={(e) => e.target.style.display = 'none'}
         />
       );

@@ -62,13 +62,17 @@
           { "label": "代码片段", "to": "/snippets/" },
           { "label": "PCB元器件", "to": "/pcb/" },
           { "label": "时光胶囊", "to": "/capsule/" },
-          { "label": "排行榜", "to": "/leaderboard/" }
+          { "label": "排行榜", "to": "/leaderboard/" },
+          { "label": "网易云下载", "to": "/music-downloader/" }
         ]
       },
       { "label": "关于", "to": "/about/", "position": "left" },
       {
         "type": "dropdown", "label": "更多", "position": "left",
         "items": [
+          { "label": "说说", "to": "/moments/" },
+          { "label": "友情链接", "to": "/friends/" },
+          { "label": "投稿广场", "to": "/submissions/" },
           { "label": "更新日志", "to": "/changelog/" },
           { "label": "系列项目", "to": "/series" },
           { "label": "隐私政策", "to": "/privacy/" },
@@ -76,6 +80,7 @@
           { "label": "RSS订阅", "to": "/rss" }
         ]
       },
+      { "label": "+", "to": "/contribute/", "position": "right", "className": "navbar-contribute-btn", "title": "投稿" },
       { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" },
       { "label": "GitHub", "href": "https://github.com/ye2f4", "position": "right", "className": "navbar-github-btn" }
     ]
@@ -170,6 +175,22 @@
     "githubHoverBg": "#373c42",
     "logoutBg": "#f53f3f",
     "logoutHoverBg": "#d32f2f"
+  },
+
+  "music": {
+    "mode": "local",
+    "playlistId": "",
+    "songIds": [],
+    "mp3List": [
+      {
+        "file": "起风了.mp3",
+        "title": "起风了",
+        "artist": "冯沁苑(买辣椒也用券)",
+        "lrc": "起风了.lrc"
+      }
+    ],
+    "autoplay": false,
+    "title": "🎵 云音乐"
   },
 
   "siteAnnouncement": "本站持续更新React与嵌入式教程，欢迎交流~",
