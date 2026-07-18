@@ -287,7 +287,8 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: `${siteData.githubUrl}/pblot/edit/master/`,
           breadcrumbs: true,
-          showLastUpdateAuthor: true,
+          // 关闭 git 依赖的 lastUpdate：Vercel 构建环境（尤其上传模式/部分 clone）无完整 git 工作树，
+          // 会导致 "outside any Git worktree" 构建失败，进而阻塞整站部署。
           remarkPlugins: [remarkDefList],
         },
         blog: {
