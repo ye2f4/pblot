@@ -46,12 +46,15 @@ export default async function handler(req) {
     init.body = await req.arrayBuffer();
   }
 
+  console.log('[proxy] target=', target.toString(), 'method=', method);
   let upstream;
   try {
     upstream = await fetch(target.toString(), init);
   } catch (e) {
+    console.error('[proxy] upstream fetch error:', e.message);
     return new Response('Proxy upstream error: ' + e.message, { status: 502 });
   }
+  console.log('[proxy] upstream status=', upstream.status);
 
   const respHeaders = new Headers();
   for (const [k, v] of upstream.headers.entries()) {
