@@ -205,11 +205,11 @@
   "rewrites": [
     {
       "source": "/app",
-      "destination": "https://next-app-mocha-three.vercel.app/app"
+      "destination": "/api/app"
     },
     {
       "source": "/app/:path*",
-      "destination": "https://next-app-mocha-three.vercel.app/app/:path*"
+      "destination": "/api/app/:path*"
     }
   ]
 }
