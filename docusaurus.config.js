@@ -309,7 +309,10 @@ const config = {
         sitemap: {
           changefreq: 'weekly',
           priority: 0.7,
-          lastmod: 'date',
+          // 不使用 'date'/'datetime'：那会触发 Docusaurus 在构建时读取 git 获取每页最后更新时间，
+          // 而 Vercel 上传式构建（vercel --prod --force）无 .git 工作树，会导致构建失败。
+          // 改为返回构建日期，避免依赖 git。
+          lastmod: () => new Date().toISOString().slice(0, 10),
           ignorePatterns: ['/tags/**', '/categories/**', '/search'],
         },
       },
