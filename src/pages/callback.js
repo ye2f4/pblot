@@ -15,7 +15,7 @@ export default function AuthCallback() {
     // 跳转至站点首页
     const redirectToHome = () => {
       // 安全取值 + 兜底
-      const rootUrl = siteData.siteUrl || "https://ye2f4.github.io";
+      const rootUrl = siteData.siteUrl || "https://monoblog.cc.cd";
       const homePath = siteData.basePath || "/";
       const homeFullUrl = rootUrl + homePath;
       

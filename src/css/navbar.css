@@ -52,6 +52,18 @@
   justify-content: space-between;
 }
 
+/* 品牌区(标题)不被压缩，避免 "Monoの小窝" 被省略号截断 */
+.navbar__brand {
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.navbar__title {
+  white-space: nowrap;
+  overflow: visible;
+}
+
 /* 移动端：收紧导航栏内边距，减少三道杠左侧空白 */
 @media (width < 997px) {
   .navbar__inner {
@@ -98,6 +110,8 @@
   font-size: 1rem;
   font-weight: 400;
   transition: opacity 0.2s;
+  /* 修复：中文导航项在窄容器里被按字断行（"博客"变"博\n客"） */
+  white-space: nowrap;
 
   &:hover {
     color: hsl(var(--muted-foreground));
@@ -190,11 +204,12 @@ a+.navbar__link {
 }
 
 .navbar__items--left {
-  gap: 2.5rem;
+  gap: 1rem;
   display: flex;
   align-items: center;
   flex: 1;
-  min-width: 0;
+  /* 修复：左栏不再被压缩到内容最小宽度以下，避免文字错位 */
+  min-width: max-content;
 }
 
 .navbar__items--right {

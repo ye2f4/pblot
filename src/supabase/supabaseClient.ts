@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { isBrowser } from '../utils/env';
 export const AVATAR_CACHE_KEY = 'supabase_avatar_cache';
 export const AVATAR_CACHE_EXPIRE = 24 * 60 * 60 * 1000;
@@ -19,20 +19,20 @@ const ssrEmptyClient = {
 };
 
 export const supabase = isBrowser
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  ? createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true, // 重中之重，自动抓取#token
       flow: 'pkce',
-      storage: window.localStorage,
-      storageKey: 'sb-session',
       cookieOptions: {
         // secure 仅在 HTTPS 下开启，localhost 开发环境无需
         secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7天
-      }
-    }
+        // 浏览器端不设 domain：document.cookie 默认落当前域（monoblog.cc.cd），
+        // 使主站与 /app（Next.js）天然共享登录态；domain 由 next-app 服务端显式设置
+      },
+    },
   })
   : ssrEmptyClient;

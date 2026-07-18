@@ -46,6 +46,7 @@
     "items": [
       { "label": "博客", "to": "/blog/", "position": "left" },
       { "label": "文章", "to": "/docs/introduction/", "position": "left" },
+      { "label": "全部文章", "to": "/articles/", "position": "left" },
       {
         "type": "dropdown", "label": "资源", "position": "left",
         "items": [

@@ -3,7 +3,8 @@ import Link from '@docusaurus/Link';
 import { supabase } from '../../supabase/supabaseClient';
 
 // 在博客列表页 / 文档页复用：拉取已发布用户投稿 + 「全部文章」按钮
-export default function UserSubmissionsPanel() {
+// variant: 'page'（页面底部整宽卡片，默认） | 'sidebar'（左/右侧栏紧凑列表）
+export default function UserSubmissionsPanel({ variant = 'page' }) {
   const [submissions, setSubmissions] = useState([]);
 
   useEffect(() => {
@@ -28,6 +29,54 @@ export default function UserSubmissionsPanel() {
     const d = new Date(s);
     return isNaN(d.getTime()) ? '' : d.toLocaleDateString('zh-CN');
   };
+
+  const list = submissions.length > 0 && (
+    <ul style={{
+      listStyle: 'none', padding: 0, margin: 0,
+      display: 'flex', flexDirection: 'column', gap: 2,
+    }}>
+      {submissions.map((s) => (
+        <li key={s.id}>
+          <Link
+            to={`/submissions/?id=${s.id}`}
+            title={s.title}
+            style={{
+              display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              color: 'var(--ifm-menu-color)', textDecoration: 'none',
+              fontSize: 14, padding: '6px 8px', borderRadius: 6, lineHeight: 1.4,
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(125,125,125,0.1)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          >
+            ✍️ {s.title}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+
+  if (variant === 'sidebar') {
+    return (
+      <div style={{ margin: '12px 0', padding: '0 8px' }}>
+        <div style={{
+          fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em',
+          color: 'var(--ifm-color-emphasis-500)', margin: '0 8px 6px',
+        }}>
+          用户投稿{submissions.length > 0 ? ` (${submissions.length})` : ''}
+        </div>
+        {list}
+        <Link
+          to="/articles"
+          style={{
+            display: 'inline-block', marginTop: 6, marginLeft: 8,
+            color: 'var(--ifm-color-primary)', textDecoration: 'none', fontSize: 13, fontWeight: 500,
+          }}
+        >
+          📚 全部文章 →
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <section style={{

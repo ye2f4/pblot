@@ -101,6 +101,11 @@ export default function WarningModal() {
     setDismissed(getDismissed());
   }
 
+  function closeOne(id) {
+    markDismissed([id]);
+    setDismissed(getDismissed());
+  }
+
   const renderCard = (w, compact) => {
     const color = levelColor(w.level);
     const meta = typeMeta(w.type);

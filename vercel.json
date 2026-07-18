@@ -201,6 +201,16 @@
       "source": "/docs/linux/:path*/",
       "destination": "/docs/meshtasticd/:path*/"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/app",
+      "destination": "https://next-app-mocha-three.vercel.app/app"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "https://next-app-mocha-three.vercel.app/app/:path*"
+    }
   ]
 }
 

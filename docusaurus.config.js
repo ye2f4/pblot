@@ -193,7 +193,6 @@ const config = {
     navbar: {
       hideOnScroll: siteData.navbarConfig?.hideOnScroll ?? false,
       title: siteData.siteTitle,
-      logo: { alt: b.logoAlt, src: b.logoSrc, srcDark: b.logoSrc },
       items: siteData.navbarConfig?.items || [],
     },
     footer: {

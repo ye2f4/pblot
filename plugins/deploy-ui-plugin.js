@@ -86,7 +86,9 @@ module.exports = function deployUiPlugin() {
 
                 // 触发部署 / 预览（复用 scripts/github-push.mjs 的 runDeploy，全程不调用 git）
                 if (req.method === 'POST' && url === '/api/deploy') {
-                  const dry = req.query.dry === '1' || req.query.dry === 'true';
+                  // setupMiddlewares 的 req 是原始 IncomingMessage，无 req.query，需手动解析 query
+                  const params = new URLSearchParams(req.url.split('?')[1] || '');
+                  const dry = params.get('dry') === '1' || params.get('dry') === 'true';
                   res.writeHead(200, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ ok: true, dry }));
                   loadMod().then((mod) => {

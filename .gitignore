@@ -51,3 +51,10 @@ body.json
 # 双轨部署本地配置（含 GitHub Token 等密钥，绝不推送/打包）
 scripts/deploy.config.mjs
 
+# 本地开发/构建临时日志（避免被部署上传到 GitHub Pages）
+$null
+.dev*.err
+.dev*.out
+.docusaurus*.err
+.docusaurus*.out
+

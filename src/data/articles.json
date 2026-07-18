@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-18T14:20:41.768Z",
-  "total": 23,
+  "generatedAt": "2026-07-18T17:05:01.357Z",
+  "total": 22,
   "todayCount": 0,
   "yesterdayCount": 0,
   "articles": [
@@ -347,24 +347,6 @@
       "url": "/blog/backend",
       "excerpt": "使用 Node.js + Express 快速搭建轻量后端服务，实现 RESTful 接口开发、中间件配置与跨域处理。",
       "sourcePath": "blog\\2025\\June\\backend.mdx"
-    },
-    {
-      "type": "blog",
-      "title": "使用 GitHub Pages 免费部署前端项目",
-      "date": "2025-06-06",
-      "tags": [
-        "GitHub Pages",
-        "部署",
-        "CI/CD",
-        "前端",
-        "域名"
-      ],
-      "authors": [
-        "mono"
-      ],
-      "url": "/blog/github-pages",
-      "excerpt": "手把手教你用 GitHub Pages + GitHub Actions 免费部署 React/Docusaurus 等前端项目，含自定义域名、HTTPS 和自动化工作流。",
-      "sourcePath": "blog\\2025\\June\\github-pages.mdx"
     },
     {
       "type": "blog",
