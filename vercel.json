@@ -205,7 +205,11 @@
   "rewrites": [
     {
       "source": "/app",
-      "destination": "/api/app"
+      "destination": "/api/app/forum"
+    },
+    {
+      "source": "/app/",
+      "destination": "/api/app/forum"
     },
     {
       "source": "/app/:path*/",
