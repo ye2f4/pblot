@@ -3,11 +3,13 @@ const nextConfig = {
   reactStrictMode: true,
   // 子路径部署：所有路由与静态资源挂在 /app 下，配合 Vercel rewrite 统一到主域名 monoblog.cc.cd
   basePath: '/app',
-  // 主站 vercel.json 顶层 trailingSlash:true，会把 /app/forum 先 308 到 /app/forum/ 再 rewrite 过来。
-  // 若 next-app 保持默认 trailingSlash:false，会再次 308 回 /app/forum，造成跨域重定向死循环。
-  // 故此处同步开启，让 next-app 直接接受带尾斜杠的请求，rewrite 链在此终结。
-  // 注意：线上 next-app 此前已用此配置部署；本地仓库的 4fd772da 版本缺失，此处仅为本地补回以防下次 CLI 部署丢失。
-  trailingSlash: true,
+  // next-app 用 trailingSlash:false（与最初可用配置一致）。
+  // 实测：trailingSlash:true + basePath:/app 会导致 /app/forum/ 返回 404（Next.js 14 已知坑：
+  // 308 到带尾斜杠 URL 却又 404）。主站 vercel.json 的 trailingSlash:true 会把 /app/forum 308 到
+  // /app/forum/，再经 rewrite 代理过来；next-app 侧用 false，对 /app/forum（无斜杠）直接 200，
+  // 不会形成死循环（因为无斜杠才是 canonical，会被直接服务而非再次 308）。
+  // 代理函数 api/app/[[...path]].js 也会主动去掉尾斜杠再请求，进一步消除多余跳转。
+  trailingSlash: false,
   // 本仓库是 monorepo：根项目用 React 19 + @types/react@19，next-app 用 React 18 + @types/react@18。
   // next 被提升到根 node_modules，其 <Link> 类型解析到 @types/react@19 的 ReactNode（含 bigint），
   // 与 next-app 的 18 版 ReactNode 冲突，导致 tsc 在构建期误报（纯类型层面，非运行时 bug）。
