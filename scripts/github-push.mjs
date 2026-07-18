@@ -31,6 +31,7 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
+import { execSync } from 'node:child_process';
 
 // 计算 Git 对象的 blob SHA-1：sha1("blob " + 字节长度 + "\0" + 内容)
 // 与 GitHub 树里的 blob sha 完全一致，可用于本地/远端增量比对。
@@ -130,22 +131,86 @@ const MAX_FILE_BYTES = 10 * 1024 * 1024; // 单文件 10MB 上限
 const CONCURRENCY = 6;
 
 // ── 配置合并：deploy.config.mjs（可选） < 环境变量 ──
-let fileConfig = {};
-try {
-  const mod = await import(join(__dirname, 'deploy.config.mjs'));
-  fileConfig = mod.default || {};
-} catch {
-  /* 没有配置文件也没关系 */
+// cfg 在每次部署/查询前都会通过 reloadConfig() 实时重读磁盘上的
+// deploy.config.mjs，因此修改配置后无需重启 dev server / 部署服务即可生效。
+const cfg = {
+  token: '',
+  repo: '',
+  branch: 'main',
+  message: 'deploy: 自动同步',
+  vercelHook: '',
+  dryRun: false,
+};
+
+// 从 .git 直接解析仓库（owner/name）与当前分支，避免依赖 git 可执行文件（dev server 进程 PATH 可能不含 git）
+function detectRepoFromGit() {
+  try {
+    const text = readFileSync(join(ROOT, '.git', 'config'), 'utf8');
+    const m = text.match(/\[remote "origin"\][\s\S]*?url\s*=\s*(\S+)/);
+    if (m) {
+      const mm = m[1].match(/github\.com[:/]([^/]+\/[^/.]+?)(?:\.git)?$/);
+      if (mm) return mm[1];
+    }
+  } catch (e) {
+    console.error('[detect] readFile .git/config failed:', e.message);
+  }
+  try {
+    const url = execSync('git remote get-url origin', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    const m = url.match(/github\.com[:/]([^/]+\/[^/.]+?)(?:\.git)?$/);
+    return m ? m[1] : '';
+  } catch (e) {
+    console.error('[detect] exec git remote failed:', e.message);
+    return '';
+  }
+}
+function detectBranchFromGit() {
+  try {
+    const head = readFileSync(join(ROOT, '.git', 'HEAD'), 'utf8').trim();
+    const m = head.match(/ref: refs\/heads\/(.+)/);
+    if (m) return m[1];
+  } catch { /* 忽略，回退到 execSync */ }
+  try {
+    return execSync('git rev-parse --abbrev-ref HEAD', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return '';
+  }
 }
 
-const cfg = {
-  token: process.env.GITHUB_TOKEN ?? fileConfig.GITHUB_TOKEN ?? '',
-  repo: process.env.GITHUB_REPO ?? fileConfig.GITHUB_REPO ?? '',
-  branch: process.env.GITHUB_BRANCH ?? fileConfig.GITHUB_BRANCH ?? 'main',
-  message: process.env.GITHUB_COMMIT_MSG ?? fileConfig.GITHUB_COMMIT_MSG ?? 'deploy: 自动同步',
-  vercelHook: process.env.VERCEL_DEPLOY_HOOK ?? fileConfig.VERCEL_DEPLOY_HOOK ?? '',
-  dryRun: (process.env.DEPLOY_DRY_RUN ?? fileConfig.DEPLOY_DRY_RUN ?? '0') === '1',
-};
+// 实时重读配置：环境变量优先，其次 deploy.config.mjs，最后自动探测 git。
+// 加 ?t= 缓存破坏参数，确保每次都拿到磁盘最新内容（Node 会缓存静态 import）。
+async function reloadConfig() {
+  let fileConfig = {};
+  try {
+    const mod = await import(
+      pathToFileURL(join(__dirname, 'deploy.config.mjs')).href + `?t=${Date.now()}`
+    );
+    fileConfig = mod.default || {};
+  } catch {
+    /* 没有配置文件也没关系 */
+  }
+
+  const branchExplicit = process.env.GITHUB_BRANCH ?? fileConfig.GITHUB_BRANCH;
+  cfg.token = process.env.GITHUB_TOKEN ?? fileConfig.GITHUB_TOKEN ?? '';
+  cfg.repo = process.env.GITHUB_REPO ?? fileConfig.GITHUB_REPO ?? '';
+  cfg.branch = branchExplicit ?? 'main';
+  cfg.message = process.env.GITHUB_COMMIT_MSG ?? fileConfig.GITHUB_COMMIT_MSG ?? 'deploy: 自动同步';
+  cfg.vercelHook = process.env.VERCEL_DEPLOY_HOOK ?? fileConfig.VERCEL_DEPLOY_HOOK ?? '';
+  cfg.dryRun = (process.env.DEPLOY_DRY_RUN ?? fileConfig.DEPLOY_DRY_RUN ?? '0') === '1';
+
+  // 未显式配置仓库时，尝试从 git remote 自动探测
+  if (!cfg.repo) {
+    const d = detectRepoFromGit();
+    if (d) cfg.repo = d;
+  }
+  // 未显式配置分支时，跟随当前检出的分支（如 master）
+  if (!branchExplicit) {
+    const b = detectBranchFromGit();
+    if (b && b !== 'HEAD') cfg.branch = b;
+  }
+}
+
+// 模块加载时先填充一次（CLI 直接运行时也能立刻拿到配置）
+await reloadConfig();
 
 const API = 'https://api.github.com';
 
@@ -199,19 +264,22 @@ async function pool(items, size, worker) {
 async function runDeploy(opts = {}) {
   if (opts.onLog) logSink = opts.onLog;
   if (opts.onWarn) warnSink = opts.onWarn;
+  await reloadConfig(); // 部署前实时重读最新配置（无需重启）
   const effectiveDryRun = opts.dryRun ?? cfg.dryRun;
-  if (!cfg.token || !cfg.repo) {
-    throw new Error('缺少 GITHUB_TOKEN 或 GITHUB_REPO，请在环境变量或 scripts/deploy.config.mjs 中配置。');
-  }
   log(`扫描本地文件 (root=${ROOT}) …`);
   const files = await walk(ROOT);
   log(`共发现 ${files.length} 个文件`);
 
   if (effectiveDryRun) {
-    log('DEPLOY_DRY_RUN=1，仅预览，不推送。');
-    for (const f of files.slice(0, 50)) console.log('  ·', f);
-    if (files.length > 50) log(`… 其余 ${files.length - 50} 个文件省略`);
+    // 预览模式：只扫描+列出将同步的文件，不触碰 GitHub，无需 Token
+    log('预览模式：仅列出将同步的文件，不推送（无需 GitHub Token）。');
+    for (const f of files.slice(0, 200)) log('· ' + f);
+    if (files.length > 200) log(`… 其余 ${files.length - 200} 个文件省略`);
     return;
+  }
+
+  if (!cfg.token || !cfg.repo) {
+    throw new Error('缺少 GITHUB_TOKEN 或 GITHUB_REPO，请在 scripts/deploy.config.mjs 或环境变量配置后，再点「一键部署」。');
   }
 
   // A 线：获取当前分支 ref 与基础树
@@ -329,7 +397,9 @@ async function runDeploy(opts = {}) {
 }
 
 // 暴露部署配置状态（不含 token 明文），供本地 UI 服务展示
-export function getDeployStatus() {
+// 每次调用都实时重读配置，改完 deploy.config.mjs 无需重启即可生效。
+export async function getDeployStatus() {
+  await reloadConfig();
   return {
     hasToken: Boolean(cfg.token),
     repo: cfg.repo || null,

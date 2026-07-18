@@ -4,6 +4,7 @@ import ChatRedDot from '../components/ChatRedDot';
 import { SiteConfigProvider } from './SiteConfigProvider';
 import { WarningsProvider } from './WarningsProvider';
 import WarningModal from '../components/WarningModal';
+import DevDeployPanel from '../components/DevDeployPanel';
 
 // Docusaurus 全局根组件，全站所有页面都会加载
 export default function Root({ children }) {
@@ -17,6 +18,8 @@ export default function Root({ children }) {
         <ChatRedDot />
         {/* 全站灾害/应急预警全屏弹窗 */}
         <WarningModal />
+        {/* 双轨一键部署浮层（仅 dev 模式显示，生产构建不渲染、不含密钥） */}
+        {process.env.NODE_ENV === 'development' && <DevDeployPanel />}
       </WarningsProvider>
     </SiteConfigProvider>
   );

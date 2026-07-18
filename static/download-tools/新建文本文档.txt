@@ -1,0 +1,16 @@
+# 1) 先"只看不下"，列出每首的 歌名/歌手/ID
+node scripts/download-music.mjs 3778678 --playlist --list
+.\scripts\download-music.ps1 -Id 3778678 -Playlist -List
+
+# 2) 下整张歌单（自动遍历逐首下 mp3+lrc）
+node scripts/download-music.mjs 3778678 --playlist
+
+# 3) 只下其中一首：从列表复制 ID，去掉 --playlist 即可
+node scripts/download-music.mjs 1330348068
+
+13934511772
+node scripts/download-music.mjs 13934511772 --playlist --list
+8. Nevada - Vicetone/Cozi Zuehlsdorff  [id=418602088]
+19. HandClap - Fitz and The Tantrums  [id=407839677]
+ 118. Counting Stars - OneRepublic  [id=28576133]
+ 117. Turn All the Lights On - T-Pain/Ne-Yo  [id=21792987]

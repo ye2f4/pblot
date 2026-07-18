@@ -1,285 +1,346 @@
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import { useHistory } from '@docusaurus/router';
 import { supabase } from '@site/src/supabase/supabaseClient';
+import styles from './styles.module.css';
 
 const CACHE_TTL = 600000;
 const LOCATION_STORAGE_KEY = 'weather_selected_location';
 const getCacheKey = (locCode) => `blog_weather_cache_${locCode}`;
 
+const ITEMS_PER_PAGE = 5;
+
+// WMO 天气代码 -> 图标（区分昼夜）+ 动画
 const weatherMeta = {
-    sunny: { icon: '☀️', anim: 'iconPulse' },
-    clear: { icon: '☀️', anim: 'iconPulse' },
-    cloudy: { icon: '☁️', anim: 'iconFloat' },
-    overcast: { icon: '☁️', anim: 'iconFloat' },
-    rain: { icon: '🌧️', anim: 'iconDrop' },
-    shower: { icon: '🌦️', anim: 'iconDrop' },
-    thunder: { icon: '⛈️', anim: 'iconFlash' },
-    snow: { icon: '❄️', anim: 'iconSpin' },
-    fog: { icon: '🌫️', anim: 'iconFade' },
-    default: { icon: '🌤️', anim: 'iconFloat' },
+  0: { icon: '☀️', nightIcon: '🌙', anim: 'iconPulse' },
+  1: { icon: '🌤️', nightIcon: '🌙', anim: 'iconFloat' },
+  2: { icon: '⛅', nightIcon: '☁️', anim: 'iconFloat' },
+  3: { icon: '☁️', nightIcon: '☁️', anim: 'iconFloat' },
+  45: { icon: '🌫️', nightIcon: '🌫️', anim: 'iconFade' },
+  48: { icon: '🌫️', nightIcon: '🌫️', anim: 'iconFade' },
+  51: { icon: '🌦️', nightIcon: '🌦️', anim: 'iconDrop' },
+  53: { icon: '🌦️', nightIcon: '🌦️', anim: 'iconDrop' },
+  55: { icon: '🌦️', nightIcon: '🌦️', anim: 'iconDrop' },
+  56: { icon: '🌧️', nightIcon: '🌧️', anim: 'iconDrop' },
+  57: { icon: '🌧️', nightIcon: '🌧️', anim: 'iconDrop' },
+  61: { icon: '🌧️', nightIcon: '🌧️', anim: 'iconDrop' },
+  63: { icon: '🌧️', nightIcon: '🌧️', anim: 'iconDrop' },
+  65: { icon: '🌧️', nightIcon: '🌧️', anim: 'iconDrop' },
+  66: { icon: '🌧️', nightIcon: '🌧️', anim: 'iconDrop' },
+  67: { icon: '🌧️', nightIcon: '🌧️', anim: 'iconDrop' },
+  71: { icon: '🌨️', nightIcon: '🌨️', anim: 'iconSpin' },
+  73: { icon: '🌨️', nightIcon: '🌨️', anim: 'iconSpin' },
+  75: { icon: '❄️', nightIcon: '❄️', anim: 'iconSpin' },
+  77: { icon: '🌨️', nightIcon: '🌨️', anim: 'iconSpin' },
+  80: { icon: '🌦️', nightIcon: '🌦️', anim: 'iconDrop' },
+  81: { icon: '🌦️', nightIcon: '🌦️', anim: 'iconDrop' },
+  82: { icon: '⛈️', nightIcon: '⛈️', anim: 'iconDrop' },
+  85: { icon: '🌨️', nightIcon: '🌨️', anim: 'iconSpin' },
+  86: { icon: '❄️', nightIcon: '❄️', anim: 'iconSpin' },
+  95: { icon: '⛈️', nightIcon: '⛈️', anim: 'iconFlash' },
+  96: { icon: '⛈️', nightIcon: '⛈️', anim: 'iconFlash' },
+  99: { icon: '⛈️', nightIcon: '⛈️', anim: 'iconFlash' },
+  default: { icon: '🌤️', nightIcon: '🌙', anim: 'iconFloat' },
 };
 
-const RandomParticle = memo(() => {
-    const [style, setStyle] = useState({});
-    useEffect(() => {
-        const size = Math.random() * 6 + 3;
-        const left = Math.random() * 90 + 5;
-        const delay = Math.random() * 4;
-        const duration = Math.random() * 5 + 3;
-        setStyle({
-            position: 'absolute',
-            left: `${left}%`,
-            top: `${Math.random() * 80 + 10}%`,
-            width: size,
-            height: size,
-            borderRadius: '50%',
-            background: 'rgba(66,133,244,0.15)',
-            animation: `particleFloat ${duration}s ease-in-out infinite`,
-            animationDelay: `${delay}s`,
-            pointerEvents: 'none',
-        });
-    }, []);
-    return <div style={style} />;
+const getWeatherMeta = (code, isDay) => {
+  const meta = weatherMeta[code] || weatherMeta.default;
+  return { icon: isDay ? meta.icon : meta.nightIcon, anim: meta.anim };
+};
+
+const StarField = memo(() => {
+  const stars = useMemo(
+    () =>
+      Array.from({ length: 22 }, () => ({
+        top: Math.random() * 100,
+        left: Math.random() * 100,
+        size: Math.random() * 1.5 + 1,
+        delay: Math.random() * 3,
+        dur: Math.random() * 2 + 2,
+      })),
+    []
+  );
+  return (
+    <div className={styles.stars}>
+      {stars.map((s, i) => (
+        <span
+          key={i}
+          className={styles.star}
+          style={{
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            animationDelay: `${s.delay}s`,
+            animationDuration: `${s.dur}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
 });
 
-const globalAnimStyle = `
-@keyframes particleFloat {
-  0% { transform: translateY(0) scale(1); opacity:0.2; }
-  50% { transform: translateY(-10px) scale(1.15); opacity:0.45; }
-  100% { transform: translateY(0) scale(1); opacity:0.2; }
-}
-@keyframes iconPulse {
-  0%,100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
-}
-@keyframes iconFloat {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-@keyframes iconDrop {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(6px); }
-}
-@keyframes iconFlash {
-  0%,100% { opacity:1; }
-  50% { opacity:0.35; }
-}
-@keyframes iconSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-@keyframes iconFade {
-  0%,100% { opacity:0.65; }
-  50% { opacity:1; }
-}
-@keyframes boxFadeIn {
-  from { opacity:0; transform: translateY(15px); }
-  to { opacity:1; transform: translateY(0); }
-}
-`;
-
 const WeatherWidget = memo(() => {
-    const history = useHistory();
-    const [weatherData, setWeatherData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [errorText, setErrorText] = useState('');
-    const [visible, setVisible] = useState(false);
-    const particleList = Array.from({ length: 4 }, (_, i) => i);
+  const history = useHistory();
+  const [weatherData, setWeatherData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorText, setErrorText] = useState('');
+  const [activeTab, setActiveTab] = useState('hourly');
+  const [page, setPage] = useState(0);
 
-    const [activeLocation, setActiveLocation] = useState(() => {
+  const [activeLocation, setActiveLocation] = useState(() => {
+    const saved = localStorage.getItem(LOCATION_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return { lat: 39.9042, lon: 116.4074, name: '北京', code: 'beijing' };
+  });
+
+  const readLocalCache = (locCode) => {
+    const cacheKey = getCacheKey(locCode);
+    const cacheRaw = localStorage.getItem(cacheKey);
+    if (!cacheRaw) return null;
+    try {
+      const cacheObj = JSON.parse(cacheRaw);
+      if (Date.now() - cacheObj.cacheTime < CACHE_TTL) return cacheObj.data;
+      localStorage.removeItem(cacheKey);
+      return null;
+    } catch (e) {
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+  };
+
+  const fetchWeatherApi = useCallback(async (loc) => {
+    setLoading(true);
+    setErrorText('');
+    const cacheKey = getCacheKey(loc.code);
+    try {
+      const params = new URLSearchParams({
+        latitude: loc.lat,
+        longitude: loc.lon,
+        current: 'temperature_2m,relative_humidity_2m,weather_code,is_day',
+        hourly: 'temperature_2m,precipitation_probability,weather_code,is_day',
+        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+        timezone: 'auto',
+        forecast_days: '7',
+      });
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) throw new Error('气象接口请求失败');
+      const data = await res.json();
+      if (!data?.current) throw new Error('气象数据为空');
+      localStorage.setItem(cacheKey, JSON.stringify({ data, cacheTime: Date.now() }));
+      setWeatherData(data);
+    } catch (err) {
+      setErrorText(err.message || '天气加载异常');
+      console.error('请求错误', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const goLocationPage = () => history.push('/locations');
+  const goFullForecast = () => history.push('/locations');
+
+  useEffect(() => {
+    const cached = readLocalCache(activeLocation.code);
+    if (cached) {
+      setWeatherData(cached);
+      setLoading(false);
+    } else {
+      fetchWeatherApi(activeLocation);
+    }
+    const refreshTimer = setInterval(() => fetchWeatherApi(activeLocation), CACHE_TTL);
+    return () => clearInterval(refreshTimer);
+  }, [fetchWeatherApi, activeLocation]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden) {
         const saved = localStorage.getItem(LOCATION_STORAGE_KEY);
         if (saved) {
-            try {
-                return JSON.parse(saved);
-            } catch (e) { }
-        }
-        return { lat: 39.9042, lon: 116.4074, name: '北京', code: 'beijing' };
-    });
-
-    const readLocalCache = (locCode) => {
-        const cacheKey = getCacheKey(locCode);
-        const cacheRaw = localStorage.getItem(cacheKey);
-        if (!cacheRaw) return null;
-        try {
-            const cacheObj = JSON.parse(cacheRaw);
-            if (Date.now() - cacheObj.cacheTime < CACHE_TTL) return cacheObj.data;
-            localStorage.removeItem(cacheKey);
-            return null;
-        } catch (e) {
-            localStorage.removeItem(cacheKey);
-            return null;
-        }
-    };
-
-    const fetchWeatherApi = useCallback(async (loc) => {
-        setLoading(true);
-        setErrorText('');
-        const cacheKey = getCacheKey(loc.code);
-        try {
-            // 前端直调官方接口，完整参数拉全字段
-            const params = new URLSearchParams({
-                latitude: loc.lat,
-                longitude: loc.lon,
-                current: "temperature_2m",
-                timezone: "auto"
-            });
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
-                signal: AbortSignal.timeout(8000)
-            });
-            if (!res.ok) throw new Error('气象接口请求失败');
-            const data = await res.json();
-            console.log("直拿完整OM数据", data);
-            if (!data?.current) throw new Error('气象数据为空');
-            // WeatherWidget fetchWeatherApi 里存储不要改，现在读取端适配外层data即可
-            localStorage.setItem(cacheKey, JSON.stringify({ data, cacheTime: Date.now() }));
-            setWeatherData(data);
-        } catch (err) {
-            setErrorText(err.message || '天气加载异常');
-            console.error('请求错误', err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    const goLocationPage = () => history.push('/locations');
-
-    useEffect(() => {
-        const showTimer = setTimeout(() => setVisible(true), 60);
-        const cached = readLocalCache(activeLocation.code);
-        if (cached) {
-            setWeatherData(cached);
-            setLoading(false);
-        } else {
-            fetchWeatherApi(activeLocation);
-        }
-        const refreshTimer = setInterval(() => fetchWeatherApi(activeLocation), CACHE_TTL);
-        return () => {
-            clearTimeout(showTimer);
-            clearInterval(refreshTimer);
-        };
-    }, [fetchWeatherApi, activeLocation]);
-
-    useEffect(() => {
-        const handleVisibility = () => {
-            if (!document.hidden) {
-                const saved = localStorage.getItem(LOCATION_STORAGE_KEY);
-                if (saved) {
-                    try {
-                        const newLoc = JSON.parse(saved);
-                        if (newLoc.code !== activeLocation.code) {
-                            setActiveLocation(newLoc);
-                            localStorage.removeItem(getCacheKey(activeLocation.code));
-                            fetchWeatherApi(newLoc);
-                        }
-                    } catch (e) { }
-                }
+          try {
+            const newLoc = JSON.parse(saved);
+            if (newLoc.code !== activeLocation.code) {
+              setActiveLocation(newLoc);
+              localStorage.removeItem(getCacheKey(activeLocation.code));
+              fetchWeatherApi(newLoc);
             }
-        };
-        document.addEventListener('visibilitychange', handleVisibility);
-        return () => document.removeEventListener('visibilitychange', handleVisibility);
-    }, [activeLocation, fetchWeatherApi]);
-
-    const containerStyle = {
-        position: 'relative',
-        overflow: 'hidden',
-        width: '100%',
-        boxSizing: 'border-box',
-        padding: '14px 16px',
-        borderRadius: '18px',
-        background: 'linear-gradient(135deg, rgba(66,133,244,0.06), rgba(100,160,255,0.12))',
-        boxShadow: '0 3px 14px rgba(66,133,244,0.1)',
-        animation: visible ? 'boxFadeIn 0.5s ease-out forwards' : 'none',
-        opacity: 0,
-        transform: 'translateY(15px)',
-        transition: 'box-shadow 0.3s ease, transform 0.2s ease',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
+          } catch (e) {}
+        }
+      }
     };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [activeLocation, fetchWeatherApi]);
 
-    const handleBoxHover = (e) => {
-        e.currentTarget.style.boxShadow = '0 5px 18px rgba(66,133,244,0.16)';
-        e.currentTarget.style.transform = 'translateY(-2px)';
-    };
-    const handleBoxLeave = (e) => {
-        e.currentTarget.style.boxShadow = '0 3px 14px rgba(66,133,244,0.1)';
-        e.currentTarget.style.transform = 'translateY(0)';
-    };
+  useEffect(() => {
+    setPage(0);
+  }, [activeTab, activeLocation]);
 
-    // Open-Meteo无实况文字，固定默认图标
-    const getIconInfo = () => {
-        return weatherMeta.default;
-    };
-    const { icon, anim } = getIconInfo();
+  // 计算当前小时在 hourly 数组中的起始下标
+  const hourlyItems = useMemo(() => {
+    if (!weatherData?.hourly?.time) return [];
+    const times = weatherData.hourly.time;
+    const nowIso = new Date().toISOString().slice(0, 13);
+    let start = times.findIndex((t) => t.slice(0, 13) >= nowIso);
+    if (start < 0) start = 0;
+    const slice = times.slice(start, start + 24);
+    return slice.map((t, idx) => {
+      const realIdx = start + idx;
+      const date = new Date(t);
+      const isDay = weatherData.hourly.is_day[realIdx] === 1;
+      const meta = getWeatherMeta(weatherData.hourly.weather_code[realIdx], isDay);
+      const label = date.getHours() === 0 ? `${date.getMonth() + 1}/${date.getDate()}` : `${date.getHours()}:00`;
+      return {
+        key: t,
+        timeLabel: idx === 0 ? '现在' : label,
+        icon: meta.icon,
+        anim: meta.anim,
+        temp: Math.round(weatherData.hourly.temperature_2m[realIdx]),
+        precip: weatherData.hourly.precipitation_probability?.[realIdx] ?? 0,
+      };
+    });
+  }, [weatherData]);
 
-    return (
+  const dailyItems = useMemo(() => {
+    if (!weatherData?.daily?.time) return [];
+    const week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return weatherData.daily.time.slice(0, 7).map((t, idx) => {
+      const date = new Date(t);
+      const meta = getWeatherMeta(weatherData.daily.weather_code[idx], true);
+      return {
+        key: t,
+        timeLabel: idx === 0 ? '今天' : week[date.getDay()],
+        icon: meta.icon,
+        anim: meta.anim,
+        tempMax: Math.round(weatherData.daily.temperature_2m_max[idx]),
+        tempMin: Math.round(weatherData.daily.temperature_2m_min[idx]),
+        precip: weatherData.daily.precipitation_probability_max?.[idx] ?? 0,
+      };
+    });
+  }, [weatherData]);
+
+  const activeItems = activeTab === 'hourly' ? hourlyItems : dailyItems;
+  const totalPages = Math.max(1, Math.ceil(activeItems.length / ITEMS_PER_PAGE));
+  const pagedItems = activeItems.slice(page * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE + ITEMS_PER_PAGE);
+
+  const currentMeta = weatherData?.current
+    ? getWeatherMeta(weatherData.current.weather_code, weatherData.current.is_day === 1)
+    : { icon: '🌤️', anim: 'iconFloat' };
+
+  return (
+    <div className={styles.weatherCard}>
+      <StarField />
+
+      <div className={styles.header}>
+        <button className={styles.locationBtn} onClick={goLocationPage}>
+          <span className={styles.locationIcon}>📍</span>
+          <span>{activeLocation.name}</span>
+          <span className={styles.chevron}>▾</span>
+        </button>
+        <button className={styles.menuBtn} onClick={goLocationPage} title="切换位置">
+          ⋯
+        </button>
+      </div>
+
+      {loading && (
+        <div className={styles.loadingBox}>
+          <span className={`${styles.loadingIcon} ${styles.iconFloat}`}>🌤️</span>
+          <p className={styles.loadingText}>加载天气...</p>
+        </div>
+      )}
+
+      {errorText && !loading && (
+        <div className={styles.errorBox}>
+          <span className={styles.errorIcon}>⚠️</span>
+          <p className={styles.errorText}>{errorText}</p>
+        </div>
+      )}
+
+      {weatherData && !loading && !errorText && (
         <>
-            <style dangerouslySetInnerHTML={{ __html: globalAnimStyle }} />
-            <div
-                style={containerStyle}
-                onMouseEnter={handleBoxHover}
-                onMouseLeave={handleBoxLeave}
-            >
-                {particleList.map((id) => <RandomParticle key={id} />)}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#1ce306' }}>{activeLocation.name} · 实时气象</span>
-                    <button
-                        onClick={goLocationPage}
-                        style={{
-                            fontSize: '11px',
-                            padding: '3px 8px',
-                            borderRadius: '999px',
-                            border: '1px solid rgba(66,133,244,0.25)',
-                            background: 'rgba(66,133,244,0.08)',
-                            color: '#0060fc',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.target.style.background = 'rgba(66,133,244,0.18)';
-                            e.target.style.borderColor = 'rgba(66,133,244,0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(66,133,244,0.08)';
-                            e.target.style.borderColor = 'rgba(66,133,244,0.25)';
-                        }}
-                    >
-                        📍 切换位置
-                    </button>
-                </div>
-
-                {loading && (
-                    <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                        <span style={{ fontSize: '28px', display: 'inline-block', animation: 'iconFloat 2s ease-in-out infinite' }}>🌤️</span>
-                        <p style={{ margin: '6px 0 0', color: 'var(--ifm-color-emphasis-600)', fontSize: '13px' }}>加载天气...</p>
-                    </div>
-                )}
-
-                {errorText && !loading && (
-                    <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                        <span style={{ fontSize: '28px', color: 'var(--ifm-color-danger)' }}>⚠️</span>
-                        <p style={{ margin: '6px 0 0', color: 'var(--ifm-color-danger)', fontSize: '12px' }}>{errorText}</p>
-                    </div>
-                )}
-
-                {weatherData && !loading && !errorText && (
-                    <>
-                        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <div>
-                                <div style={{ fontSize: '36px', fontWeight: 700, color: 'var(--ifm-color-emphasis-900)', lineHeight: 1 }}>
-                                    {weatherData.current.temperature_2m}<span style={{ fontSize: '16px', fontWeight: 400 }}>℃</span>
-                                </div>
-                            </div>
-                            <span style={{
-                                fontSize: '42px',
-                                display: 'inline-block',
-                                animation: `${anim} 2.8s ease-in-out infinite`,
-                                filter: 'drop-shadow(0 2px 4px rgba(66,133,244,0.2))'
-                            }}>{icon}</span>
-                        </div>
-                    </>
-                )}
+          <div className={styles.currentRow}>
+            <div className={styles.tempBox}>
+              <span
+                className={styles.weatherIcon}
+                style={{ animation: `${currentMeta.anim} 2.8s ease-in-out infinite` }}
+              >
+                {currentMeta.icon}
+              </span>
+              <div className={styles.bigTemp}>
+                {Math.round(weatherData.current.temperature_2m)}
+                <span className={styles.tempUnit}>℃</span>
+              </div>
             </div>
+            <div className={styles.humidity}>
+              <span className={styles.dropIcon}>💧</span>
+              {weatherData.current.relative_humidity_2m}% 湿度
+            </div>
+          </div>
+
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${activeTab === 'hourly' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('hourly')}
+            >
+              逐小时
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'daily' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('daily')}
+            >
+              逐日
+            </button>
+          </div>
+
+          <div className={styles.forecastTrack}>
+            {pagedItems.map((item) => (
+              <div key={item.key} className={styles.forecastItem}>
+                <span className={styles.forecastTime}>{item.timeLabel}</span>
+                <span
+                  className={styles.forecastIcon}
+                  style={{ animation: `${item.anim} 2.8s ease-in-out infinite` }}
+                >
+                  {item.icon}
+                </span>
+                {activeTab === 'hourly' ? (
+                  <>
+                    <span className={styles.forecastTemp}>{item.temp}°</span>
+                    <span className={styles.forecastPrecip}>🌧 {item.precip}%</span>
+                  </>
+                ) : (
+                  <>
+                    <span className={styles.forecastTemp}>{item.tempMax}°</span>
+                    <span className={styles.forecastPrecip}>↓{item.tempMin}°</span>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.footer}>
+            <div className={styles.dots}>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <span
+                  key={i}
+                  className={`${styles.dot} ${i === page ? styles.dotActive : ''}`}
+                  onClick={() => setPage(i)}
+                  style={{ cursor: totalPages > 1 ? 'pointer' : 'default' }}
+                />
+              ))}
+            </div>
+            <button className={styles.moreBtn} onClick={goFullForecast}>
+              查看完整预报 ›
+            </button>
+          </div>
         </>
-    );
+      )}
+    </div>
+  );
 });
 
 export default WeatherWidget;

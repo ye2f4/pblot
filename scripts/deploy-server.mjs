@@ -28,8 +28,8 @@ function broadcast(event, data) {
   for (const res of clients) res.write(payload);
 }
 
-function statusHtml() {
-  const s = getDeployStatus();
+async function statusHtml() {
+  const s = await getDeployStatus();
   const row = (k, v) =>
     `<div class="row"><span>${k}</span><b>${v}</b></div>`;
   return [
@@ -146,7 +146,7 @@ const server = createServer(async (req, res) => {
 
   if (req.method === 'GET' && url.pathname === '/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(PAGE.replace('__STATUS__', statusHtml()));
+    res.end(PAGE.replace('__STATUS__', await statusHtml()));
     return;
   }
 

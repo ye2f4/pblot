@@ -107,6 +107,7 @@ const PixelClock = memo(({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                width: '100%',
                 gap: 5,
                 marginBottom: 5
             }}>

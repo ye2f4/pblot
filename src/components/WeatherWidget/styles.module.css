@@ -1,0 +1,333 @@
+.weatherCard {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #1a2b4a 0%, #0d1829 100%);
+  box-shadow: 0 8px 28px rgba(13, 24, 41, 0.35);
+  color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  animation: cardFadeIn 0.5s ease-out forwards;
+  min-height: 240px;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  z-index: 1;
+}
+
+.locationBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: opacity 0.2s ease;
+}
+
+.locationBtn:hover {
+  opacity: 0.85;
+}
+
+.locationIcon {
+  font-size: 13px;
+}
+
+.chevron {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.menuBtn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.85;
+  padding: 2px 6px;
+  transition: opacity 0.2s ease;
+}
+
+.menuBtn:hover {
+  opacity: 1;
+}
+
+.currentRow {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  z-index: 1;
+}
+
+.tempBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.weatherIcon {
+  font-size: 46px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+.bigTemp {
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.tempUnit {
+  font-size: 18px;
+  font-weight: 400;
+  vertical-align: super;
+}
+
+.humidity {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(4px);
+}
+
+.dropIcon {
+  color: #4facfe;
+  font-size: 14px;
+}
+
+.tabs {
+  position: relative;
+  display: inline-flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 12px;
+  z-index: 1;
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  padding: 5px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabActive {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 500;
+}
+
+.forecastTrack {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  scrollbar-width: none;
+  z-index: 1;
+}
+
+.forecastTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.forecastItem {
+  flex: 0 0 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background 0.2s ease;
+}
+
+.forecastItemActive {
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.forecastTime {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.forecastIcon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.forecastTemp {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.forecastPrecip {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: #4facfe;
+}
+
+.footer {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  z-index: 1;
+}
+
+.dots {
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: background 0.2s ease;
+}
+
+.dotActive {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.moreBtn {
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.moreBtn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.loadingBox,
+.errorBox {
+  position: relative;
+  text-align: center;
+  padding: 28px 0;
+  z-index: 1;
+}
+
+.loadingIcon,
+.errorIcon {
+  font-size: 32px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.loadingText,
+.errorText {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.errorText {
+  color: #ff8a8a;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes iconDrop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@keyframes iconFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes iconSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes iconFade {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}

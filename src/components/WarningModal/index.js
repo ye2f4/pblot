@@ -86,119 +86,103 @@ export default function WarningModal() {
     setDismissed(getDismissed());
   }
 
+  const renderCard = (w, compact) => {
+    const color = levelColor(w.level);
+    const meta = typeMeta(w.type);
+    const isCritical = !!meta.critical;
+    const sub = meta.subtypes && w.subtype ? meta.subtypes[w.subtype] : null;
+    const hasEpi = w.lat !== null && w.lat !== undefined && w.lng !== null && w.lng !== undefined;
+    const dist = hasEpi ? haversine(userGeo?.lat, userGeo?.lng, Number(w.lat), Number(w.lng)) : null;
+    const countdownMs = w.impact_at ? new Date(w.impact_at).getTime() - now : null;
+    const shelterTips = w.shelter
+      ? String(w.shelter).split('\n').map((s) => s.trim()).filter(Boolean)
+      : (meta.shelterTips || []);
+    return (
+      <div key={w.id} style={{ borderTop: `6px solid ${color}`, padding: compact ? '14px 16px' : '20px 22px', ...(isCritical ? { background: '#fff4f4' } : {}) }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+          <span style={{ fontSize: isCritical ? (compact ? 28 : 46) : (compact ? 18 : 26), lineHeight: 1 }}>{meta.icon}</span>
+          <div>
+            <div
+              className={isCritical ? 'warn-flash' : undefined}
+              style={{ fontWeight: 800, fontSize: isCritical ? (compact ? 15 : 20) : (compact ? 13 : 17), color: isCritical ? '#d32f2f' : color }}
+            >
+              {isCritical ? '⚠ 核打击警报 ⚠' : `${meta.label}${sub ? ' · ' + sub.label : ''}`}
+            </div>
+            {w.region && <div style={{ fontSize: 13, color: '#666' }}>影响区域：{w.region}</div>}
+          </div>
+        </div>
+
+        {sub && (
+          <div style={{ fontSize: 13, color: '#b26a00', background: '#fff7e6', border: '1px solid #ffe0a3', borderRadius: 6, padding: '6px 10px', marginBottom: 8 }}>
+            {sub.icon} {sub.label}：{sub.desc}
+          </div>
+        )}
+
+        {isCritical && hasEpi && (
+          <div style={{ fontSize: 14, color: '#333', marginBottom: 6 }}>
+            🎯 预计空袭位置（爆心）：{Number(w.lat).toFixed(3)}, {Number(w.lng).toFixed(3)}
+            {dist != null
+              ? `　｜　距你约 ${dist < 1 ? Math.round(dist * 1000) + ' m' : dist.toFixed(0) + ' km'}`
+              : '　｜　（未授权定位，无法计算距离）'}
+          </div>
+        )}
+
+        {isCritical && countdownMs != null && (
+          <div className="warn-flash" style={{ fontSize: 18, fontWeight: 800, color: '#d32f2f', margin: '6px 0' }}>
+            ⏱ 预计空袭来临倒计时：{fmtCountdown(countdownMs)}
+          </div>
+        )}
+
+        {w.title && <div style={{ fontSize: 16, fontWeight: 700, margin: '6px 0' }}>{w.title}</div>}
+        {w.message && (
+          <div style={{ fontSize: 14, color: '#333', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{w.message}</div>
+        )}
+
+        {shelterTips.length > 0 && (
+          <div style={{ marginTop: 10, fontSize: 13, color: '#1a1a1a' }}>
+            <div style={{ fontWeight: 700, color: '#c62828', marginBottom: 4 }}>🛡 避险建议：</div>
+            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
+              {shelterTips.map((t, i) => <li key={i}>{t}</li>)}
+            </ul>
+          </div>
+        )}
+
+        <div style={{ fontSize: 12, color: '#999', marginTop: 8 }}>
+          来源：{w.source || '管理员'} ｜ 发布：{new Date(w.published_at).toLocaleString()}
+          {w.is_auto ? ' ｜ 自动' : ''}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <style>{FLASH_CSS}</style>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 99999,
-          background: 'rgba(0,0,0,0.55)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 16,
-          backdropFilter: 'blur(2px)',
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 560,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            background: '#fff',
-            borderRadius: 14,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-          }}
-        >
-          {sorted.map((w) => {
-            const color = levelColor(w.level);
-            const meta = typeMeta(w.type);
-            const isCritical = !!meta.critical;
-            const sub = meta.subtypes && w.subtype ? meta.subtypes[w.subtype] : null;
-            const hasEpi = w.lat !== null && w.lat !== undefined && w.lng !== null && w.lng !== undefined;
-            const dist = hasEpi ? haversine(userGeo?.lat, userGeo?.lng, Number(w.lat), Number(w.lng)) : null;
-            const countdownMs = w.impact_at ? new Date(w.impact_at).getTime() - now : null;
-            const shelterTips = w.shelter
-              ? String(w.shelter).split('\n').map((s) => s.trim()).filter(Boolean)
-              : (meta.shelterTips || []);
-            return (
-              <div key={w.id} style={{ borderTop: `6px solid ${color}`, padding: '20px 22px', ...(isCritical ? { background: '#fff4f4' } : {}) }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                  <span style={{ fontSize: isCritical ? 46 : 26, lineHeight: 1 }}>{meta.icon}</span>
-                  <div>
-                    <div
-                      className={isCritical ? 'warn-flash' : undefined}
-                      style={{ fontWeight: 800, fontSize: isCritical ? 20 : 17, color: isCritical ? '#d32f2f' : color }}
-                    >
-                      {isCritical ? '⚠ 核打击警报 ⚠' : `${meta.label}${sub ? ' · ' + sub.label : ''}`}
-                    </div>
-                    {w.region && <div style={{ fontSize: 13, color: '#666' }}>影响区域：{w.region}</div>}
-                  </div>
-                </div>
 
-                {sub && (
-                  <div style={{ fontSize: 13, color: '#b26a00', background: '#fff7e6', border: '1px solid #ffe0a3', borderRadius: 6, padding: '6px 10px', marginBottom: 8 }}>
-                    {sub.icon} {sub.label}：{sub.desc}
-                  </div>
-                )}
-
-                {isCritical && hasEpi && (
-                  <div style={{ fontSize: 14, color: '#333', marginBottom: 6 }}>
-                    🎯 预计空袭位置（爆心）：{Number(w.lat).toFixed(3)}, {Number(w.lng).toFixed(3)}
-                    {dist != null
-                      ? `　｜　距你约 ${dist < 1 ? Math.round(dist * 1000) + ' m' : dist.toFixed(0) + ' km'}`
-                      : '　｜　（未授权定位，无法计算距离）'}
-                  </div>
-                )}
-
-                {isCritical && countdownMs != null && (
-                  <div className="warn-flash" style={{ fontSize: 18, fontWeight: 800, color: '#d32f2f', margin: '6px 0' }}>
-                    ⏱ 预计空袭来临倒计时：{fmtCountdown(countdownMs)}
-                  </div>
-                )}
-
-                {w.title && <div style={{ fontSize: 16, fontWeight: 700, margin: '6px 0' }}>{w.title}</div>}
-                {w.message && (
-                  <div style={{ fontSize: 14, color: '#333', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{w.message}</div>
-                )}
-
-                {shelterTips.length > 0 && (
-                  <div style={{ marginTop: 10, fontSize: 13, color: '#1a1a1a' }}>
-                    <div style={{ fontWeight: 700, color: '#c62828', marginBottom: 4 }}>🛡 避险建议：</div>
-                    <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
-                      {shelterTips.map((t, i) => <li key={i}>{t}</li>)}
-                    </ul>
-                  </div>
-                )}
-
-                <div style={{ fontSize: 12, color: '#999', marginTop: 8 }}>
-                  来源：{w.source || '管理员'} ｜ 发布：{new Date(w.published_at).toLocaleString()}
-                  {w.is_auto ? ' ｜ 自动' : ''}
-                </div>
-              </div>
-            );
-          })}
-          <div style={{ padding: '14px 22px 20px', textAlign: 'right' }}>
-            <button
-              onClick={closeAll}
-              style={{
-                padding: '10px 22px',
-                background: '#d32f2f',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 8,
-                fontSize: 15,
-                cursor: 'pointer',
-              }}
-            >
-              我已知晓，关闭
-            </button>
+      {fullscreen.length > 0 && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, backdropFilter: 'blur(2px)' }}>
+          <div style={{ width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', background: '#fff', borderRadius: 14, boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+            {fullscreen.map((w) => renderCard(w, false))}
+            <div style={{ padding: '14px 22px 20px', textAlign: 'right' }}>
+              <button
+                onClick={closeAll}
+                style={{ padding: '10px 22px', background: '#d32f2f', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer' }}
+              >
+                我已知晓，关闭
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {minor.map((w) => (
+        <div key={'minor-' + w.id} style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 99998, width: 340, maxWidth: '90vw', background: '#fff', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
+          {renderCard(w, true)}
+          <div style={{ padding: '8px 12px', textAlign: 'right', borderTop: '1px solid #eee' }}>
+            <button onClick={() => closeOne(w.id)} style={{ padding: '6px 14px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>知道了</button>
+          </div>
+        </div>
+      ))}
     </>
   );
 }

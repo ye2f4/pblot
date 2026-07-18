@@ -222,6 +222,7 @@ const config = {
 
   plugins: [
     require.resolve("./plugins/sync-blog-plugin"),
+    require.resolve("./plugins/deploy-ui-plugin"),
     // 全局 SEO：挂载 SeoCanonical，为每个路由注入 <link rel="canonical">
     // （用 require 懒加载浏览器组件，避免在 Node 端构建时执行 React 渲染）
     function seoCanonicalPlugin() {
