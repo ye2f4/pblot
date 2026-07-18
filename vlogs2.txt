@@ -1,0 +1,12 @@
+Vercel CLI 56.3.2 (Node.js 22.13.0)
+Resolving deployment "pblot-2q56-nfx0cn8lb-shaorin-zhao-s-projects.vercel.app"
+Fetching project "prj_njoiVtyLCjt9hY8YqlwR7oimd2sQ"
+Fetching logs...
+TIME         HOST            LEVEL                      
+04:53:46.13  monoblog.cc.cd  info   ε GET /api/time/    
+
+04:53:07.15  monoblog.cc.cd  info   ε GET /app/forum/   
+[proxy] target= https://next-app-mocha-three.vercel.app/app/app/forum?cb=v2&...path=forum method= GET
+[proxy] upstream status= 404
+
+Fetched 2 logs for shaorin-zhao-s-projects/pblot-2q56

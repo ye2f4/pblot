@@ -208,12 +208,8 @@
       "destination": "/api/app"
     },
     {
-      "source": "/app/:path*/",
-      "destination": "/api/app/:path*"
-    },
-    {
       "source": "/app/:path*",
-      "destination": "/api/app/:path*"
+      "destination": "/api/app"
     }
   ]
 }

@@ -25,7 +25,9 @@ const HOP_BY_HOP = [
 export default async function handler(req) {
   const url = new URL(req.url);
   // req.url 形如 https://<host>/api/app/forum 或 https://<host>/api/app
-  let rest = url.pathname.replace(/^\/api\/app/, '');
+  // Vercel 把请求 rewrite 到函数时，函数看到的仍是原始路径（如 /app/forum），
+  // 直连时则是 /api/app/forum。两种都要兼容：依次剥离 /api/app 与 /app 前缀。
+  let rest = url.pathname.replace(/^\/api\/app/, '').replace(/^\/app/, '');
   if (rest === '') rest = '/';
   // 去掉尾斜杠，避免 next-app（trailingSlash:false）再做一次 308 跳转
   if (rest.length > 1 && rest.endsWith('/')) rest = rest.slice(0, -1);
@@ -63,10 +65,13 @@ export default async function handler(req) {
     if (lk === 'location') {
       let loc = v;
       if (loc.startsWith(NEXT_APP_ORIGIN)) {
-        const u = new URL(loc);
-        loc = new URL('/api/app' + u.pathname + u.search, url.origin).toString();
-      } else if (loc.startsWith('/app')) {
-        loc = new URL('/api/app' + loc, url.origin).toString();
+        loc = new URL(loc).pathname + new URL(loc).search;
+      }
+      // 统一映射为 /api/app/* 直达代理函数（避免双 /app）
+      if (loc.startsWith('/app')) {
+        loc = '/api/app' + loc.slice(4);
+      } else if (loc.startsWith('/')) {
+        loc = '/api/app' + loc;
       }
       respHeaders.set('location', loc);
       continue;
