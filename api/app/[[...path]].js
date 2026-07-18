@@ -27,6 +27,7 @@ export default async function handler(req) {
   if (rest === '') rest = '/';
   // 去掉尾斜杠，避免 next-app（trailingSlash:false）再做一次 308 跳转
   if (rest.length > 1 && rest.endsWith('/')) rest = rest.slice(0, -1);
+  // next-app 配置了 basePath:'/app'，故在其域名下路径需带 /app 前缀
   const targetPath = '/app' + (rest === '/' ? '' : rest);
   const target = new URL(targetPath + url.search, NEXT_APP_ORIGIN);
 
@@ -51,6 +52,7 @@ export default async function handler(req) {
   }
 
   const respHeaders = new Headers();
+  respHeaders.set('x-proxy-target', target.toString());
   for (const [k, v] of upstream.headers.entries()) {
     const lk = k.toLowerCase();
     if (HOP_BY_HOP.includes(lk)) continue;
@@ -58,9 +60,9 @@ export default async function handler(req) {
       let loc = v;
       if (loc.startsWith(NEXT_APP_ORIGIN)) {
         const u = new URL(loc);
-        loc = new URL(u.pathname + u.search, url.origin).toString();
+        loc = new URL('/api/app' + u.pathname + u.search, url.origin).toString();
       } else if (loc.startsWith('/app')) {
-        loc = new URL(loc, url.origin).toString();
+        loc = new URL('/api/app' + loc, url.origin).toString();
       }
       respHeaders.set('location', loc);
       continue;
