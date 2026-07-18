@@ -22,6 +22,12 @@ button {
    使 chat/submissions 等页的 inline style 可原样保留。 */
 :root {
   --ifm-color-primary: #4285f4;
+  --ifm-color-primary-lighter: #7bb0f8;
+  --ifm-color-primary-contrast-background: rgba(66, 133, 244, 0.08);
+  --ifm-color-secondary-lightest: #f6f7f9;
+  --ifm-text-color: #1a1a1a;
+  --ifm-heading-color: #1a1a1a;
+  --ifm-background-color: #ffffff;
   --ifm-color-emphasis-0: #ffffff;
   --ifm-color-emphasis-100: #f5f6f7;
   --ifm-color-emphasis-200: #ebebeb;

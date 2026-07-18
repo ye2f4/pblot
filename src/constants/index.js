@@ -1,8 +1,8 @@
 // 页面路由常量
 export const ROUTES = {
-  LOGIN: '/login',
-  REGISTER: '/register',
-  PROFILE: '/profile'
+  LOGIN: '/app/login',
+  REGISTER: '/app/register',
+  PROFILE: '/app/profile'
 };
 
 // 主题颜色常量

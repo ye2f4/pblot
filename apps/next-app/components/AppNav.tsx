@@ -27,6 +27,8 @@ export default function AppNav() {
     { href: '/app/submissions', label: '投稿' },
     { href: '/app/friends', label: '好友' },
     { href: '/app/moments', label: '动态' },
+    { href: '/app/leaderboard', label: '排行榜' },
+    { href: '/app/capsule', label: '时光胶囊' },
   ];
 
   const handleLogout = async () => {

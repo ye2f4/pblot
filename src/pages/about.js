@@ -449,7 +449,7 @@ export default function About() {
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link
-                to="/chat/"
+                to="/app/chat/"
                 style={{
                   display: 'inline-block',
                   padding: '10px 24px',

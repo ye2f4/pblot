@@ -122,7 +122,7 @@ export default function MainContentTop({ siteData }) {
                     ✅ 签到
                 </Link>
                 <Link
-                    to="/forum?tab=random"
+                    to="/app/forum?tab=random"
                     className={styles.btnHover}
                     style={{
                         padding: '8px 16px',

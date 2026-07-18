@@ -88,7 +88,7 @@ export default function AllArticles() {
                     投稿
                   </span>
                   <Link
-                    to={`/submissions/?id=${s.id}`}
+                    to={`/app/submissions/?id=${s.id}`}
                     style={{
                       flex: 1, color: 'var(--ifm-color-emphasis-800)', textDecoration: 'none',
                       fontSize: 14, fontWeight: 500,
