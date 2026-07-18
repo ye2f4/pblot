@@ -1,8 +1,10 @@
-// /api/app/[[...path]].js
+// /api/app/[...path].js
 // Edge 反向代理：把主站 /app/* 代理到 next-app。
 // 原因：Vercel 免费计划（Hobby）会静默丢弃「rewrite 到外部域名」的规则，
 //       导致 /app/* 落到主站静态文件 → 404。改为内部 rewrite 到本函数（所有计划都支持），
 //       由本函数在 Vercel 边缘网络内 fetch next-app（Vercel→Vercel 可达）。
+// 注意：必须用「必需 catch-all」[...path]（而非可选 [[...path]]），否则带尾斜杠的
+//       /api/app/forum/ 不会被匹配，rewrite 会落到主站静态 404。
 export const config = {
   runtime: 'edge',
 };
@@ -52,7 +54,6 @@ export default async function handler(req) {
   }
 
   const respHeaders = new Headers();
-  respHeaders.set('x-proxy-target', target.toString());
   for (const [k, v] of upstream.headers.entries()) {
     const lk = k.toLowerCase();
     if (HOP_BY_HOP.includes(lk)) continue;
