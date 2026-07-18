@@ -202,15 +202,17 @@
       "destination": "/docs/meshtasticd/:path*/"
     }
   ],
-  "rewrites": [
+  "redirects": [
     {
       "source": "/app",
-      "destination": "/api/app/forum"
+      "destination": "/app/forum/"
     },
     {
       "source": "/app/",
-      "destination": "/api/app/forum"
-    },
+      "destination": "/app/forum/"
+    }
+  ],
+  "rewrites": [
     {
       "source": "/app/:path*/",
       "destination": "/api/app/:path*"
