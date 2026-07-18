@@ -81,6 +81,21 @@ export default function WarningModal() {
     (a, b) => (LEVEL_ORDER[a.level] ?? 9) - (LEVEL_ORDER[b.level] ?? 9),
   );
 
+  // 判断是否国内：经纬度落在中国范围(18–54°N / 73–135°E)，或区域/标题含国内关键词
+  const isDomestic = (w) => {
+    const lat = Number(w.lat);
+    const lng = Number(w.lng);
+    const inChina = !Number.isNaN(lat) && !Number.isNaN(lng) && lat >= 18 && lat <= 54 && lng >= 73 && lng <= 135;
+    const text = `${w.region || ''} ${w.title || ''} ${w.message || ''}`;
+    const cnKeyword = /中国|大陆|台湾|新疆|西藏|四川|云南|青海|甘肃|内蒙古|黑龙江|吉林|辽宁|河北|山西|陕西|河南|山东|湖北|湖南|江苏|安徽|浙江|福建|广东|广西|海南|北京|上海|天津|重庆|香港|澳门|境内|本省|本市/.test(text);
+    return inChina || cnKeyword;
+  };
+  const isEq = (w) => (w.type || '') === 'earthquake';
+
+  // 国内地震 + 非地震类预警 → 全屏；国外地震 → 右下角小卡片
+  const fullscreen = sorted.filter((w) => !isEq(w) || isDomestic(w));
+  const minor = sorted.filter((w) => isEq(w) && !isDomestic(w));
+
   function closeAll() {
     markDismissed(active.map((w) => w.id));
     setDismissed(getDismissed());
