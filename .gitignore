@@ -4,6 +4,7 @@ CrowdInTranslations*
 *.Identifier
 .docusaurus
 build
+.next/
 .vercel
 .env
 .pnpm-debug.log
