@@ -311,8 +311,8 @@ const config = {
           priority: 0.7,
           // 不使用 'date'/'datetime'：那会触发 Docusaurus 在构建时读取 git 获取每页最后更新时间，
           // 而 Vercel 上传式构建（vercel --prod --force）无 .git 工作树，会导致构建失败。
-          // 改为返回构建日期，避免依赖 git。
-          lastmod: () => new Date().toISOString().slice(0, 10),
+          // 设为 null 关闭 lastmod，保留 sitemap 且不依赖 git。
+          lastmod: null,
           ignorePatterns: ['/tags/**', '/categories/**', '/search'],
         },
       },
