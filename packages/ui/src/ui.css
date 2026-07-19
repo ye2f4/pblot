@@ -620,7 +620,8 @@ a + .navbar__link > svg {
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
   font-size: 0.875rem;
-  color: hsl(var(--muted-foreground));
+  /* 与父级普通菜单/下拉父项同为 foreground，避免「展开菜单颜色不一样」 */
+  color: hsl(var(--foreground));
   border-radius: 0.5rem;
   transition: background-color 0.15s ease, color 0.15s ease;
   text-decoration: none;
@@ -631,14 +632,14 @@ a + .navbar__link > svg {
   color: hsl(var(--foreground));
 }
 
-/* 侧边栏内的绿色按钮（投稿/聊天/GitHub）不再被拉伸：居中整宽按钮，与侧栏间距一致 */
+/* 侧边栏内的绿色按钮（投稿/聊天/GitHub）：居中显示为紧凑按钮，与菜单项视觉一致 */
 .navbar-sidebar .navbar-contribute-btn,
 .navbar-sidebar .navbar-chat-btn,
 .navbar-sidebar .navbar-github-btn {
-  display: flex !important;
-  width: 100%;
+  display: inline-flex !important;
+  width: auto !important;
   justify-content: center;
-  margin: 2px 0;
+  margin: 4px auto;
 }
 
 [data-theme='dark'] .navbar-sidebar {

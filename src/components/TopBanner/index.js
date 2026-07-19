@@ -88,6 +88,25 @@ const DEFAULT_COVER =
 // 两种数据源：
 //  - local   ：本地 MP3 列表（文件放 static/music/，配 music.mp3List）
 //  - netease ：网易云直链（用 api.injahow.cn/meting 取 mp3 直链，可配 music.songIds 或 music.playlistId）
+function parseLrc(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  const out = [];
+  const timeRe = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
+  for (const line of raw.split('\n')) {
+    const matches = [...line.matchAll(timeRe)];
+    if (!matches.length) continue;
+    const text = line.replace(timeRe, '').trim();
+    if (!text) continue;
+    for (const m of matches) {
+      const min = parseInt(m[1], 10);
+      const sec = parseInt(m[2], 10);
+      const ms = m[3] ? parseInt(m[3].padEnd(3, '0'), 10) / 1000 : 0;
+      out.push({ t: min * 60 + sec + ms, text });
+    }
+  }
+  return out.sort((a, b) => a.t - b.t);
+}
+
 function MusicWidget({ siteData, base = '' }) {
   const music = siteData?.music || {};
   const title = music.title || '🎵 背景音乐';
@@ -102,6 +121,9 @@ function MusicWidget({ siteData, base = '' }) {
   const [duration, setDuration] = useState(0);
   const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [lyricsOpen, setLyricsOpen] = useState(false);
+  const [lyrics, setLyrics] = useState(null);
+  const [lyricsLoading, setLyricsLoading] = useState(false);
   const audioRef = useRef(null);
 
   // 构建播放列表
@@ -118,6 +140,7 @@ function MusicWidget({ siteData, base = '' }) {
       const build = (songs) => (songs || [])
         .filter(Boolean)
         .map((s) => ({
+          id: s.id,
           title: s.name || '未知歌曲',
           artist: s.artist || '未知歌手',
           cover: s.cover || s.pic || DEFAULT_COVER,
@@ -179,6 +202,26 @@ function MusicWidget({ siteData, base = '' }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, playlist]);
 
+  // 歌词获取（仅 netease 云端模式）：折叠面板默认关闭，不影响布局
+  useEffect(() => {
+    if (mode !== 'netease') { setLyrics(null); return; }
+    const song = playlist[currentIndex];
+    if (!song || !song.id) { setLyrics(null); return; }
+    let isMounted = true;
+    setLyricsLoading(true);
+    setLyrics(null);
+    fetch(`https://api.injahow.cn/meting/?server=netease&type=lyric&id=${song.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!isMounted) return;
+        const raw = (data && (data.lyric || data.tlyric)) || '';
+        setLyrics(parseLrc(raw));
+      })
+      .catch(() => { if (isMounted) setLyrics([]); })
+      .finally(() => { if (isMounted) setLyricsLoading(false); });
+    return () => { isMounted = false; };
+  }, [mode, currentIndex, playlist]);
+
   const togglePlay = () => {
     const a = audioRef.current;
     if (!a) return;
@@ -219,6 +262,16 @@ function MusicWidget({ siteData, base = '' }) {
   }
 
   const currentSong = playlist[currentIndex];
+
+  // 当前歌词行（按播放进度高亮）
+  const activeLyric = (() => {
+    if (!lyrics || !lyrics.length) return -1;
+    let idx = 0;
+    for (let i = 0; i < lyrics.length; i++) {
+      if (currentTime >= lyrics[i].t) idx = i; else break;
+    }
+    return idx;
+  })();
 
   return (
     <>
@@ -276,7 +329,27 @@ function MusicWidget({ siteData, base = '' }) {
             <button onClick={nextSong} className="text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors drop-shadow-sm">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
             </button>
+            {mode === 'netease' && (
+              <button
+                onClick={() => setLyricsOpen((o) => !o)}
+                title="歌词"
+                className={`ml-1 text-[10px] font-black px-2 py-1 rounded-full border transition-colors duration-200 ${lyricsOpen ? 'bg-indigo-500 text-white border-indigo-500' : 'text-indigo-500 border-indigo-300 dark:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700'}`}
+              >
+                词
+              </button>
+            )}
           </div>
+          {lyricsOpen && mode === 'netease' && (
+            <div className="mt-3 relative z-10 max-h-[112px] overflow-y-auto rounded-xl bg-white/35 dark:bg-slate-900/45 backdrop-blur px-3 py-2 text-center scroll-smooth transition-all duration-300">
+              {lyricsLoading
+                ? <p className="text-xs text-slate-500 dark:text-slate-400 py-2">歌词加载中…</p>
+                : (lyrics && lyrics.length
+                  ? lyrics.map((ln, i) => (
+                      <p key={i} className={`text-xs leading-6 transition-colors duration-200 ${i === activeLyric ? 'text-indigo-600 dark:text-indigo-300 font-bold' : 'text-slate-500 dark:text-slate-400'}`}>{ln.text || '♪'}</p>
+                    ))
+                  : <p className="text-xs text-slate-500 dark:text-slate-400 py-2">暂无歌词</p>)}
+            </div>
+          )}
         </div>
       </div>
     </>

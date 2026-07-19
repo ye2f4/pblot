@@ -120,9 +120,33 @@ function MobileItem({
         </button>
         {open && (
           <div className="mobile-nav-submenu">
-            {item.items.map((c, i) => (
-              <NavLink key={i} item={c} L={L} />
-            ))}
+            {item.items.map((c, i) => {
+              // 关键：子项不能走 NavLink（会带 navbar__link，被 <600px 规则隐藏 → 展开空白）
+              const childActive = itemIsActive(pathname, c);
+              const childCls = ['mobile-nav-submenu__link', childActive ? 'navbar__link--active' : '']
+                .filter(Boolean)
+                .join(' ');
+              if (c.href) {
+                const isHttp = c.href.startsWith('http');
+                return (
+                  <a
+                    key={i}
+                    className={childCls}
+                    href={c.href}
+                    target={isHttp ? '_blank' : undefined}
+                    rel={isHttp ? 'noopener noreferrer' : undefined}
+                    onClick={onNavigate}
+                  >
+                    {c.label}
+                  </a>
+                );
+              }
+              return (
+                <L key={i} to={c.to} className={childCls} onClick={onNavigate}>
+                  {c.label}
+                </L>
+              );
+            })}
           </div>
         )}
       </div>

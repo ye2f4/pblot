@@ -753,7 +753,9 @@ export default function MiddleStatsCard({
         <div className="pixel-clock-fixed" style={{
           padding: isMobile ? "10px 12px" : "12px 14px", borderRadius: "16px", textAlign: "center",
           boxShadow: "0 4px 16px rgba(0,0,0,0.08)", position: "relative",
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
           width: '100%', height: isMobile ? 'auto' : '100%', boxSizing: 'border-box',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
         }}>
           <p style={{ margin: '0 0 3px', fontSize: isMobile ? 12 : 15, color: '#1ce306', fontWeight: 500 }}>
             {locationName}当地时间

@@ -198,7 +198,8 @@ export default function WarningModal() {
       {minor.map((w) => (
         <div key={'minor-' + w.id} style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 99998, width: 340, maxWidth: '90vw', background: '#fff', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
           {renderCard(w, true)}
-          <div style={{ padding: '8px 12px', textAlign: 'right', borderTop: '1px solid #eee' }}>
+          <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee' }}>
+            <button onClick={onCloseAll} style={{ fontSize: 13, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}>关闭全部</button>
             <button onClick={() => closeOne(w.id)} style={{ padding: '6px 14px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>知道了</button>
           </div>
         </div>

@@ -180,8 +180,8 @@
   },
 
   "music": {
-    "mode": "local",
-    "playlistId": "",
+    "mode": "netease",
+    "playlistId": "3778678",
     "songIds": [],
     "mp3List": [
       {
