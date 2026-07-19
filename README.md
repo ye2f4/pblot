@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- 项目 Logo 区域 -->
-<img src="static/img/logo.svg" alt="PBLOT Logo" width="90" style={{marginBottom: "12px"}}/>
+<img src="static/img/pblot_logo.png" alt="PBLOT Logo" width="90" style={{marginBottom: "12px"}}/>
 
 # 🧩 PBLOT 社区平台
 ### 基于 Docusaurus + Supabase 构建的现代化社区 | 个人中心 | 实时聊天系统

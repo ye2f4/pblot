@@ -16,6 +16,8 @@ const nextConfig = {
   // 编辑器内仍按 next-app 自身 tsconfig 做类型校验，故此处仅跳过构建期阻断。
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
+  // @mono/ui 是 workspace 内的 TS 源码包，需让 Next 转译它
+  transpilePackages: ['@mono/ui'],
 };
 
 export default nextConfig;

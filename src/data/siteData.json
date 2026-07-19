@@ -36,8 +36,8 @@
     "blogTitle": "Monoの小窝",
     "blogDescription": "个人随笔、技术分享、开源教程",
     "logoAlt": "Mono Logo",
-    "logoSrc": "img/logo.svg",
-    "favicon": "img/logo.svg",
+    "logoSrc": "img/pblot_logo.png",
+    "favicon": "img/pblot_logo.png",
     "avatarImage": "https://monoblog.cc.cd/img/avatar.webp"
   },
 
@@ -126,7 +126,8 @@
           { "label": "Supabase", "href": "https://supabase.com" }
         ]
       }
-    ]
+    ],
+    "beian": { "href": "https://icp.gov.moe/?keyword=20265033", "label": "萌ICP备20265033号" }
   },
 
   "carouselConfig": {
@@ -327,5 +328,62 @@
     { "filename": "ad_right_2.webp", "link": "https://klpbbs.com/t/ad/yxy_pc.html" },
     { "filename": "ad_right_3.webp", "link": "https://xz.klpz.net/123/" },
     { "filename": "ad_right_4.webp", "link": "https://mcbebbs.cn/" }
-  ]
+  ],
+
+  "appNavbarConfig": {
+    "brand": { "title": "Monoの小窝", "href": "https://monoblog.cc.cd/" },
+    "items": [
+      { "label": "首页", "to": "/", "position": "left" },
+      { "label": "论坛", "to": "/forum/", "position": "left" },
+      { "label": "投稿", "to": "/submissions/", "position": "left" },
+      { "label": "说说", "to": "/moments/", "position": "left" },
+      { "label": "友链", "to": "/friends/", "position": "left" },
+      { "label": "排行榜", "to": "/leaderboard/", "position": "left" },
+      { "label": "时光胶囊", "to": "/capsule/", "position": "left" },
+      { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" }
+    ]
+  },
+
+  "appFooterConfig": {
+    "brand": { "title": "Monoの小窝", "href": "https://monoblog.cc.cd/" },
+    "columns": [
+      {
+        "title": "导航",
+        "items": [
+          { "label": "博客", "href": "https://monoblog.cc.cd/blog/" },
+          { "label": "文章", "href": "https://monoblog.cc.cd/docs/introduction/" },
+          { "label": "论坛", "to": "/forum/" },
+          { "label": "聊天", "to": "/chat/" }
+        ]
+      },
+      {
+        "title": "功能",
+        "items": [
+          { "label": "说说", "to": "/moments/" },
+          { "label": "投稿广场", "to": "/submissions/" },
+          { "label": "排行榜", "to": "/leaderboard/" },
+          { "label": "时光胶囊", "to": "/capsule/" }
+        ]
+      },
+      {
+        "title": "关于",
+        "items": [
+          { "label": "关于本站", "href": "https://monoblog.cc.cd/about/" },
+          { "label": "用户协议", "href": "https://monoblog.cc.cd/terms/" },
+          { "label": "隐私政策", "href": "https://monoblog.cc.cd/privacy/" },
+          { "label": "更新日志", "href": "https://monoblog.cc.cd/changelog/" }
+        ]
+      },
+      {
+        "title": "外部",
+        "items": [
+          { "label": "GitHub", "href": "https://github.com/ye2f4" },
+          { "label": "Vercel", "href": "https://vercel.com" },
+          { "label": "Supabase", "href": "https://supabase.com" }
+        ]
+      }
+    ],
+    "copyright": "© Monoの小窝 · Built with Next.js",
+    "beian": { "href": "https://icp.gov.moe/?keyword=20265033", "label": "萌ICP备20265033号" }
+  }
 }

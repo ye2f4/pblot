@@ -42,8 +42,8 @@ const config = {
     {
       tagName: 'link',
       attributes: {
-        rel: 'preload', href: '/img/logo.svg', as: 'image',
-        type: 'image/svg+xml', fetchpriority: 'high',
+        rel: 'preload', href: '/img/pblot_logo.png', as: 'image',
+        type: 'image/png', fetchpriority: 'high',
       },
     },
     {

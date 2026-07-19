@@ -93,7 +93,7 @@
 
 <br />
 <div align="center">
-<img src="/img/logo.svg" alt="Monoの小窝" width="200"/>
+<img src="/img/pblot_logo.png" alt="Monoの小窝" width="200"/>
 <p><i>站点 Logo（可替换为实际预览截图）</i></p>
 </div>
 

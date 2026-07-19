@@ -71,6 +71,9 @@ importers:
       '@meshtastic/protobufs':
         specifier: jsr:^2.7.20
         version: '@jsr/meshtastic__protobufs@2.7.23'
+      '@mono/ui':
+        specifier: workspace:*
+        version: link:packages/ui
       '@radix-ui/react-popover':
         specifier: ^1.1.15
         version: 1.1.16(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -231,6 +234,9 @@ importers:
 
   apps/next-app:
     dependencies:
+      '@mono/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@supabase/ssr':
         specifier: ^0.5.1
         version: 0.5.2(@supabase/supabase-js@2.108.0)
@@ -265,6 +271,12 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
+
+  packages/ui:
+    dependencies:
+      react:
+        specifier: '>=18'
+        version: 19.2.7
 
 packages:
 

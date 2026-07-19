@@ -10,6 +10,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
+    "dev:all": "concurrently -n site,app -c blue,green \"pnpm start\" \"pnpm --filter next-app dev\"",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "serve": "docusaurus serve",
@@ -42,6 +43,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@mono/ui": "workspace:*",
     "@algolia/client-search": "^5.52.1",
     "@crowdin/cli": "^4.14.2",
     "@docsearch/css": "^4.6.3",

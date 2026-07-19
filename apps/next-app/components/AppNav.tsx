@@ -2,19 +2,100 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { SiteHeader, type LinkComponentProps } from '@mono/ui';
+import siteData from '../../../src/data/siteData.json';
 
-// /app 区域内的统一导航外壳：让 Next.js 子应用像"站点内的独立区域"，并与主站(Docusaurus)风格保持一致。
-//
-// 关键：next.config 里 basePath='/app'，Next <Link> 会自动补上 /app 前缀。
-// 所以内部链接的 href 必须【不带】/app（写 '/chat'，实际渲染为 '/app/chat'）。
-// 之前写成 '/app/chat' 会被再次加前缀 → '/app/app/chat' 套娃 404。
-//
-// 跳回主站(Docusaurus)用普通 <a href="/">（不走 basePath / 不走 rewrite）。
+const NextLink = (props: LinkComponentProps) => {
+  if (props.href) {
+    const external = props.href.startsWith('http');
+    return (
+      <a
+        href={props.href}
+        className={props.className}
+        title={props.title}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+      >
+        {props.children}
+      </a>
+    );
+  }
+  return (
+    <Link href={props.to ?? '/'} className={props.className} title={props.title}>
+      {props.children}
+    </Link>
+  );
+};
+
+function AppSearchBox() {
+  // 点击跳转主站搜索页（app 无本地文档搜索）
+  return (
+    <a
+      className="navbar__search"
+      href="https://monoblog.cc.cd/search"
+      title="搜索"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" strokeLinecap="round" />
+      </svg>
+      <span className="navbar__search-placeholder">搜索</span>
+      <kbd className="navbar__search-kbd">Ctrl K</kbd>
+    </a>
+  );
+}
+
+function AppColorModeToggle() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const stored = localStorage.getItem('theme');
+    const isDark =
+      stored === 'dark' ||
+      (stored === null &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setDark(isDark);
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+  }, []);
+  const toggle = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.dataset.theme = next ? 'dark' : 'light';
+    try {
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+    } catch {
+      /* ignore */
+    }
+  };
+  return (
+    <button
+      type="button"
+      aria-label="切换主题"
+      onClick={toggle}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '2.25rem',
+        minHeight: '2.25rem',
+        padding: 0,
+        border: 'none',
+        background: 'transparent',
+        color: 'hsl(var(--muted-foreground))',
+        cursor: 'pointer',
+        borderRadius: '0.375rem',
+        fontSize: '1.1rem',
+      }}
+    >
+      {dark ? '☀' : '🌙'}
+    </button>
+  );
+}
+
 export default function AppNav() {
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
-  const pathname = usePathname(); // 已含 basePath，如 /app/chat
+  const pathname = usePathname() ?? '/'; // Next usePathname 不含 basePath，如 /chat
 
   useEffect(() => {
     let active = true;
@@ -26,172 +107,40 @@ export default function AppNav() {
     };
   }, []);
 
-  // href 不带 /app 前缀（Next 自动补）；active 判定用带前缀的完整路径
-  const navItems = [
-    { href: '/', full: '/app', label: '首页' },
-    { href: '/forum', full: '/app/forum', label: '论坛' },
-    { href: '/submissions', full: '/app/submissions', label: '投稿' },
-    { href: '/moments', full: '/app/moments', label: '说说' },
-    { href: '/friends', full: '/app/friends', label: '友链' },
-    { href: '/leaderboard', full: '/app/leaderboard', label: '排行榜' },
-    { href: '/capsule', full: '/app/capsule', label: '时光胶囊' },
-  ];
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // 原生跳转不经过 Next <Link>，basePath 不会自动补，需手写 /app
     window.location.href = '/app/login';
   };
 
-  const isActive = (full: string) =>
-    full === '/app' ? pathname === '/app' : pathname === full || pathname.startsWith(full + '/');
+  const cfg = siteData.appNavbarConfig;
+
+  const authSlot: ReactNode =
+    loggedIn === null ? null : loggedIn ? (
+      <>
+        <NextLink to="/profile" className="navbar__link">
+          个人中心
+        </NextLink>
+        <button type="button" className="navbar__link" onClick={handleLogout}>
+          退出
+        </button>
+      </>
+    ) : (
+      <NextLink to="/login" className="navbar__link navbar-contribute-btn">
+        登录
+      </NextLink>
+    );
 
   return (
-    <header
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 500,
-        background: 'rgba(255,255,255,0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(0,0,0,0.08)',
+    <SiteHeader
+      brand={cfg.brand}
+      items={cfg.items}
+      linkComponent={NextLink}
+      pathname={pathname}
+      slots={{
+        auth: authSlot,
+        search: <AppSearchBox />,
+        colorMode: <AppColorModeToggle />,
       }}
-    >
-      <div
-        style={{
-          maxWidth: '90rem',
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          padding: '0.7rem 1.5rem',
-          minHeight: 56,
-        }}
-      >
-        {/* 品牌：返回主站 */}
-        <a
-          href="/"
-          title="返回主站"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            fontWeight: 600,
-            fontSize: '1.125rem',
-            color: '#2E7D9E',
-            textDecoration: 'none',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Monoの小窝
-        </a>
-
-        {/* 主导航 */}
-        <nav
-          style={{
-            display: 'flex',
-            gap: 4,
-            flex: 1,
-            overflowX: 'auto',
-            alignItems: 'center',
-            scrollbarWidth: 'none',
-          }}
-        >
-          {navItems.map((item) => {
-            const active = isActive(item.full);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  color: active ? '#2E7D9E' : '#555',
-                  fontWeight: active ? 600 : 400,
-                  background: active ? 'rgba(46,125,158,0.08)' : 'transparent',
-                  textDecoration: 'none',
-                  whiteSpace: 'nowrap',
-                  fontSize: 15,
-                  transition: 'background 0.15s, color 0.15s',
-                }}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* 右侧：聊天(绿色药丸) + 登录态 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <Link
-            href="/chat"
-            style={{
-              padding: '6px 14px',
-              borderRadius: 6,
-              background: '#22c55e',
-              color: '#fff',
-              textDecoration: 'none',
-              fontSize: 14,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            聊天
-          </Link>
-
-          {loggedIn === null ? null : loggedIn ? (
-            <>
-              <Link
-                href="/profile"
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  color: '#2E7D9E',
-                  textDecoration: 'none',
-                  fontSize: 14,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                个人中心
-              </Link>
-              <button
-                onClick={handleLogout}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #ddd',
-                  background: '#f5f5f5',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                退出
-              </button>
-            </>
-          ) : (
-            <Link
-              href="/login"
-              style={{
-                padding: '6px 14px',
-                borderRadius: 6,
-                background: '#2E7D9E',
-                color: '#fff',
-                textDecoration: 'none',
-                fontSize: 14,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              登录
-            </Link>
-          )}
-        </div>
-      </div>
-    </header>
+    />
   );
 }
