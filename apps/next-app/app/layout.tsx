@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import AppNav from '@/components/AppNav';
+import AppFooter from '@/components/AppFooter';
 
 export const metadata: Metadata = {
   title: 'Monoの小窝 · App',
@@ -10,9 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN">
-      <body style={{ margin: 0 }}>
+      <body style={{ margin: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppNav />
-        {children}
+        <main style={{ flex: 1 }}>{children}</main>
+        <AppFooter />
       </body>
     </html>
   );

@@ -28,6 +28,8 @@ button {
   --ifm-text-color: #1a1a1a;
   --ifm-heading-color: #1a1a1a;
   --ifm-background-color: #ffffff;
+  --ifm-card-background-color: #ffffff;
+  --ifm-font-color-base: #1a1a1a;
   --ifm-color-emphasis-0: #ffffff;
   --ifm-color-emphasis-100: #f5f6f7;
   --ifm-color-emphasis-200: #ebebeb;
