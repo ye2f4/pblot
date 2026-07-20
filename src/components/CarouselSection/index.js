@@ -77,7 +77,7 @@ const ImagePlaceholder = () => (
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: 'var(--ifm-color-emphasis-400)', fontSize: 14,
     }}>
-        加载中...
+        <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
     </div>
 );
 

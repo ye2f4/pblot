@@ -69,7 +69,9 @@ export default function TagCloud({ siteData }) {
     <div className={styles.sectionCard}>
       <h3 className={styles.sectionTitle}>{siteData.texts.tagsTitle}</h3>
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 16, color: '#ccc' }}>⏳ 加载中...</div>
+        <div style={{ textAlign: 'center', padding: 16, color: '#ccc' }}>
+          <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
+        </div>
       ) : (
         <div className={styles.tagCloud}>
           {tags.map((tag, i) => (

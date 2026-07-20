@@ -100,10 +100,12 @@ function MobileItem({
   item,
   L,
   pathname,
+  onNavigate,
 }: {
   item: NavItem;
   L: LinkComponent;
   pathname: string;
+  onNavigate: () => void;
 }) {
   if (item.items && item.items.length) {
     const [open, setOpen] = useState(false);
@@ -167,6 +169,7 @@ function MobileItem({
           href={item.href}
           target={isHttp ? '_blank' : undefined}
           rel={isHttp ? 'noopener noreferrer' : undefined}
+          onClick={onNavigate}
         >
           <span className="mobile-nav-item__label">{item.label}</span>
           {isHttp && <span className="mobile-nav-item__external">↗</span>}
@@ -176,7 +179,7 @@ function MobileItem({
   }
   return (
     <div className="mobile-nav-item">
-      <L to={item.to} className={cls}>
+      <L to={item.to} className={cls} onClick={onNavigate}>
         <span className="mobile-nav-item__label">{item.label}</span>
       </L>
     </div>
@@ -267,10 +270,10 @@ export function SiteHeader({
       </div>
       <div className="mobile-nav-menu">
         {leftItems.map((it, i) => (
-          <MobileItem key={i} item={it} L={L} pathname={pathname} />
+          <MobileItem key={i} item={it} L={L} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
         ))}
         {rightItems.map((it, i) => (
-          <MobileItem key={`r${i}`} item={it} L={L} pathname={pathname} />
+          <MobileItem key={`r${i}`} item={it} L={L} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
         ))}
         {slots?.auth}
       </div>

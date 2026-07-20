@@ -103,7 +103,9 @@ export default function ContributionHeatmap({ userId }) {
       </div>
 
       {loading ? (
-        <div style={{ color: 'var(--ifm-color-emphasis-600)', padding: '20px 0' }}>⏳ 加载中...</div>
+        <div style={{ color: 'var(--ifm-color-emphasis-600)', padding: '20px 0' }}>
+          <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
+        </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <div style={{ display: 'inline-flex', gap: 4 }}>

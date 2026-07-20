@@ -125,6 +125,10 @@
   view-transition-name: none;
   overflow: visible !important;
   z-index: 500;
+  /* 修复：不被 Infima 固定高度(--ifm-navbar-height)裁切；内容更高时自动撑开，
+     下边线始终落在真实视觉底部（否则绿色按钮/搜索框会溢出到边线之下） */
+  height: auto !important;
+  min-height: var(--ifm-navbar-height, 4.5rem);
 }
 
 @media (width >= 997px) {

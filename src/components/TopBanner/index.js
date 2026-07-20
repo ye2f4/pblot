@@ -87,7 +87,7 @@ const DEFAULT_COVER =
 // 音乐挂件（XinghuisamaBlogs 主题）：毛玻璃卡片 + 旋转唱片 + 进度控制
 // 两种数据源：
 //  - local   ：本地 MP3 列表（文件放 static/music/，配 music.mp3List）
-//  - netease ：网易云直链（用 api.injahow.cn/meting 取 mp3 直链，可配 music.songIds 或 music.playlistId）
+//  - netease ：网易云（经服务端 /api/music 代理取 mp3 外链 + 歌词，可配 music.songIds 或 music.playlistId）
 function parseLrc(raw) {
   if (!raw || typeof raw !== 'string') return [];
   const out = [];
@@ -113,6 +113,9 @@ function MusicWidget({ siteData, base = '' }) {
   const mode = music.mode || (music.playlistId ? 'netease' : 'local');
   const autoplay = !!music.autoplay;
 
+  // 本地 dev 下 /api/music 由脚本 scripts/dev-api.mjs（:3009）提供；生产走同源 /api/music
+  const API_BASE = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3009';
+
   const [playlist, setPlaylist] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -137,29 +140,32 @@ function MusicWidget({ siteData, base = '' }) {
         ? idsRaw
         : (typeof idsRaw === 'string' && idsRaw.trim() ? idsRaw.split(/[\n,，]/).map((s) => s.trim()).filter(Boolean) : []);
       const pid = String(music.playlistId || '').trim();
-      const build = (songs) => (songs || [])
-        .filter(Boolean)
-        .map((s) => ({
-          id: s.id,
-          title: s.name || '未知歌曲',
-          artist: s.artist || '未知歌手',
-          cover: s.cover || s.pic || DEFAULT_COVER,
-          src: s.url,
-        }))
-        .filter((s) => s.src);
 
       const run = async () => {
         try {
-          let list = [];
+          let raw = [];
           if (ids.length) {
-            const res = await Promise.all(ids.map((id) =>
-              fetch(`https://api.injahow.cn/meting/?server=netease&type=song&id=${id}`).then((r) => r.json()).catch(() => null)
-            ));
-            list = build(res.filter((r) => r && r.length).map((r) => r[0]));
+            const res = await fetch(`${API_BASE}/api/music?ids=${encodeURIComponent(ids.join(','))}`)
+              .then((r) => r.json())
+              .catch(() => null);
+            raw = Array.isArray(res) ? res : [];
           } else if (pid) {
-            const res = await fetch(`https://api.injahow.cn/meting/?server=netease&type=playlist&id=${pid}`).then((r) => r.json()).catch(() => null);
-            list = build(res);
+            const res = await fetch(`${API_BASE}/api/music?pid=${encodeURIComponent(pid)}`)
+              .then((r) => r.json())
+              .catch(() => null);
+            raw = Array.isArray(res) ? res : [];
           }
+          // 字段映射（与本地模式结构一致），并由服务端代理一并返回 lrc
+          const list = (raw || [])
+            .filter((s) => s && s.url && !s.error)
+            .map((s) => ({
+              id: s.id,
+              title: s.name || '未知歌曲',
+              artist: s.artist || '未知歌手',
+              cover: s.cover || DEFAULT_COVER,
+              src: s.url,
+              lyrics: s.lrc ? parseLrc(s.lrc) : [],
+            }));
           if (!isMounted) return;
           if (list.length) setPlaylist(list);
           else setStatus('音乐流被拦截，可能是版权限制');
@@ -202,24 +208,16 @@ function MusicWidget({ siteData, base = '' }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, playlist]);
 
-  // 歌词获取（仅 netease 云端模式）：折叠面板默认关闭，不影响布局
+  // 歌词：netease 模式已从 /api/music 一并返回（currentSong.lyrics），无需再额外请求
   useEffect(() => {
     if (mode !== 'netease') { setLyrics(null); return; }
     const song = playlist[currentIndex];
-    if (!song || !song.id) { setLyrics(null); return; }
-    let isMounted = true;
     setLyricsLoading(true);
-    setLyrics(null);
-    fetch(`https://api.injahow.cn/meting/?server=netease&type=lyric&id=${song.id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!isMounted) return;
-        const raw = (data && (data.lyric || data.tlyric)) || '';
-        setLyrics(parseLrc(raw));
-      })
-      .catch(() => { if (isMounted) setLyrics([]); })
-      .finally(() => { if (isMounted) setLyricsLoading(false); });
-    return () => { isMounted = false; };
+    if (!song || !song.lyrics) { setLyrics([]); setLyricsLoading(false); return; }
+    const isMounted = true;
+    setLyrics(song.lyrics);
+    setLyricsLoading(false);
+    return () => { if (isMounted) setLyrics(null); };
   }, [mode, currentIndex, playlist]);
 
   const togglePlay = () => {
@@ -589,7 +587,9 @@ export default function TopBanner({
           overflow: 'hidden',
         }}>
           {loading ? (
-            <div style={{ textAlign: 'center', color: '#999' }}>加载中...</div>
+            <div style={{ textAlign: 'center', color: '#999' }}>
+              <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
+            </div>
           ) : !user ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ fontSize: 14, color: '#666' }}>

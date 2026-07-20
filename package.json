@@ -10,7 +10,10 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "dev:all": "concurrently -n site,app -c blue,green \"pnpm start\" \"pnpm --filter next-app dev\"",
+    "start:proxy": "docusaurus start --port=3002",
+    "start:proxy": "docusaurus start --port=3002",
+    "dev:all": "concurrently -n proxy,site,app,api -c magenta,blue,green,yellow \"node scripts/dev-proxy.mjs\" \"pnpm start:proxy\" \"pnpm --filter next-app dev\" \"node scripts/dev-api.mjs\"",
+    "dev:api": "node scripts/dev-api.mjs",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "serve": "docusaurus serve",
