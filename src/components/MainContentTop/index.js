@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from '@docusaurus/Link';
 import styles from '../../pages/index.module.css';
+import { useMusic } from '../../utils/musicContext';
 
 export default function MainContentTop({ siteData }) {
     const [isMobile, setIsMobile] = useState(false);
+    const { share } = useMusic();
+    // 播放音乐且有歌词时显示当前歌词行（居中静态），否则显示公告跑马灯
+    const playingLyric = share.isPlaying && share.lyrics && share.activeLyric >= 0 ? (share.lyrics[share.activeLyric]?.text || '♪') : null;
     const marqueeAnimation = {
         animation: 'marquee 18s linear infinite',
         whiteSpace: 'nowrap',
@@ -72,7 +76,7 @@ export default function MainContentTop({ siteData }) {
                 ))}
             </div>
 
-            {/* 滚动通知栏 */}
+            {/* 滚动通知栏：播放音乐时显示当前歌词行（居中静态），否则显示公告跑马灯 */}
             <div style={{
                 height: 40,
                 backgroundColor: '#E3F2FD',
@@ -84,18 +88,35 @@ export default function MainContentTop({ siteData }) {
                 width: isMobile ? '100%' : 'auto',
                 position: 'relative'
             }}>
-                <span
-                    style={{
-                        color: '#004085',
-                        fontSize: 14,
-                        position: 'absolute',
-                        ...marqueeAnimation
-                    }}
-                    onMouseEnter={(e) => Object.assign(e.target.style, marqueeHover)}
-                    onMouseLeave={(e) => Object.assign(e.target.style, marqueeAnimation)}
-                >
-                    {siteData.texts.notification}
-                </span>
+                {playingLyric ? (
+                    <span
+                        style={{
+                            color: '#004085',
+                            fontSize: 14,
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            whiteSpace: 'nowrap',
+                            fontWeight: 600,
+                        }}
+                    >
+                        {playingLyric}
+                    </span>
+                ) : (
+                    <span
+                        style={{
+                            color: '#004085',
+                            fontSize: 14,
+                            position: 'absolute',
+                            ...marqueeAnimation
+                        }}
+                        onMouseEnter={(e) => Object.assign(e.target.style, marqueeHover)}
+                        onMouseLeave={(e) => Object.assign(e.target.style, marqueeAnimation)}
+                    >
+                        {siteData.texts.notification}
+                    </span>
+                )}
             </div>
 
             {/* 操作按钮组 */}

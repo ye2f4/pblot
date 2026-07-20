@@ -49,7 +49,7 @@ module.exports = function deployUiPlugin() {
             // 把 /api/* 处理器插到最前，确保先于 historyApiFallback 生效
             middlewares.unshift({
               name: 'deploy-ui-api',
-              middleware: (req, res, next) => {
+              middleware: async (req, res, next) => {
                 const url = req.url.split('?')[0];
 
                 // 实时日志流（SSE）
@@ -84,11 +84,19 @@ module.exports = function deployUiPlugin() {
                   return;
                 }
 
-                // 触发部署 / 预览（复用 scripts/github-push.mjs 的 runDeploy，全程不调用 git）
+                // 触发部署 / 预览（复用 scripts/github-push.mjs 的 runDeploy）
                 if (req.method === 'POST' && url === '/api/deploy') {
                   // setupMiddlewares 的 req 是原始 IncomingMessage，无 req.query，需手动解析 query
                   const params = new URLSearchParams(req.url.split('?')[1] || '');
                   const dry = params.get('dry') === '1' || params.get('dry') === 'true';
+                  // 读取请求体中的提交信息（commit message），供 git commit -m 使用
+                  let body = {};
+                  try {
+                    const chunks = [];
+                    for await (const c of req) chunks.push(c);
+                    const raw = Buffer.concat(chunks).toString('utf8');
+                    if (raw) body = JSON.parse(raw);
+                  } catch { /* 忽略解析错误，使用默认提交信息 */ }
                   res.writeHead(200, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ ok: true, dry }));
                   loadMod().then((mod) => {
@@ -96,6 +104,7 @@ module.exports = function deployUiPlugin() {
                     broadcast('clear', '');
                     return mod.runDeploy({
                       dryRun: dry,
+                      message: body.message,
                       onLog: (...a) => broadcast('log', a.join(' ')),
                       onWarn: (...a) => broadcast('warn', a.join(' ')),
                     });

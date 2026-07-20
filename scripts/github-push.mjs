@@ -31,7 +31,7 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 // 计算 Git 对象的 blob SHA-1：sha1("blob " + 字节长度 + "\0" + 内容)
 // 与 GitHub 树里的 blob sha 完全一致，可用于本地/远端增量比对。
@@ -140,6 +140,7 @@ const cfg = {
   message: 'deploy: 自动同步',
   vercelHook: '',
   dryRun: false,
+  gitEnabled: true, // 默认开启真实 git commit，用于激活仓库历史 / AI 更新日志
 };
 
 // 从 .git 直接解析仓库（owner/name）与当前分支，避免依赖 git 可执行文件（dev server 进程 PATH 可能不含 git）
@@ -196,6 +197,10 @@ async function reloadConfig() {
   cfg.message = process.env.GITHUB_COMMIT_MSG ?? fileConfig.GITHUB_COMMIT_MSG ?? 'deploy: 自动同步';
   cfg.vercelHook = process.env.VERCEL_DEPLOY_HOOK ?? fileConfig.VERCEL_DEPLOY_HOOK ?? '';
   cfg.dryRun = (process.env.DEPLOY_DRY_RUN ?? fileConfig.DEPLOY_DRY_RUN ?? '0') === '1';
+  // GITHUB_GIT_COMMIT=0/false/no 时禁用真实 git 提交，仅使用 GitHub API 推送
+  cfg.gitEnabled = process.env.GITHUB_GIT_COMMIT
+    ? !/^(0|false|no)$/i.test(process.env.GITHUB_GIT_COMMIT)
+    : (fileConfig.GITHUB_GIT_COMMIT ? !/^(0|false|no)$/i.test(String(fileConfig.GITHUB_GIT_COMMIT)) : true);
 
   // 未显式配置仓库时，尝试从 git remote 自动探测
   if (!cfg.repo) {
@@ -261,11 +266,58 @@ async function pool(items, size, worker) {
   await Promise.all(runners);
 }
 
+// A 线（git 优先）：真实 git commit + push，用于激活仓库历史 / AI 更新日志。
+// 成功返回 true；未检测到 git、无改动或提交/推送失败时返回 false，由调用方回退到 GitHub API。
+// 若提交成功但推送失败，会软重置撤销本地提交，保证工作区干净、可直接由 API 兜底。
+async function gitCommitAndPush(message) {
+  try {
+    execFileSync('git', ['--version'], { cwd: ROOT, stdio: 'ignore' });
+  } catch {
+    warn('未检测到 git 命令，回退到 GitHub API 推送。');
+    return false;
+  }
+  let committed = false;
+  try {
+    execFileSync('git', ['add', '-A'], { cwd: ROOT });
+    // 判断是否有可提交内容（git diff --cached --quiet 退出码 0 表示无改动）
+    try {
+      execFileSync('git', ['diff', '--cached', '--quiet'], { cwd: ROOT, stdio: 'ignore' });
+      log('ℹ️ 工作区无新增改动，跳过 git 提交。');
+      return false; // 交给 API 兜底同步远端
+    } catch {
+      /* 有改动，继续 */
+    }
+    const branch =
+      execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim() || cfg.branch;
+    log(`git commit -m "${message}"`);
+    execFileSync('git', ['commit', '-m', message], { cwd: ROOT });
+    committed = true;
+    log(`✅ git commit 成功（分支 ${branch}）`);
+    log('git push origin HEAD:' + branch);
+    execFileSync('git', ['push', 'origin', 'HEAD:' + branch], { cwd: ROOT });
+    log('✅ git push 完成，仓库历史已更新（AI 更新日志可据此生成）。');
+    return true;
+  } catch (e) {
+    if (committed) {
+      try {
+        execFileSync('git', ['reset', '--soft', 'HEAD~1'], { cwd: ROOT });
+        log('⚠️ 已撤销本地 git 提交，回退到 API 推送。');
+      } catch {
+        /* 忽略重置失败 */
+      }
+    }
+    const detail = e.stderr ? e.stderr.toString().trim() : e.message;
+    warn('git 提交/推送失败：' + detail + '，回退到 GitHub API 推送。');
+    return false;
+  }
+}
+
 async function runDeploy(opts = {}) {
   if (opts.onLog) logSink = opts.onLog;
   if (opts.onWarn) warnSink = opts.onWarn;
   await reloadConfig(); // 部署前实时重读最新配置（无需重启）
   const effectiveDryRun = opts.dryRun ?? cfg.dryRun;
+  const commitMessage = opts.message || cfg.message; // 可被 UI 传入，覆盖默认提交信息
   log(`扫描本地文件 (root=${ROOT}) …`);
   const files = await walk(ROOT);
   log(`共发现 ${files.length} 个文件`);
@@ -273,6 +325,7 @@ async function runDeploy(opts = {}) {
   if (effectiveDryRun) {
     // 预览模式：只扫描+列出将同步的文件，不触碰 GitHub，无需 Token
     log('预览模式：仅列出将同步的文件，不推送（无需 GitHub Token）。');
+    log('预览提交信息：' + commitMessage + (cfg.gitEnabled !== false ? '（将优先 git commit，失败回退 API）' : '（git 已禁用，使用 API）'));
     for (const f of files.slice(0, 200)) log('· ' + f);
     if (files.length > 200) log(`… 其余 ${files.length - 200} 个文件省略`);
     return;
@@ -335,6 +388,15 @@ async function runDeploy(opts = {}) {
   if (toUpload.length === 0 && deleted.length === 0) {
     log('工作区与远端一致，无改动，跳过提交。');
   } else {
+    // A 线（git 优先）：真实 git commit + push，用于激活仓库历史 / AI 更新日志
+    let gitPushed = false;
+    if (cfg.gitEnabled !== false) {
+      gitPushed = await gitCommitAndPush(commitMessage);
+    }
+    if (gitPushed) {
+      log('✅ 已通过 git 提交并推送，跳过 GitHub API 建树（避免重复提交）。');
+      pushed = true;
+    } else {
     // 仅为改动文件创建 blob
     const entries = [];
     let created = 0;
@@ -366,7 +428,7 @@ async function runDeploy(opts = {}) {
       log('创建 commit…');
       const commit = await gh(`/repos/${cfg.repo}/git/commits`, {
         method: 'POST',
-        body: { message: cfg.message, tree: tree.sha, parents: [baseSha] },
+        body: { message: commitMessage, tree: tree.sha, parents: [baseSha] },
       });
 
       log('更新分支引用…');
@@ -377,6 +439,7 @@ async function runDeploy(opts = {}) {
       log(`A 线完成：已推送到 ${cfg.repo}@${cfg.branch} (${commit.sha.slice(0, 7)})`);
       pushed = true;
     }
+  }
   }
 
   // B 线：仅在真正推送后触发 Vercel 重新部署，避免无改动空构建
@@ -405,6 +468,8 @@ export async function getDeployStatus() {
     repo: cfg.repo || null,
     branch: cfg.branch,
     hasVercelHook: Boolean(cfg.vercelHook),
+    message: cfg.message,
+    gitEnabled: cfg.gitEnabled,
   };
 }
 

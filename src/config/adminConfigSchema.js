@@ -80,11 +80,10 @@ export const ADMIN_CONFIG_SCHEMA = [
       {
         key: 'music.mode',
         label: '音乐数据源模式',
-        help: 'netease=网易云直链（需填歌单/歌曲 ID）；local=本地 MP3（需配置 mp3List 文件）',
+        help: '仅支持网易云直链（需填歌单/歌曲 ID 或下方歌曲 ID 列表）',
         type: 'select',
         options: [
           { value: 'netease', label: '网易云直链 (Cloud Music)' },
-          { value: 'local', label: '本地 MP3 (Local Music)' },
         ],
         default: 'netease',
       },

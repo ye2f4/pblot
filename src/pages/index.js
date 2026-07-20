@@ -11,6 +11,7 @@ import { supabase } from '../supabase/supabaseClient';
 import { showAlert } from '@/utils/dialog';
 import { AVATAR_CACHE_KEY } from '../supabase/supabaseClient';
 import { storage } from '../utils/storage';
+import { MusicProvider } from '../utils/musicContext';
 
 // 自定义钩子
 import { useAuth } from '../hooks/useAuth';
@@ -350,28 +351,28 @@ export default function Home() {
 
 
       {/* TopBanner 彻底移除clockTimeEpoch、clockLocationName两个参数 */}
-      <TopBanner
-        siteData={mergedSiteData}
-        base={base}
-        user={user}
-        loading={loading}
-        signOutLoading={signOutLoading}
-        isSessionChecked={isSessionChecked}
-        userCount={userCount}
-        latestUser={latestUser}
-        now={realNow}
-        handleGitHubLogin={handleGitHubLogin}
-        handleSignOut={handleSignOut}
-        showTimeErrModal={showTimeErrModal}
-        errModalText={errModalText}
-        onCloseModal={() => setShowTimeErrModal(false)}
-        // 核心时钟参数
-        timeEpoch={clockTimeEpoch}
-        locationName={clockLocationName}
-        timeZoneOffset={clockTzOffsetSec}
-        timeZone={clockTimeZone}
-      />
-
+      <MusicProvider>
+        <TopBanner
+          siteData={mergedSiteData}
+          base={base}
+          user={user}
+          loading={loading}
+          signOutLoading={signOutLoading}
+          isSessionChecked={isSessionChecked}
+          userCount={userCount}
+          latestUser={latestUser}
+          now={realNow}
+          handleGitHubLogin={handleGitHubLogin}
+          handleSignOut={handleSignOut}
+          showTimeErrModal={showTimeErrModal}
+          errModalText={errModalText}
+          onCloseModal={() => setShowTimeErrModal(false)}
+          // 核心时钟参数
+          timeEpoch={clockTimeEpoch}
+          locationName={clockLocationName}
+          timeZoneOffset={clockTzOffsetSec}
+          timeZone={clockTimeZone}
+        />
       <div ref={mainContentRef} className="main-content fadeIn" style={{
         maxWidth: 1200, margin: '20px auto', padding: '0 15px',
         display: 'flex', flexDirection: 'column', gap: 20, width: '100%',
@@ -421,6 +422,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      </MusicProvider>
 
       {showTimeErrModal && (
         <div style={{

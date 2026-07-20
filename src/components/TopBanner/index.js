@@ -5,6 +5,7 @@ import styles from '../../pages/index.module.css';
 import { supabase, AVATAR_CACHE_EXPIRE } from '../../supabase/supabaseClient';
 import { isBrowser } from '../../utils/env';
 import { storage } from '../../utils/storage';
+import { useMusic } from '../../utils/musicContext';
 import MiddleStatsCard from '../MiddleStatsCard';
 import { triggerGlobalProfileRefresh, AVATAR_CACHE_KEY } from '../../utils/globalProfileUtil';
 
@@ -85,9 +86,7 @@ const DEFAULT_COVER =
   );
 
 // 音乐挂件（XinghuisamaBlogs 主题）：毛玻璃卡片 + 旋转唱片 + 进度控制
-// 两种数据源：
-//  - local   ：本地 MP3 列表（文件放 static/music/，配 music.mp3List）
-//  - netease ：网易云（经服务端 /api/music 代理取 mp3 外链 + 歌词，可配 music.songIds 或 music.playlistId）
+// 数据源：netease 网易云（经服务端 /api/music 代理取 mp3 外链 + 歌词，可配 music.songIds 或 music.playlistId）
 function parseLrc(raw) {
   if (!raw || typeof raw !== 'string') return [];
   const out = [];
@@ -110,7 +109,7 @@ function parseLrc(raw) {
 function MusicWidget({ siteData, base = '' }) {
   const music = siteData?.music || {};
   const title = music.title || '🎵 背景音乐';
-  const mode = music.mode || (music.playlistId ? 'netease' : 'local');
+  const mode = 'netease'; // 仅支持网易云数据源
   const autoplay = !!music.autoplay;
 
   // 本地 dev 下 /api/music 由脚本 scripts/dev-api.mjs（:3009）提供；生产走同源 /api/music
@@ -124,10 +123,9 @@ function MusicWidget({ siteData, base = '' }) {
   const [duration, setDuration] = useState(0);
   const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [lyricsOpen, setLyricsOpen] = useState(false);
   const [lyrics, setLyrics] = useState(null);
-  const [lyricsLoading, setLyricsLoading] = useState(false);
   const audioRef = useRef(null);
+  const { setShare } = useMusic();
 
   // 构建播放列表
   useEffect(() => {
@@ -175,29 +173,10 @@ function MusicWidget({ siteData, base = '' }) {
         }
       };
       run();
-    } else {
-      const list = (Array.isArray(music.mp3List) ? music.mp3List : [])
-        .filter(Boolean)
-        .map((f) => {
-          const isObj = f && typeof f === 'object';
-          const file = isObj ? String(f.file || '') : String(f);
-          const name = file.replace(/^\/+/, '').replace(/\.[^.]+$/, '');
-          return {
-            title: (isObj && f.title) || name || '本地音乐',
-            artist: (isObj && f.artist) || '本地音乐',
-            cover: (isObj && f.cover) || DEFAULT_COVER,
-            src: (base || '') + 'music/' + encodeURIComponent(file.replace(/^\/+/, '')),
-          };
-        })
-        .filter((s) => s.src);
-      if (!isMounted) return;
-      setPlaylist(list);
-      setIsLoading(false);
-      if (!list.length) setStatus('请配置 music.mp3List');
     }
     return () => { isMounted = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, JSON.stringify(music.songIds || []), music.playlistId, JSON.stringify(music.mp3List || []), base]);
+  }, [JSON.stringify(music.songIds || []), music.playlistId, base]);
 
   // 切歌时若处于播放态则继续播放
   useEffect(() => {
@@ -210,15 +189,10 @@ function MusicWidget({ siteData, base = '' }) {
 
   // 歌词：netease 模式已从 /api/music 一并返回（currentSong.lyrics），无需再额外请求
   useEffect(() => {
-    if (mode !== 'netease') { setLyrics(null); return; }
     const song = playlist[currentIndex];
-    setLyricsLoading(true);
-    if (!song || !song.lyrics) { setLyrics([]); setLyricsLoading(false); return; }
-    const isMounted = true;
+    if (!song || !song.lyrics) { setLyrics([]); return; }
     setLyrics(song.lyrics);
-    setLyricsLoading(false);
-    return () => { if (isMounted) setLyrics(null); };
-  }, [mode, currentIndex, playlist]);
+  }, [currentIndex, playlist]);
 
   const togglePlay = () => {
     const a = audioRef.current;
@@ -243,6 +217,30 @@ function MusicWidget({ siteData, base = '' }) {
     if (a && a.duration) { a.currentTime = (np / 100) * a.duration; setCurrentTime(a.currentTime); }
   };
 
+  // 提前计算当前歌曲与高亮歌词行（在 early return 之前，供下方 useEffect 使用）
+  const currentSong = playlist[currentIndex];
+
+  // 当前歌词行（按播放进度高亮）
+  const activeLyric = (() => {
+    if (!lyrics || !lyrics.length) return -1;
+    let idx = 0;
+    for (let i = 0; i < lyrics.length; i++) {
+      if (currentTime >= lyrics[i].t) idx = i; else break;
+    }
+    return idx;
+  })();
+
+  // 将播放状态/歌词发布到 context，供公告栏联动显示歌词
+  // 必须在所有 early return 之前调用，遵守 Hooks 规则
+  useEffect(() => {
+    setShare({
+      isPlaying,
+      currentSong: currentSong || null,
+      lyrics: lyrics || null,
+      activeLyric,
+    });
+  }, [isPlaying, currentSong, lyrics, activeLyric, setShare]);
+
   if (isLoading) {
     return (
       <div className="rounded-3xl bg-white/40 dark:bg-slate-800/50 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-xl p-4 flex flex-col items-center justify-center transition-colors duration-700 min-h-[150px]">
@@ -258,18 +256,6 @@ function MusicWidget({ siteData, base = '' }) {
       </div>
     );
   }
-
-  const currentSong = playlist[currentIndex];
-
-  // 当前歌词行（按播放进度高亮）
-  const activeLyric = (() => {
-    if (!lyrics || !lyrics.length) return -1;
-    let idx = 0;
-    for (let i = 0; i < lyrics.length; i++) {
-      if (currentTime >= lyrics[i].t) idx = i; else break;
-    }
-    return idx;
-  })();
 
   return (
     <>
@@ -296,7 +282,7 @@ function MusicWidget({ siteData, base = '' }) {
           </div>
           <div className="flex-col overflow-hidden w-full">
             <div className="flex items-center justify-between mb-1 min-w-0 gap-1">
-              <span className="text-[10px] font-black text-indigo-500 dark:text-indigo-400 tracking-widest uppercase bg-white/50 dark:bg-slate-900/50 px-2 py-0.5 rounded-sm shadow-sm transition-colors duration-700">{mode === 'netease' ? 'Cloud Music' : 'Local Music'}</span>
+              <span className="text-[10px] font-black text-indigo-500 dark:text-indigo-400 tracking-widest uppercase bg-white/50 dark:bg-slate-900/50 px-2 py-0.5 rounded-sm shadow-sm transition-colors duration-700">Cloud Music</span>
               <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white/40 dark:bg-slate-700/50 px-2 rounded-full transition-colors duration-700">{currentIndex + 1} / {playlist.length}</span>
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white truncate drop-shadow-sm transition-colors duration-700">{currentSong.title}</h3>
@@ -327,27 +313,7 @@ function MusicWidget({ siteData, base = '' }) {
             <button onClick={nextSong} className="text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors drop-shadow-sm">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
             </button>
-            {mode === 'netease' && (
-              <button
-                onClick={() => setLyricsOpen((o) => !o)}
-                title="歌词"
-                className={`ml-1 text-[10px] font-black px-2 py-1 rounded-full border transition-colors duration-200 ${lyricsOpen ? 'bg-indigo-500 text-white border-indigo-500' : 'text-indigo-500 border-indigo-300 dark:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700'}`}
-              >
-                词
-              </button>
-            )}
           </div>
-          {lyricsOpen && mode === 'netease' && (
-            <div className="mt-3 relative z-10 max-h-[112px] overflow-y-auto rounded-xl bg-white/35 dark:bg-slate-900/45 backdrop-blur px-3 py-2 text-center scroll-smooth transition-all duration-300">
-              {lyricsLoading
-                ? <p className="text-xs text-slate-500 dark:text-slate-400 py-2">歌词加载中…</p>
-                : (lyrics && lyrics.length
-                  ? lyrics.map((ln, i) => (
-                      <p key={i} className={`text-xs leading-6 transition-colors duration-200 ${i === activeLyric ? 'text-indigo-600 dark:text-indigo-300 font-bold' : 'text-slate-500 dark:text-slate-400'}`}>{ln.text || '♪'}</p>
-                    ))
-                  : <p className="text-xs text-slate-500 dark:text-slate-400 py-2">暂无歌词</p>)}
-            </div>
-          )}
         </div>
       </div>
     </>
@@ -510,7 +476,7 @@ export default function TopBanner({
             </h3>
           </div>
           <div>
-            {siteData?.music?.playlistId || (Array.isArray(siteData?.music?.mp3List) && siteData?.music?.mp3List.length) ? (
+            {siteData?.music?.playlistId || (Array.isArray(siteData?.music?.songIds) && siteData?.music?.songIds.length) ? (
               <MusicWidget siteData={siteData} base={base} />
             ) : siteData?.features?.showBlogPreview !== false ? (
               <>

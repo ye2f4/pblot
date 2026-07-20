@@ -183,14 +183,6 @@
     "mode": "netease",
     "playlistId": "",
     "songIds": ["1809646618", "3361076230", "1859390262"],
-    "mp3List": [
-      {
-        "file": "起风了.mp3",
-        "title": "起风了",
-        "artist": "冯沁苑(买辣椒也用券)",
-        "lrc": "起风了.lrc"
-      }
-    ],
     "autoplay": false,
     "title": "🎵 云音乐"
   },

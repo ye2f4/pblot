@@ -11,6 +11,7 @@ function DevDeployPanelInner() {
   const [deploying, setDeploying] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [cfg, setCfg] = useState(null);
+  const [commitMsg, setCommitMsg] = useState('');
   const esRef = useRef(null);
   const logBoxRef = useRef(null);
 
@@ -45,7 +46,11 @@ function DevDeployPanelInner() {
     setStatus(dry ? 'previewing' : 'deploying');
     setLogs((l) => [...l, dry ? '▶ 预览改动…' : '▶ 开始部署…']);
     try {
-      const res = await fetch('/api/deploy' + (dry ? '?dry=1' : ''), { method: 'POST' });
+      const res = await fetch('/api/deploy' + (dry ? '?dry=1' : ''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: commitMsg }),
+      });
       if (!res.ok) setLogs((l) => [...l, '❌ 接口错误 ' + res.status]);
     } catch (e) {
       setLogs((l) => [...l, '❌ 请求失败：' + e.message]);
@@ -88,9 +93,22 @@ function DevDeployPanelInner() {
           <>
             仓库：<b>{cfg.repo || '未配置'}</b>　分支：<b>{cfg.branch}</b><br />
             Token：{cfg.hasToken ? '✅ 已配置' : '❌ 未配置（请在 scripts/deploy.config.mjs 填入 GITHUB_TOKEN）'}<br />
-            Vercel Hook：{cfg.hasVercelHook ? '✅ 已配置' : '⚪ 未配置（仅推 GitHub）'}
+            Vercel Hook：{cfg.hasVercelHook ? '✅ 已配置' : '⚪ 未配置（仅推 GitHub）'}<br />
+            git 提交：{cfg.gitEnabled ? '✅ 开启（优先真实 git commit）' : '⚪ 关闭（仅用 API）'}
           </>
         )}
+      </div>
+
+      <div style={{ padding: '8px 10px', borderBottom: '1px solid #eee' }}>
+        <div style={{ fontSize: 11, color: '#777', marginBottom: 4 }}>
+          提交信息（git commit -m）：用 <b>update:Vx.x</b> 可激活网站 AI 更新日志
+        </div>
+        <input
+          value={commitMsg}
+          onChange={(e) => setCommitMsg(e.target.value)}
+          placeholder={cfg?.message || 'deploy: 自动同步'}
+          style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', fontSize: 12, border: '1px solid #ccc', borderRadius: 6 }}
+        />
       </div>
 
       <div style={btnRowStyle}>
