@@ -44,3 +44,9 @@ entrypoint = "./functions/admin-friends/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/fetch-quake/index.ts"
+
+[functions.bilibili-oauth]
+enabled = true
+verify_jwt = false
+import_map = "./functions/bilibili-oauth/deno.json"
+entrypoint = "./functions/bilibili-oauth/index.ts"

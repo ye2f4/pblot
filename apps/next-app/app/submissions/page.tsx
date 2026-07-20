@@ -130,7 +130,7 @@ function SubmissionsInner() {
           </div>
 
           <div style={{ marginTop: 24 }}>
-            {loading && <p style={{ color: 'var(--ifm-color-emphasis-600)' }}>加载中…</p>}
+            {loading && <p style={{ color: 'var(--ifm-color-emphasis-600)', textAlign: 'center' }}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></p>}
             {error && (
               <div style={{ padding: 16, borderRadius: 10, background: 'var(--ifm-color-emphasis-100)', color: 'var(--ifm-color-emphasis-800)' }}>{error}</div>
             )}
@@ -153,7 +153,7 @@ function SubmissionsInner() {
 
 export default function Submissions() {
   return (
-    <Suspense fallback={<div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 60px', textAlign: 'center', color: 'var(--ifm-color-emphasis-600)' }}>加载中…</div>}>
+    <Suspense fallback={<div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 60px', textAlign: 'center', color: 'var(--ifm-color-emphasis-600)' }}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>}>
       <SubmissionsInner />
     </Suspense>
   );

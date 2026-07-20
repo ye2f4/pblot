@@ -143,7 +143,7 @@ export default function Leaderboard() {
   if (loading) {
     return (
       <div style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 20px', textAlign: 'center', color: 'var(--ifm-color-emphasis-600)', fontSize: '16px' }}>
-        正在加载排行榜数据...
+        <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
       </div>
     );
   }

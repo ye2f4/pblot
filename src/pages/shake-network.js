@@ -556,7 +556,7 @@ function MapCore() {
           )}
           {loading && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 14, background: 'rgba(240,244,248,0.6)' }}>
-              ⏳ 正在加载共享台站…
+              <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
             </div>
           )}
         </div>
@@ -747,7 +747,7 @@ export default function ShakeNetwork() {
   return (
     <Layout title="共享地震台网" description="消费全球爱好者与机构公开共享的地震监测设备">
       <BrowserOnly fallback={
-        <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>加载中…</div>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>
       }>
         {() => <MapCore />}
       </BrowserOnly>

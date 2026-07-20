@@ -575,7 +575,7 @@ function MapCore() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           height: '50px', color: '#999', fontSize: 14, gap: '8px'
         }}>
-          <span>⏳</span> 正在加载访客数据...
+          <img src="/img/LOADING.gif" alt="加载中" width={48} style={{ opacity: 0.92 }} />
         </div>
       )}
 
@@ -650,7 +650,7 @@ export default function VisitMap() {
     <Layout title="全球访问地图" description="Monoの小窝 - 全球访客分布地图">
       <BrowserOnly fallback={
         <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-          地图加载中...
+          <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
         </div>
       }>
         {() => <MapCore />}

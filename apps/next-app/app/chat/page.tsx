@@ -394,7 +394,7 @@ export default function ChatPage() {
   const myAvatar = myProfile?.avatar_url || DEFAULT_EMOJI_AVATAR;
   const myId = currentUser?.id;
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '60px', color: 'var(--ifm-text-color)' }}>加载中...</div>;
+  if (loading) return <div style={{ textAlign: 'center', padding: '60px', color: 'var(--ifm-text-color)' }}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>;
   if (!currentUser) return <div style={{ textAlign: 'center', padding: '60px', color: 'var(--ifm-text-color)' }}>请先登录</div>;
 
   return (

@@ -407,7 +407,7 @@ export default function ForumTopics() {
 
         {/* 加载状态 */}
         {loading && (
-          <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>⏳ 加载中...</div>
+          <div style={{ textAlign: 'center', padding: 40, color: '#999' }}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>
         )}
 
         {/* === 抽贴模式 === */}

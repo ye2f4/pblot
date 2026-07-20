@@ -1,0 +1,57 @@
+name: 部署记录
+
+# 作用：为「双轨部署」在 GitHub Actions 留下可见的运行记录。
+#
+# 背景：
+#   - 项目通过 scripts/github-push.mjs 双轨推送：A 线用 git/GitHub API 提交到分支，
+#     B 线（可选）触发 Vercel Deploy Hook。
+#   - Vercel 的自动构建走的是它自己的 GitHub App 集成，与 GitHub Actions 是两套
+#     相互独立的系统 —— 所以此前每次 push 只在 Vercel 触发构建，Actions 里没有任何记录。
+#   - 之前 .github/workflows 下没有任何 `on: push` 的工作流，自然不会有运行记录。
+#
+# 本工作流只做「轻量记录」：读取本次推送的提交信息并写入 Actions 运行摘要，
+# 不执行 install / build，避免与 Vercel 的构建重复或冲突。
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+# 只保留同一分支最近一次记录，旧的自动取消，保持列表整洁
+concurrency:
+  group: deploy-record-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  record:
+    name: 记录本次部署
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: 检出代码（浅克隆，取最近提交）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+
+      - name: 汇总部署信息到运行摘要
+        run: |
+          echo "## 🚀 双轨部署记录" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **分支**：\`${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **提交**：\`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **触发者**：${GITHUB_ACTOR}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **触发事件**：${GITHUB_EVENT_NAME}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **时间(UTC)**：$(date -u '+%Y-%m-%d %H:%M:%S')" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### 📝 最近提交" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          git log -5 --pretty=format:'%h  %an  %ad  %s' --date=format:'%Y-%m-%d %H:%M' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "> Vercel 会经由其 GitHub App 自动构建部署；本记录仅用于在 Actions 留痕，不重复构建。" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 控制台输出（便于日志检索）
+        run: |
+          echo "部署记录：${GITHUB_REF_NAME}@${GITHUB_SHA} by ${GITHUB_ACTOR} (${GITHUB_EVENT_NAME})"

@@ -74,7 +74,7 @@ export default function SignIn() {
                     justifyContent: 'center',
                     background: 'var(--ifm-color-emphasis-100)'
                 }}>
-                    <p style={{ fontSize: '16px', color: 'var(--ifm-color-emphasis-600)' }}>加载中...</p>
+                    <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
                 </div>
             </Layout>
         );
@@ -112,8 +112,8 @@ export default function SignIn() {
                             <p style={{ color: '#ff5722', fontSize: '15px' }}>
                                 请登录后使用签到功能
                             </p>
-                            <Link
-                                to="/app/login"
+                            <a
+                                href="/app/login"
                                 style={{
                                     display: 'inline-block',
                                     padding: '10px 22px',
@@ -125,7 +125,7 @@ export default function SignIn() {
                                 }}
                             >
                                 前往登录
-                            </Link>
+                            </a>
                         </div>
                     ) : (
                         <>

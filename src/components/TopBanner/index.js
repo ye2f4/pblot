@@ -12,9 +12,23 @@ import { triggerGlobalProfileRefresh, AVATAR_CACHE_KEY } from '../../utils/globa
 // 登录主题色配置
 const loginTheme = {
   primaryBg: '#509feb', primaryHoverBg: '#3e8cd8',
-  bilibiliBg: '#fa78a0', githubBg: '#272b30', githubHoverBg: '#373c42',
+  bilibiliBg: '#fa78a0', bilibiliHoverBg: '#e85d8a', githubBg: '#272b30', githubHoverBg: '#373c42',
   logoutBg: '#f53f3f', logoutHoverBg: '#d32f2f',
 };
+
+// 哔哩哔哩品牌 Logo（小电视）
+const BilibiliLogo = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+    <path d="M18.223 3.086a1.25 1.25 0 0 1 0 1.768L17.08 5.996h1.17A3.75 3.75 0 0 1 22 9.747v7.5a3.75 3.75 0 0 1-3.75 3.75H5.75A3.75 3.75 0 0 1 2 17.247v-7.5a3.75 3.75 0 0 1 3.75-3.751h1.166L5.775 4.854a1.25 1.25 0 1 1 1.767-1.768l2.652 2.652c.079.079.145.165.198.257h3.213c.053-.092.12-.18.199-.258l2.651-2.652a1.25 1.25 0 0 1 1.768 0zM18.25 8.496H5.75a1.25 1.25 0 0 0-1.247 1.157l-.003.094v7.5c0 .659.51 1.198 1.157 1.246l.093.004h12.5a1.25 1.25 0 0 0 1.247-1.157l.003-.093v-7.5c0-.69-.56-1.25-1.25-1.25zm-9.5 2.5c.69 0 1.25.56 1.25 1.25v1.25a1.25 1.25 0 1 1-2.5 0v-1.25c0-.69.56-1.25 1.25-1.25zm6.5 0c.69 0 1.25.56 1.25 1.25v1.25a1.25 1.25 0 1 1-2.5 0v-1.25c0-.69.56-1.25 1.25-1.25z" />
+  </svg>
+);
+
+// GitHub 品牌 Logo（Octocat mark）
+const GitHubLogo = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.216.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+  </svg>
+);
 
 // 优先读取数据库 nickname，兜底授权信息
 const getUserName = (user = null, nickName = '') => {
@@ -331,6 +345,7 @@ export default function TopBanner({
   latestUser = '新用户',
   now = new Date(),
   handleGitHubLogin = () => { },
+  handleBilibiliLogin = () => { },
   handleSignOut = () => { },
   timeEpoch = Math.floor(Date.now() / 1000),
   locationName = "Beijing",
@@ -564,8 +579,8 @@ export default function TopBanner({
 
               {/* 登录、注册强制同一行，弹性均分 */}
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <Link
-                  to="/app/login"
+                <a
+                  href="/app/login"
                   style={{
                     flex: 1, textAlign: 'center',
                     background: siteData?.loginTheme?.primaryBg || loginTheme.primaryBg,
@@ -579,10 +594,10 @@ export default function TopBanner({
                   onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.primaryBg || loginTheme.primaryBg; e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)'; }}
                 >
                   {siteData?.texts?.buttons?.login || '立即登录'}
-                </Link>
+                </a>
 
-                <Link
-                  to="/app/register"
+                <a
+                  href="/app/register"
                   style={{
                     flex: 1, textAlign: 'center',
                     background: siteData?.loginTheme?.primaryBg || loginTheme.primaryBg,
@@ -596,25 +611,27 @@ export default function TopBanner({
                   onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.primaryBg || loginTheme.primaryBg; e.target.style.boxShadow = '0 2px 8px rgba(80,159,235,0.22)'; }}
                 >
                   {siteData?.texts?.buttons?.register || '立即注册'}
-                </Link>
+                </a>
               </div>
 
               {/* B站按钮 */}
               <button
-                disabled
+                onClick={handleBilibiliLogin}
                 style={{
                   width: '100%', border: 'none',
                   background: siteData?.loginTheme?.bilibiliBg || loginTheme.bilibiliBg,
                   color: '#fff', padding: '11px 16px',
                   borderRadius: '12px', fontSize: 14, fontWeight: 500,
-                  cursor: 'not-allowed', opacity: 0.92,
+                  cursor: 'pointer', opacity: 0.92,
                   transition: 'all 0.25s ease',
                   boxShadow: '0 2px 8px rgba(250,120,160,0.22)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
                 }}
+                onMouseOver={(e) => { e.target.style.background = siteData?.loginTheme?.bilibiliHoverBg || loginTheme.bilibiliHoverBg; e.target.style.boxShadow = '0 4px 12px rgba(250,120,160,0.32)'; }}
+                onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.bilibiliBg || loginTheme.bilibiliBg; e.target.style.boxShadow = '0 2px 8px rgba(250,120,160,0.22)'; }}
               >
-                <span>📺</span>
-                {siteData?.texts?.buttons?.bilibiliLogin || 'Bilibili 登录（开发中）'}
+                <BilibiliLogo />
+                {siteData?.texts?.buttons?.bilibiliLogin || '哔哩哔哩登录'}
               </button>
 
               {/* GitHub登录 */}
@@ -632,7 +649,7 @@ export default function TopBanner({
                 onMouseOver={(e) => { e.target.style.background = siteData?.loginTheme?.githubHoverBg || loginTheme.githubHoverBg; e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.20)'; }}
                 onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.githubBg || loginTheme.githubBg; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.13)'; }}
               >
-                <span>🐱</span>
+                <GitHubLogo />
                 {siteData?.texts?.buttons?.githubLogin || 'GitHub 登录'}
               </button>
 
@@ -644,8 +661,8 @@ export default function TopBanner({
                 <span>{siteData?.texts?.welcomeBack || '👋 欢迎回来，'}<strong>{dbNickname || getUserName(user)}</strong></span>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <Link
-                  to="/app/profile"
+                <a
+                  href="/app/profile"
                   style={{
                     flex: 1,
                     minWidth: '100px',
@@ -662,7 +679,7 @@ export default function TopBanner({
                   onMouseOut={(e) => e.target.style.borderColor = '#ccc'}
                 >
                   {siteData?.texts?.buttons?.profile || '个人中心'}
-                </Link>
+                </a>
                 <button
                   onClick={handleSignOut}
                   disabled={signOutLoading}

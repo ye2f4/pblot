@@ -171,7 +171,7 @@ export default function CodeSnippets() {
           color: 'var(--ifm-color-emphasis-600)',
           fontSize: '16px'
         }}>
-          正在加载代码片段...
+          <img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} />
         </div>
       </Layout>
     );

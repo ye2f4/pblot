@@ -585,7 +585,7 @@ export default function AdminPage() {
               ))}
               <button onClick={loadSubs} disabled={subBusy} style={{ padding: '6px 12px', background: '#f0f0f0', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>🔄 刷新</button>
             </div>
-            {subBusy && <div style={{ color: '#999', fontSize: 14 }}>加载中…</div>}
+            {subBusy && <div style={{ color: '#999', fontSize: 14 }}><img src="/img/LOADING.gif" alt="加载中" width={40} style={{ opacity: 0.92 }} /></div>}
             {!subBusy && subs.length === 0 && <div style={{ color: '#999', fontSize: 14 }}>该状态下暂无投稿</div>}
             {subs.map((s) => (
               <div key={s.id} style={{ border: '1px solid #eee', borderLeft: `4px solid ${SUB_STATUS[s.status]?.color || '#888'}`, borderRadius: 8, padding: '12px 14px', margin: '8px 0' }}>

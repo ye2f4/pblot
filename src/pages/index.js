@@ -96,7 +96,7 @@ export default function Home() {
     return () => window.removeEventListener('forceClockTs', handler);
   }, [])
 
-  const { user, loading, isSessionChecked, handleGitHubLogin: rawGithubLogin, handleSignOut: rawHandleSignOut } = useAuth();
+  const { user, loading, isSessionChecked, handleGitHubLogin: rawGithubLogin, handleBilibiliLogin: rawBilibiliLogin, handleSignOut: rawHandleSignOut } = useAuth();
 
   // 退出登录
   const handleSignOut = async () => {
@@ -122,6 +122,19 @@ export default function Home() {
     } catch (err) {
       console.error("GitHub登录异常", err);
       showAlert(err.message || "浏览器拦截弹窗，请切换页面跳转模式");
+    }
+  };
+
+  // 哔哩哔哩登录（整页跳转，由 /bilibili-callback 完成会话落地）
+  const handleBilibiliLogin = async () => {
+    if (loading) return;
+    try {
+      await rawBilibiliLogin();
+      const { data } = await supabase.auth.getSession();
+      console.log('Bilibili登录后会话', data.session);
+    } catch (err) {
+      console.error("Bilibili登录异常", err);
+      showAlert(err.message || "Bilibili 登录失败");
     }
   };
 
@@ -363,6 +376,7 @@ export default function Home() {
           latestUser={latestUser}
           now={realNow}
           handleGitHubLogin={handleGitHubLogin}
+          handleBilibiliLogin={handleBilibiliLogin}
           handleSignOut={handleSignOut}
           showTimeErrModal={showTimeErrModal}
           errModalText={errModalText}
@@ -393,14 +407,14 @@ export default function Home() {
           </div>
           <div className="sidebar-container" style={{ flex: '3 1 260px', minWidth: 0, overflow: 'hidden', boxSizing: 'border-box' }}>
             {/* 侧边栏早已删除PixelClock渲染块 */}
-            <Suspense fallback={<div className="stat-card" style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载天气...</div>}>
+            <Suspense fallback={<div className="stat-card" style={{ minHeight: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>}>
               <WeatherWidget />
             </Suspense>
 
             <div className="stat-card">
               <RankList siteData={mergedSiteData} />
             </div>
-            <Suspense fallback={<div className="stat-card" style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>加载中...</div>}>
+            <Suspense fallback={<div className="stat-card" style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>}>
               {commentsLoaded && (
                 <CommentSection
                   comments={comments}

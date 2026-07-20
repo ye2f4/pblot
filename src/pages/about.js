@@ -448,8 +448,8 @@ export default function About() {
               📮 邮箱：a5b4c3d2e1-114514@outlook.com 、 mcpianpian118@outlook.com
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link
-                to="/app/chat/"
+              <a
+                href="/app/chat/"
                 style={{
                   display: 'inline-block',
                   padding: '10px 24px',
@@ -463,7 +463,7 @@ export default function About() {
                 }}
               >
                 💬 留言板
-              </Link>
+              </a>
               <a
                 href="https://github.com/ye2f4"
                 target="_blank"

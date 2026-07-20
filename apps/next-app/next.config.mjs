@@ -5,11 +5,17 @@ const nextConfig = {
   basePath: '/app',
   // 静态资源（/_next/static）走绝对域名前缀，绕过主站 Vercel 对 /_next/* 的保留路径限制：
   // 主站代理只负责转发 HTML/API，CSS/JS 由浏览器直连 next-app 域名加载，避免页面无样式（错乱 HTML）。
-  // 优先级：NEXT_PUBLIC_ASSET_PREFIX（自定义域）> NEXT_PUBLIC_VERCEL_URL（Vercel 自动注入的部署域名）> 空（相对路径，会错乱）。
-  // 在 Vercel 部署 next-app 后无需手动设置即可自动用自身 vercel.app 域名；绑定自定义域时设 NEXT_PUBLIC_ASSET_PREFIX。
+  // 优先级：NEXT_PUBLIC_ASSET_PREFIX（自定义域）> NEXT_PUBLIC_VERCEL_URL（需手动配）> VERCEL_URL（Vercel 构建期自动注入的本次部署不可变域名）> 空（相对路径，会错乱）。
+  // 注意：Vercel 默认只注入 VERCEL_URL，并不会注入 NEXT_PUBLIC_VERCEL_URL；此前只读后者导致生产环境取到空值，
+  //       assetPrefix 变成相对路径，经主站代理时 /_next/static/* 落到主站域名 → 页面无样式（布局错乱）。
+  //       加入 VERCEL_URL 兜底后，assets 会从 next-app 本次部署的不可变域名直连加载，无需手动配置即可修复。
   assetPrefix:
     process.env.NEXT_PUBLIC_ASSET_PREFIX ||
-    (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : ''),
+    (process.env.NEXT_PUBLIC_VERCEL_URL
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : ''),
   // next-app 用 trailingSlash:false（与最初可用配置一致）。
   // 实测：trailingSlash:true + basePath:/app 会导致 /app/forum/ 返回 404（Next.js 14 已知坑：
   // 308 到带尾斜杠 URL 却又 404）。主站 vercel.json 的 trailingSlash:true 会把 /app/forum 308 到

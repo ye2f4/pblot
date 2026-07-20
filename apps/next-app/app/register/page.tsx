@@ -134,7 +134,8 @@ export default function Register() {
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: '#f5f5f5' }}>
-      <div style={{ width: '100%', maxWidth: step === 3 ? 720 : 420, background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'stretch', justifyContent: 'center', width: '100%', maxWidth: step === 3 ? 720 : 900 }}>
+      <div style={{ flex: '1 1 380px', width: '100%', maxWidth: step === 3 ? 720 : 440, background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
         <a href="/" style={{ color: '#666', fontSize: 14, textDecoration: 'none' }}>← 返回首页</a>
         <h1 style={{ textAlign: 'center', marginTop: 16, fontSize: 24 }}>注册 Monoの小窝</h1>
 
@@ -187,6 +188,75 @@ export default function Register() {
             已有账号？<a href="/app/login" style={{ color: '#4285f4', textDecoration: 'none', marginLeft: 4 }}>立即登录</a>
           </div>
         )}
+      </div>
+
+      {/* ===== 预留区（默认：精选内容 / 插画）=====
+          这是注册页右侧的可替换预留区。当前放置「欢迎插画 + 精选内容卡片」。
+          若需替换为社群二维码 / 活动海报 / 站点吉祥物等，仅替换本 <aside> 内部内容即可。 */}
+      {step < 3 && (
+        <aside
+          style={{
+            flex: '1 1 360px',
+            width: '100%',
+            maxWidth: 420,
+            background: 'linear-gradient(160deg, #eef4ff 0%, #eafaf0 100%)',
+            borderRadius: 16,
+            padding: 28,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', height: 160, marginBottom: 20, boxShadow: '0 6px 20px rgba(66,133,244,0.18)' }}>
+            <img
+              src="https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=900&q=80"
+              alt="精选插画"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%)' }} />
+            <div style={{ position: 'absolute', left: 16, bottom: 12, color: '#fff' }}>
+              <div style={{ fontSize: 18, fontWeight: 600 }}>欢迎来到 Monoの小窝</div>
+              <div style={{ fontSize: 12, opacity: 0.9 }}>记录 · 分享 · 折腾 · 交朋友</div>
+            </div>
+          </div>
+
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#4285f4', marginBottom: 12, letterSpacing: 1 }}>✨ 精选内容</div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { icon: '💬', title: '论坛热帖', desc: '和大家一起聊技术、日常与脑洞', href: '/app/forum' },
+              { icon: '📝', title: '投稿广场', desc: '用 Markdown 写下你的教程与故事', href: '/app/submissions' },
+              { icon: '🌙', title: '朋友圈动态', desc: '记录此刻，看看别人的碎碎念', href: '/app/moments' },
+            ].map((it) => (
+              <a
+                key={it.href}
+                href={it.href}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '12px 14px',
+                  background: 'rgba(255,255,255,0.85)',
+                  borderRadius: 10,
+                  textDecoration: 'none',
+                  color: '#1a1a1a',
+                  transition: 'transform .15s',
+                }}
+              >
+                <span style={{ fontSize: 22 }}>{it.icon}</span>
+                <span style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>{it.title}</span>
+                  <span style={{ fontSize: 12, color: '#666' }}>{it.desc}</span>
+                </span>
+              </a>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 'auto', paddingTop: 18, fontSize: 12, color: '#888', textAlign: 'center' }}>
+            注册即可解锁全部功能，欢迎加入我们～
+          </div>
+        </aside>
+      )}
       </div>
     </main>
   );

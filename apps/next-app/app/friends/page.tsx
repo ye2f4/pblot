@@ -74,7 +74,7 @@ export default function FriendsPage() {
       </header>
 
       {loading ? (
-        <div className={styles.loading}>⏳ 加载中...</div>
+        <div className={styles.loading}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>
       ) : (
         <div className={styles.groups}>
           {tagList.length === 0 && (

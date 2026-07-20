@@ -142,8 +142,8 @@ export default function MainContentTop({ siteData }) {
                 >
                     ✅ 签到
                 </Link>
-                <Link
-                    to="/app/forum?tab=random"
+                <a
+                    href="/app/forum?tab=random"
                     className={styles.btnHover}
                     style={{
                         padding: '8px 16px',
@@ -162,7 +162,7 @@ export default function MainContentTop({ siteData }) {
                     }}
                 >
                     🎲 抽贴
-                </Link>
+                </a>
                 <Link
                     to="/visit-map"
                     className={styles.btnHover}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../supabase/supabaseClient';
+import { supabase, SUPABASE_URL } from '../supabase/supabaseClient';
 import { showError } from '../utils/common';
 import { showAlert } from '../utils/dialog';
 import siteData from '../data/siteData.json';
@@ -113,6 +113,23 @@ export const useAuth = () => {
         }
     };
 
+    // 哔哩哔哩登录（自定义 OAuth，经 Edge Function 交换会话）
+    const handleBilibiliLogin = async () => {
+        setLoading(true);
+        try {
+            const feRedirect = `${window.location.origin}/bilibili-callback`;
+            const authorizeUrl =
+                `${SUPABASE_URL}/functions/v1/bilibili-oauth/authorize?redirect_uri=${encodeURIComponent(feRedirect)}`;
+            // 整页跳转到 Edge Function，由 /bilibili-callback 落本地会话
+            window.location.href = authorizeUrl;
+        } catch (err) {
+            showAlert(`${siteData.texts.loginTips.loginError}${err.message}`);
+            console.error('Bilibili登录异常', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // 退出登录
     const handleSignOut = async () => {
         try {
@@ -180,6 +197,42 @@ export const useAuth = () => {
         }
     };
 
+    // 同步哔哩哔哩账号绑定到 public.profiles（仅当 user_metadata 含 bilibili_openid 时生效）
+    const syncBilibiliProfile = async (session) => {
+        if (!session?.user) return;
+        const meta = session.user.user_metadata || {};
+        const openid = meta.bilibili_openid;
+        if (!openid) return; // 非哔哩哔哩登录，跳过
+
+        try {
+            const uid = session.user.id;
+            const { data: existing } = await supabase
+                .from('profiles')
+                .select('id,bilibili_openid')
+                .eq('id', uid)
+                .maybeSingle();
+
+            if (!existing) {
+                await supabase.from('profiles').upsert([
+                    {
+                        id: uid,
+                        bilibili_openid: openid,
+                        nickname: meta.name || '',
+                        avatar_url: meta.avatar_url || '',
+                        email: session.user.email || ''
+                    }
+                ], { onConflict: 'id' });
+            } else if (!existing.bilibili_openid) {
+                await supabase
+                    .from('profiles')
+                    .update({ bilibili_openid: openid })
+                    .eq('id', uid);
+            }
+        } catch (err) {
+            console.error('同步Bilibili资料捕获异常', err);
+        }
+    };
+
     // 初始化认证状态
     useEffect(() => {
         isMountedRef.current = true;
@@ -191,6 +244,7 @@ export const useAuth = () => {
                 if (session?.user && isMountedRef.current) {
                     setUser({ ...session.user });
                     await syncGitHubProfile(session);
+                    await syncBilibiliProfile(session);
                 } else {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (isMountedRef.current) setUser(user ? { ...user } : null);
@@ -217,6 +271,7 @@ export const useAuth = () => {
                 if (session?.user && isMountedRef.current) {
                     setUser({ ...session.user });
                     await syncGitHubProfile(session);
+                    await syncBilibiliProfile(session);
                 }
                 clearUrlParams();
             }
@@ -229,6 +284,7 @@ export const useAuth = () => {
                 if (session?.user) {
                     setUser({ ...session.user });
                     await syncGitHubProfile(session);
+                    await syncBilibiliProfile(session);
                     clearUrlParams();
                 } else {
                     setUser(null);
@@ -249,6 +305,7 @@ export const useAuth = () => {
         isSessionChecked,
         handleGitHubLogin,
         handleGitHubLoginPageMode,
+        handleBilibiliLogin,
         handleSignOut,
         handleEmailSignUp,    // 对外暴露注册
         handleEmailSignIn     // 对外暴露登录

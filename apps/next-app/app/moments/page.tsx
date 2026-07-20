@@ -116,7 +116,7 @@ export default function MomentsPage() {
       </section>
 
       {loading ? (
-        <div className={styles.loading}>⏳ 加载中...</div>
+        <div className={styles.loading}><img src="/img/LOADING.gif" alt="加载中" width={56} style={{ opacity: 0.92 }} /></div>
       ) : list.length === 0 ? (
         <div className={styles.empty}>还没有人说点什么，来抢沙发吧～</div>
       ) : (
