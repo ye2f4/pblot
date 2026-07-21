@@ -3,12 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   // 子路径部署：所有路由与静态资源挂在 /app 下，配合 Vercel rewrite 统一到主域名 monoblog.cc.cd
   basePath: '/app',
-  // 静态资源（/_next/static）必须与页面同源（主域名 monoblog.cc.cd/app/_next/...），
-  // 严禁指向 *.vercel.app 直连域名：国内网络普遍无法访问 vercel.app（实测超时），
-  // 一旦 assetPrefix 指向它，CSS/JS 全部加载失败 → 页面裸 HTML（布局错乱）。
-  // 同源路径由主站 /api/app 代理函数识别 /_next/ 并去 /app 前缀转发到 next-app 静态文件层
-  // （Vercel 平台把 .next/static 暴露在域名根 /_next，不吃 basePath）。
-  // 除非确知用户群可访问 vercel.app，否则保持为空；可用 NEXT_PUBLIC_ASSET_PREFIX 临时覆盖。
+  // 静态资源（_next/static）由主站项目同源托管：构建时把 next-app 的 .next/static
+  // 拷入主站 static/app/_next/static，主站直接以 /app/_next/... 提供（走主域名，
+  // 国内可达）。之所以不走函数代理：Vercel 会把含扩展名的 /api/* 路径当静态文件
+  // 拦截、且跨项目 serverless fetch 拿不到 next-app 的 _next/static（路由到运行时而非 CDN）。
+  // assetPrefix 保持空 → HTML 引用同源 /app/_next/...。也可用 NEXT_PUBLIC_ASSET_PREFIX
+  // 临时覆盖为自定义子域（如 https://app.monoblog.cc.cd）。
   assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || '',
   // next-app 用 trailingSlash:false（与最初可用配置一致）。
   // 实测：trailingSlash:true + basePath:/app 会导致 /app/forum/ 返回 404（Next.js 14 已知坑：
