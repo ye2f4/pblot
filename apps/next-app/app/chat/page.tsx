@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EmojiPicker from 'emoji-picker-react';
 import { supabase } from '@/lib/supabase/client';
+import { safeGetUser } from '@/lib/supabase/safe';
 import { markAsRead, recordActivity, getActivityMap } from '@/lib/chatNotification';
 
 // 固定常量
@@ -316,7 +317,7 @@ export default function ChatPage() {
       setCurrentGroup(null);
       setMyProfile(null);
       try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const { user, error: authError } = await safeGetUser();
         if (authError) throw authError;
         if (!user) { setCurrentUser(null); setLoading(false); return; }
         setCurrentUser(user);

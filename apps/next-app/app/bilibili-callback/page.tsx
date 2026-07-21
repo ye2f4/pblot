@@ -47,17 +47,17 @@ export default function BilibiliCallback() {
       }
 
       // 3) 读取当前会话
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
+      const { session: sessionData } = await safeGetSession();
+      const user = sessionData?.user;
       if (!user) {
         // fragment 可能尚未消化，稍候重试一次
         setTimeout(async () => {
           if (cancelled) return;
-          const { data } = await supabase.auth.getSession();
-          if (!data.session) {
+          const { session } = await safeGetSession();
+          if (!session) {
             router.replace('/login');
           } else {
-            await routeByProfile(data.session.user.id);
+            await routeByProfile(session.user.id);
           }
         }, 1200);
         return;

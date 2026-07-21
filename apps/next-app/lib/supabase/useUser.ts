@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from './client';
+import { safeGetUser } from './safe';
 
 // 客户端鉴权 hook：替代 Docusaurus 的 useAuth，供需要"当前用户"的客户端页面使用。
 // 服务端页面（profile）改用 @/lib/supabase/server 的 getUser。
@@ -11,12 +12,19 @@ export function useUser() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (active) {
-        setUser(data.user ?? null);
-        setLoading(false);
-      }
-    });
+    safeGetUser()
+      .then(({ user: u }) => {
+        if (active) {
+          setUser(u ?? null);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setUser(null);
+          setLoading(false);
+        }
+      });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (active) setUser(session?.user ?? null);
     });

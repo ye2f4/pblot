@@ -73,7 +73,7 @@ export default function ProfileEditor({ initialProfile, userId }: { initialProfi
     setSaving(true); setError(''); setMessage('');
     try {
       if (!pwd.old || !pwd.next) throw new Error('请填写完整');
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user } = await safeGetUser();
       if (!user?.email) throw new Error('会话缺失');
       const { error: reauthErr } = await supabase.auth.signInWithPassword({ email: user.email, password: pwd.old });
       if (reauthErr) throw new Error('原密码错误');

@@ -23,9 +23,17 @@ type ProfileRow = {
 export default async function ProfilePage() {
   const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 加硬超时，避免 supabase.auth.getUser() 在会话失效时挂起导致整页 SSR 超时。
+  const { data, error: userErr } = await Promise.race([
+    supabase.auth.getUser(),
+    new Promise<any>((resolve) =>
+      setTimeout(() => resolve({ data: { user: null }, error: new Error('auth timeout') }), 8000)
+    ),
+  ]);
+  if (userErr) {
+    redirect('/app/login');
+  }
+  const user = data?.user ?? null;
 
   // 未登录 → 跳转到同域下的登录页（/app 子路径）
   if (!user) {

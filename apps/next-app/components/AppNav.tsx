@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { safeGetUser } from '@/lib/supabase/safe';
 import { SiteHeader, type LinkComponentProps } from '@mono/ui';
 import siteData from '../../../src/data/siteData.json';
 
@@ -99,9 +100,13 @@ export default function AppNav() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (active) setLoggedIn(!!data.user);
-    });
+    safeGetUser()
+      .then(({ user }) => {
+        if (active) setLoggedIn(!!user);
+      })
+      .catch(() => {
+        if (active) setLoggedIn(false);
+      });
     return () => {
       active = false;
     };

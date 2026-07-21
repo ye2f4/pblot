@@ -21,7 +21,7 @@ export default function TimeCapsule() {
     document.title = '时光胶囊 | Monoの小窝';
     const init = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { user } = await safeGetUser();
         setUser(user);
         await fetchCapsules();
         await checkAutoUnlock();

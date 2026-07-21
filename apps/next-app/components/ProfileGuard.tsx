@@ -20,8 +20,8 @@ export default function ProfileGuard() {
       if (!pathname || WHITELIST.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
         return;
       }
-      const { data } = await supabase.auth.getSession();
-      const user = data.session?.user;
+      const { session } = await safeGetSession();
+      const user = session?.user;
       if (!user) return; // 未登录不干预（各页自行处理）
 
       const { data: profile } = await supabase

@@ -46,30 +46,36 @@ export default function CompleteProfile() {
   // 载入当前会话与第三方资料
   useEffect(() => {
     const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      const user = data.session?.user;
-      if (!user) {
-        router.replace('/login');
-        return;
+      try {
+        const { session } = await safeGetSession();
+        const user = session?.user;
+        if (!user) {
+          router.replace('/login');
+          return;
+        }
+        // 已有 username 则无需完善，直接进个人中心
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, nickname, avatar_url, signature, gender')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (profile?.username && String(profile.username).trim()) {
+          router.replace('/profile');
+          return;
+        }
+        const meta = user.user_metadata || {};
+        setUid(user.id);
+        setEmail(user.email || '');
+        setNickname(profile?.nickname || meta.nickname || meta.name || '');
+        setAvatarUrl(profile?.avatar_url || meta.avatar_url || '😀');
+        setSignature(profile?.signature || '');
+        setGender(profile?.gender || 'unknown');
+        setChecking(false);
+      } catch (err) {
+        console.error('完善信息页初始化失败：', err);
+        setError('加载失败，请刷新重试');
+        setChecking(false);
       }
-      // 已有 username 则无需完善，直接进个人中心
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username, nickname, avatar_url, signature, gender')
-        .eq('id', user.id)
-        .maybeSingle();
-      if (profile?.username && String(profile.username).trim()) {
-        router.replace('/profile');
-        return;
-      }
-      const meta = user.user_metadata || {};
-      setUid(user.id);
-      setEmail(user.email || '');
-      setNickname(profile?.nickname || meta.nickname || meta.name || '');
-      setAvatarUrl(profile?.avatar_url || meta.avatar_url || '😀');
-      setSignature(profile?.signature || '');
-      setGender(profile?.gender || 'unknown');
-      setChecking(false);
     };
     init();
   }, [router]);
