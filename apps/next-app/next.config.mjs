@@ -3,19 +3,13 @@ const nextConfig = {
   reactStrictMode: true,
   // 子路径部署：所有路由与静态资源挂在 /app 下，配合 Vercel rewrite 统一到主域名 monoblog.cc.cd
   basePath: '/app',
-  // 静态资源（/_next/static）走绝对域名前缀，绕过主站 Vercel 对 /_next/* 的保留路径限制：
-  // 主站代理只负责转发 HTML/API，CSS/JS 由浏览器直连 next-app 域名加载，避免页面无样式（错乱 HTML）。
-  // 优先级：NEXT_PUBLIC_ASSET_PREFIX（自定义域）> NEXT_PUBLIC_VERCEL_URL（需手动配）> VERCEL_URL（Vercel 构建期自动注入的本次部署不可变域名）> 空（相对路径，会错乱）。
-  // 注意：Vercel 默认只注入 VERCEL_URL，并不会注入 NEXT_PUBLIC_VERCEL_URL；此前只读后者导致生产环境取到空值，
-  //       assetPrefix 变成相对路径，经主站代理时 /_next/static/* 落到主站域名 → 页面无样式（布局错乱）。
-  //       加入 VERCEL_URL 兜底后，assets 会从 next-app 本次部署的不可变域名直连加载，无需手动配置即可修复。
-  assetPrefix:
-    process.env.NEXT_PUBLIC_ASSET_PREFIX ||
-    (process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : ''),
+  // 静态资源（/_next/static）必须与页面同源（主域名 monoblog.cc.cd/app/_next/...），
+  // 严禁指向 *.vercel.app 直连域名：国内网络普遍无法访问 vercel.app（实测超时），
+  // 一旦 assetPrefix 指向它，CSS/JS 全部加载失败 → 页面裸 HTML（布局错乱）。
+  // 同源路径由主站 /api/app 代理函数识别 /_next/ 并去 /app 前缀转发到 next-app 静态文件层
+  // （Vercel 平台把 .next/static 暴露在域名根 /_next，不吃 basePath）。
+  // 除非确知用户群可访问 vercel.app，否则保持为空；可用 NEXT_PUBLIC_ASSET_PREFIX 临时覆盖。
+  assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || '',
   // next-app 用 trailingSlash:false（与最初可用配置一致）。
   // 实测：trailingSlash:true + basePath:/app 会导致 /app/forum/ 返回 404（Next.js 14 已知坑：
   // 308 到带尾斜杠 URL 却又 404）。主站 vercel.json 的 trailingSlash:true 会把 /app/forum 308 到

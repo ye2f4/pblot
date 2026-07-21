@@ -31,8 +31,13 @@ export default async function handler(req) {
   if (rest === '') rest = '/';
   // 去掉尾斜杠，避免 next-app（trailingSlash:false）再做一次 308 跳转
   if (rest.length > 1 && rest.endsWith('/')) rest = rest.slice(0, -1);
-  // next-app 配置了 basePath:'/app'，故在其域名下路径需带 /app 前缀
-  const targetPath = '/app' + (rest === '/' ? '' : rest);
+  // 关键：静态资源（_next/static、_next/data 等）在 Vercel 上暴露在 next-app 域名根的
+  // /_next（平台静态文件层，不吃 basePath）；只有页面路由才带 /app 前缀。
+  // 因此 /app/_next/* 必须去 /app 前缀转发到 /_next/*，否则 404 → 页面无样式/无 JS。
+  const isNextAsset = rest.startsWith('/_next/');
+  const targetPath = isNextAsset
+    ? rest
+    : '/app' + (rest === '/' ? '' : rest);
   const target = new URL(targetPath + url.search, NEXT_APP_ORIGIN);
 
   const headers = new Headers();
