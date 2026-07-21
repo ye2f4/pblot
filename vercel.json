@@ -214,7 +214,11 @@
   ],
   "rewrites": [
     {
-      "source": "/app/(?!_next/):path*",
+      "source": "/app/:path*/",
+      "destination": "/api/app/:path*"
+    },
+    {
+      "source": "/app/:path*",
       "destination": "/api/app/:path*"
     }
   ]
