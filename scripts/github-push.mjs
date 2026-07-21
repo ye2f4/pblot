@@ -14,7 +14,10 @@
  *   GITHUB_REPO         owner/name                              必填
  *   GITHUB_BRANCH       目标分支，默认 main
  *   GITHUB_COMMIT_MSG   提交信息，默认 "deploy: 自动同步"
- *   VERCEL_DEPLOY_HOOK  Vercel deploy hook URL（可选，B 线）
+ *   VERCEL_DEPLOY_HOOK  Vercel 主项目 deploy hook URL（可选，B 线）
+ *   NEXT_APP_DEPLOY_HOOK /app 独立 Next.js 项目 deploy hook URL（可选，B 线）
+ *                       主项目仅构建 Docusaurus，/app 由独立 Vercel 项目
+ *                       （如 next-app-mocha-three）承载，需单独触发重建。
  *   DEPLOY_DRY_RUN      设为 1 时只扫描+打印，不实际推送
  *
  * 用法：
@@ -139,6 +142,7 @@ const cfg = {
   branch: 'main',
   message: 'deploy: 自动同步',
   vercelHook: '',
+  nextAppHook: '', // /app 独立 Next.js 项目的 Deploy Hook（重建 next-app-mocha-three 等）
   dryRun: false,
   gitEnabled: true, // 默认开启真实 git commit，用于激活仓库历史 / AI 更新日志
 };
@@ -196,6 +200,7 @@ async function reloadConfig() {
   cfg.branch = branchExplicit ?? 'main';
   cfg.message = process.env.GITHUB_COMMIT_MSG ?? fileConfig.GITHUB_COMMIT_MSG ?? 'deploy: 自动同步';
   cfg.vercelHook = process.env.VERCEL_DEPLOY_HOOK ?? fileConfig.VERCEL_DEPLOY_HOOK ?? '';
+  cfg.nextAppHook = process.env.NEXT_APP_DEPLOY_HOOK ?? fileConfig.NEXT_APP_DEPLOY_HOOK ?? '';
   cfg.dryRun = (process.env.DEPLOY_DRY_RUN ?? fileConfig.DEPLOY_DRY_RUN ?? '0') === '1';
   // GITHUB_GIT_COMMIT=0/false/no 时禁用真实 git 提交，仅使用 GitHub API 推送
   cfg.gitEnabled = process.env.GITHUB_GIT_COMMIT
@@ -445,15 +450,26 @@ async function runDeploy(opts = {}) {
   // B 线：仅在真正推送后触发 Vercel 重新部署，避免无改动空构建
   if (!pushed) {
     log('B 线：本次无实际推送，跳过 Vercel 部署。');
-  } else if (cfg.vercelHook) {
-    try {
-      const r = await fetch(cfg.vercelHook, { method: 'POST' });
-      log(`B 线：Vercel deploy hook 触发 ${r.ok ? '成功' : '失败(' + r.status + ')'}`);
-    } catch (e) {
-      warn('B 线 Vercel hook 触发异常：', e.message);
-    }
   } else {
-    log('B 线：未配置 VERCEL_DEPLOY_HOOK，跳过。');
+    // 触发单个 Deploy Hook 的小工具（GET/POST 均可，这里用 POST）
+    const triggerHook = async (label, url) => {
+      if (!url) return;
+      try {
+        const r = await fetch(url, { method: 'POST' });
+        log(`B 线：${label} deploy hook 触发 ${r.ok ? '成功' : '失败(' + r.status + ')'}`);
+      } catch (e) {
+        warn(`B 线 ${label} deploy hook 触发异常：`, e.message);
+      }
+    };
+    // 主项目（Docusaurus + /app 反向代理函数）通常由 git push 自动部署；
+    // 若配置了 VERCEL_DEPLOY_HOOK 则额外显式触发一次。
+    await triggerHook('主项目', cfg.vercelHook);
+    // /app 由独立 Next.js 项目承载，主项目部署不会重建它，
+    // 必须单独触发其 Deploy Hook 才能把改动的 /app 推上线。
+    await triggerHook('/app(next-app)', cfg.nextAppHook);
+    if (!cfg.vercelHook && !cfg.nextAppHook) {
+      log('B 线：未配置任何 Deploy Hook，依赖 git push 自动部署。');
+    }
   }
 
   log('双轨同步结束。');
@@ -468,6 +484,7 @@ export async function getDeployStatus() {
     repo: cfg.repo || null,
     branch: cfg.branch,
     hasVercelHook: Boolean(cfg.vercelHook),
+    hasNextAppHook: Boolean(cfg.nextAppHook),
     message: cfg.message,
     gitEnabled: cfg.gitEnabled,
   };
