@@ -214,6 +214,10 @@
   ],
   "rewrites": [
     {
+      "source": "/app/_next/:path*",
+      "destination": "/api/asset-proxy/:path*"
+    },
+    {
       "source": "/app/:path*/",
       "destination": "/api/app/:path*"
     },
