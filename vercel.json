@@ -215,7 +215,7 @@
   "rewrites": [
     {
       "source": "/app/_next/:path*",
-      "destination": "/api/asset-proxy/:path*"
+      "destination": "/api/asset-proxy?p=/_next/:path*"
     },
     {
       "source": "/app/:path*/",
