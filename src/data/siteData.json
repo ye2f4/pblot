@@ -125,6 +125,13 @@
           { "label": "Vercel", "href": "https://vercel.com" },
           { "label": "Supabase", "href": "https://supabase.com" }
         ]
+      },
+      {
+        "title": "友情链接",
+        "items": [
+          { "label": "夜白的小屋", "href": "https://yibi2333.fun/" },
+          { "label": "加入友链", "href": "https://github.com/ye2f4/pblot/issues/new?title=友链申请", "title": "申请与本站互换友链" }
+        ]
       }
     ],
     "beian": { "href": "https://icp.gov.moe/?keyword=20265033", "label": "萌ICP备20265033号" }
@@ -297,6 +304,7 @@
   ],
 
   "friends": [
+    { "name": "夜白的小屋", "url": "https://yibi2333.fun/", "description": "这个人很懒，什么都没留下", "icon": "https://yibi2333.fun/favicon.ico" },
     { "name": "GitHub", "url": "https://github.com" },
     { "name": "稀土掘金", "url": "https://juejin.cn" },
     { "name": "V2EX", "url": "https://v2ex.com" },

@@ -273,6 +273,23 @@ const config = {
         };
       },
     }),
+    // 图片点击放大：基于 medium-zoom，点一下即可放大看细节（技术博客看图必备）
+    [require.resolve("docusaurus-plugin-image-zoom"), { selector: ".markdown img" }],
+    // 响应式图片：自动生成多种分辨率，按设备/网络选择加载（首屏更快）
+    [require.resolve("@docusaurus/plugin-ideal-image"), {}],
+    // PWA：站点可"安装"到手机主屏、支持离线阅读（移动端体验提升明显）
+    [require.resolve("@docusaurus/plugin-pwa"), {
+      debug: false,
+      offlineModeActivationStrategies: ['appInstalled', 'standalone', 'queryString'],
+      pwaHead: [
+        { tagName: 'link', rel: 'manifest', href: '/manifest.webmanifest' },
+        { tagName: 'meta', name: 'theme-color', content: '#2E7D9E' },
+        { tagName: 'meta', name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { tagName: 'meta', name: 'apple-mobile-web-app-status-bar-style', content: 'black' },
+        { tagName: 'link', rel: 'apple-touch-icon', href: '/img/pblot_logo.png' },
+        { tagName: 'link', rel: 'mask-icon', href: '/img/logo.svg', color: '#2E7D9E' },
+      ],
+    }],
   ],
 
   future: {
@@ -314,7 +331,7 @@ const config = {
           // 而 Vercel 上传式构建（vercel --prod --force）无 .git 工作树，会导致构建失败。
           // 设为 null 关闭 lastmod，保留 sitemap 且不依赖 git。
           lastmod: null,
-          ignorePatterns: ['/tags/**', '/categories/**', '/search'],
+          ignorePatterns: ['/tags/**', '/categories/**', '/search', '/en/**'],
         },
       },
     ],
@@ -322,7 +339,15 @@ const config = {
 
   i18n: {
     defaultLocale: "zh-CN",
-    locales: ["zh-CN"]
+    locales: ["zh-CN", "en"],
+    localeConfigs: {
+      en: {
+        label: "English",
+        htmlLang: "en",
+        calendar: "gregory",
+        translate: true,
+      },
+    },
   },
 };
 

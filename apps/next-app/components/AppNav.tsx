@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase/client';
 import { safeGetUser } from '@/lib/supabase/safe';
 import { SiteHeader, type LinkComponentProps } from '@mono/ui';
 import siteData from '../../../src/data/siteData.json';
+import { useLocale } from '@/lib/i18n';
+import AppLocaleToggle from './AppLocaleToggle';
 
 const NextLink = (props: LinkComponentProps) => {
   if (props.href) {
@@ -31,6 +33,7 @@ const NextLink = (props: LinkComponentProps) => {
 };
 
 function AppSearchBox() {
+  const { t } = useLocale();
   // 点击跳转主站搜索页（app 无本地文档搜索）
   return (
     <a
@@ -42,7 +45,7 @@ function AppSearchBox() {
         <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.3-4.3" strokeLinecap="round" />
       </svg>
-      <span className="navbar__search-placeholder">搜索</span>
+      <span className="navbar__search-placeholder">{t('search')}</span>
       <kbd className="navbar__search-kbd">Ctrl K</kbd>
     </a>
   );
@@ -97,6 +100,7 @@ function AppColorModeToggle() {
 export default function AppNav() {
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const pathname = usePathname() ?? '/'; // Next usePathname 不含 basePath，如 /chat
+  const { t } = useLocale();
 
   useEffect(() => {
     let active = true;
@@ -123,15 +127,15 @@ export default function AppNav() {
     loggedIn === null ? null : loggedIn ? (
       <>
         <NextLink to="/profile" className="navbar__link">
-          个人中心
+          {t('profile')}
         </NextLink>
         <button type="button" className="navbar__link" onClick={handleLogout}>
-          退出
+          {t('logout')}
         </button>
       </>
     ) : (
       <NextLink to="/login" className="navbar__link navbar-contribute-btn">
-        登录
+        {t('login')}
       </NextLink>
     );
 
@@ -144,7 +148,12 @@ export default function AppNav() {
       slots={{
         auth: authSlot,
         search: <AppSearchBox />,
-        colorMode: <AppColorModeToggle />,
+        colorMode: (
+          <>
+            <AppColorModeToggle />
+            <AppLocaleToggle />
+          </>
+        ),
       }}
     />
   );
