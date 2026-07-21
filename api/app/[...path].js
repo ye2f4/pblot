@@ -31,15 +31,16 @@ export default async function handler(req) {
   if (rest === '') rest = '/';
   // 去掉尾斜杠，避免 next-app（trailingSlash:false）再做一次 308 跳转
   if (rest.length > 1 && rest.endsWith('/')) rest = rest.slice(0, -1);
-  // 关键：静态资源（_next/static、_next/data 等）在 Vercel 上暴露在 next-app 域名根的
-  // /_next（平台静态文件层，不吃 basePath）；只有页面路由才带 /app 前缀。
-  // 因此 /app/_next/* 必须去 /app 前缀转发到 /_next/*，否则 404 → 页面无样式/无 JS。
-  const isNextAsset = rest.startsWith('/_next/');
-  const targetPath = isNextAsset
-    ? rest
-    : '/app' + (rest === '/' ? '' : rest);
-  const target = new URL(targetPath + url.search, NEXT_APP_ORIGIN);
 
+  // 静态资源（_next/static、_next/data 等）在 Vercel 平台静态层与 basePath 的关系不确定：
+  // 不同构建下文件可能落在 /_next/...（域名根，平台保留路径）或 /app/_next/...（带 basePath）。
+  // 为彻底可靠，对 /_next 请求依次尝试两个候选，返回首个非 404；并回传 x-proxy-path 便于排查。
+  const isNextAsset = rest.startsWith('/_next/');
+  const candidates = isNextAsset
+    ? [rest, '/app' + rest]
+    : ['/app' + (rest === '/' ? '' : rest)];
+
+  const method = req.method;
   const headers = new Headers();
   for (const [k, v] of req.headers.entries()) {
     const lk = k.toLowerCase();
@@ -47,20 +48,40 @@ export default async function handler(req) {
     headers.set(k, v);
   }
 
-  const method = req.method;
   const init = { method, headers, redirect: 'manual' };
+  let bodyBuf = null;
   if (method !== 'GET' && method !== 'HEAD') {
-    init.body = await req.arrayBuffer();
+    bodyBuf = await req.arrayBuffer();
   }
 
-  let upstream;
-  try {
-    upstream = await fetch(target.toString(), init);
-  } catch (e) {
-    return new Response('Proxy upstream error: ' + e.message, { status: 502 });
+  let upstream = null;
+  let usedPath = null;
+  let lastErr = null;
+  for (const cand of candidates) {
+    const target = new URL(cand + url.search, NEXT_APP_ORIGIN);
+    const cInit = { ...init };
+    if (bodyBuf) cInit.body = bodyBuf;
+    try {
+      const r = await fetch(target.toString(), cInit);
+      usedPath = cand;
+      if (r.status !== 404) {
+        upstream = r;
+        break;
+      }
+      // 404：尝试下一个候选；保留最后一个作为兜底响应
+      upstream = r;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  if (!upstream) {
+    return new Response('Proxy upstream error: ' + (lastErr?.message || 'no candidate'), {
+      status: 502,
+    });
   }
 
   const respHeaders = new Headers();
+  respHeaders.set('x-proxy-path', usedPath || '');
   for (const [k, v] of upstream.headers.entries()) {
     const lk = k.toLowerCase();
     if (HOP_BY_HOP.includes(lk)) continue;
