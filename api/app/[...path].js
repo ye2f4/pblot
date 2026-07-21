@@ -32,12 +32,11 @@ export default async function handler(req) {
   // 去掉尾斜杠，避免 next-app（trailingSlash:false）再做一次 308 跳转
   if (rest.length > 1 && rest.endsWith('/')) rest = rest.slice(0, -1);
 
-  // 静态资源（_next/static、_next/data 等）在 Vercel 平台静态层与 basePath 的关系不确定：
-  // 不同构建下文件可能落在 /_next/...（域名根，平台保留路径）或 /app/_next/...（带 basePath）。
-  // 为彻底可靠，对 /_next 请求依次尝试两个候选，返回首个非 404；并回传 x-proxy-path 便于排查。
+  // 静态资源（_next/static、_next/data 等）随 basePath:/app 实际挂在 /app/_next/...。
+  // 优先尝试带 basePath 的候选，命中即返回；若某构建落在根 /_next/... 则再退而求其次。
   const isNextAsset = rest.startsWith('/_next/');
   const candidates = isNextAsset
-    ? [rest, '/app' + rest]
+    ? ['/app' + rest, rest]
     : ['/app' + (rest === '/' ? '' : rest)];
 
   const method = req.method;

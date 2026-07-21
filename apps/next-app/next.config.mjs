@@ -3,15 +3,14 @@ const nextConfig = {
   reactStrictMode: true,
   // 子路径部署：所有路由与静态资源挂在 /app 下，配合 Vercel rewrite 统一到主域名 monoblog.cc.cd
   basePath: '/app',
-  // 静态资源（_next/static）由 next-app 自己的部署同源提供，URL 走国内可达的
-  // 自定义子域 app.monoblog.cc.cd（在 Vercel 后台把该子域加到 next-app 项目，
-  // 并在 DNS/Cloudflare 加 CNAME 指向 Vercel 且橙色代理）。
-  // 之所以不直接用 *.vercel.app：国内网络普遍封锁 vercel.app → CSS/JS 全部超时 → 裸 HTML。
-  // 之所以不在主站提交静态文件：next-app 在 Vercel 构建时内联了项目专属 NEXT_PUBLIC_* 环境变量，
-  // 导致每次构建的客户端 chunk 哈希都不同（与本地构建不一致），提交的静态文件必然过期。
-  // assetPrefix 设为自定义子域后，next-app 自己用同源域名提供 HTML+静态，env 一致、无跨项目 fetch。
-  // 可用 NEXT_PUBLIC_ASSET_PREFIX 覆盖（例如临时测试其它 CDN 域名）。
-  assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || 'https://app.monoblog.cc.cd',
+  // 静态资源（_next/static）保持同源、挂在 /app/_next 下（assetPrefix 留空）。
+  // HTML 引用的 CSS/JS 即 /app/_next/static/...，由主站 vercel.json 的 rewrite 经
+  // api/app/[...path].js 边缘代理在 Vercel 内部（Vercel→Vercel，不经过用户浏览器，
+  // 故国内封锁 *.vercel.app 不影响）抓回 next-app 的真实构建产物——哈希与线上一致、env 一致。
+  // 因此【不要】把 next-app 的 _next/static 提交进主站 static/：主站静态层优先级高于 rewrite，
+  // 会抢答并返回本地构建（env 不同 → JS chunk 哈希不匹配）的过期文件。资源统一走代理。
+  // 可用 NEXT_PUBLIC_ASSET_PREFIX 临时覆盖为其它 CDN 域名（一般无需）。
+  assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || '',
   // next-app 用 trailingSlash:false（与最初可用配置一致）。
   // 实测：trailingSlash:true + basePath:/app 会导致 /app/forum/ 返回 404（Next.js 14 已知坑：
   // 308 到带尾斜杠 URL 却又 404）。主站 vercel.json 的 trailingSlash:true 会把 /app/forum 308 到

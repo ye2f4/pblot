@@ -214,10 +214,6 @@
   ],
   "rewrites": [
     {
-      "source": "/app/:path*/",
-      "destination": "/api/app/:path*"
-    },
-    {
       "source": "/app/:path*",
       "destination": "/api/app/:path*"
     }
