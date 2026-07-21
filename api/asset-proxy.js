@@ -22,6 +22,10 @@ export default async function handler(req) {
     url.pathname.replace(/^\/api\/asset-proxy/, '') ||
     '/';
   const extra = url.search.replace(/^\?p=[^&]*/, '');
+  const NEXT_ORIGIN =
+    url.searchParams.get('origin') ||
+    process.env.NEXT_APP_ORIGIN ||
+    'https://next-app-mocha-three.vercel.app';
 
   const candidates = [
     assetPath,
@@ -35,7 +39,7 @@ export default async function handler(req) {
   let usedPath = null;
 
   for (const base of candidates) {
-    const target = new URL(base + extra, NEXT_APP_ORIGIN);
+    const target = new URL(base + extra, NEXT_ORIGIN);
     try {
       const r = await fetch(target.toString(), { method: 'GET', redirect: 'manual' });
       results.push(base + ' => ' + r.status);
@@ -55,7 +59,7 @@ export default async function handler(req) {
   }
   if (upstream.status === 404) {
     // 全部 404：返回诊断
-    return new Response('ALL 404. tried:\n' + results.join('\n') + '\norigin=' + NEXT_APP_ORIGIN, {
+    return new Response('ALL 404. tried:\n' + results.join('\n') + '\norigin=' + NEXT_ORIGIN, {
       status: 404,
       headers: { 'content-type': 'text/plain' },
     });
