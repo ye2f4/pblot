@@ -3,9 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xwhwcmorcmgpfpocmgez.supabase.co';
+import { SUPABASE_URL } from '@/lib/supabase/config';
 
 // 哔哩哔哩品牌 Logo（小电视）
 const BilibiliLogo = () => (
