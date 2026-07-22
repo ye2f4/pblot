@@ -34,21 +34,57 @@ const NextLink = (props: LinkComponentProps) => {
 };
 
 function AppSearchBox() {
-  const { t } = useLocale();
-  // 点击跳转主站搜索页（app 无本地文档搜索）
+  // 点击跳转主站搜索页（app 无本地文档搜索）；仅图标 + Ctrl K，对齐主站 DocSearch 外观
   return (
     <a
       className="navbar__search"
       href="https://monoblog.cc.cd/search"
       title="搜索"
+      aria-label="搜索"
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.3-4.3" strokeLinecap="round" />
       </svg>
-      <span className="navbar__search-placeholder">{t('search')}</span>
       <kbd className="navbar__search-kbd">Ctrl K</kbd>
     </a>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="1.15rem"
+      height="1.15rem"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="1.15rem"
+      height="1.15rem"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
   );
 }
 
@@ -90,10 +126,9 @@ function AppColorModeToggle() {
         color: 'hsl(var(--muted-foreground))',
         cursor: 'pointer',
         borderRadius: '0.375rem',
-        fontSize: '1.1rem',
       }}
     >
-      {dark ? '☀' : '🌙'}
+      {dark ? <SunIcon /> : <MoonIcon />}
     </button>
   );
 }
@@ -151,12 +186,8 @@ export default function AppNav() {
       slots={{
         auth: authSlot,
         search: <AppSearchBox />,
-        colorMode: (
-          <>
-            <AppColorModeToggle />
-            <AppLocaleToggle />
-          </>
-        ),
+        colorMode: <AppColorModeToggle />,
+        locale: <AppLocaleToggle />,
       }}
     />
   );

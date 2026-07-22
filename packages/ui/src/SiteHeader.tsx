@@ -245,6 +245,7 @@ export function SiteHeader({
           ))}
           {slots?.auth}
           {slots?.search}
+          {slots?.locale}
           {slots?.colorMode}
           {slots?.right}
         </div>
@@ -276,6 +277,7 @@ export function SiteHeader({
           <MobileItem key={`r${i}`} item={it} L={L} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
         ))}
         {slots?.auth}
+        {slots?.locale}
       </div>
     </div>
   ) : null;

@@ -37,6 +37,8 @@ export interface SiteHeaderSlots {
   search?: React.ReactNode;
   colorMode?: React.ReactNode;
   auth?: React.ReactNode;
+  /** 语言切换（主站用 Docusaurus LocaleDropdown，/app 用 AppLocaleToggle），保证两端位置一致 */
+  locale?: React.ReactNode;
   right?: React.ReactNode;
 }
 

@@ -3,6 +3,8 @@
 // 必须通过 JS import 显式引入，不能只依赖 SiteHeader/SiteFooter 内部
 // 的副作用 import（index.ts 顶部的 import './ui.css'），后者在 Vercel
 // next-app 独立构建中不可靠，导致 ui.css 未进入 layout 的 CSS bundle。
+// ui.css 已内含从主站迁移的 Infima 类样式层（navbar/footer/components/custom）
+// 以及主站 custom.css 的真实全局 --ifm-* 变量，使 /app 与主站主题逐像素一致。
 import '@mono/ui/styles.css';
 import './globals.css';
 import type { Metadata } from 'next';

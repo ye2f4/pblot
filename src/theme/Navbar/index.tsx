@@ -3,6 +3,7 @@ import Link from '@docusaurus/Link';
 import { useLocation } from '@docusaurus/router';
 import ColorModeToggle from '@theme/Navbar/ColorModeToggle';
 import SearchBar from '@theme/SearchBar';
+import LocaleDropdown from '@theme/LocaleDropdown';
 import { SiteHeader, type LinkComponentProps } from '@mono/ui';
 import siteData from '../../data/siteData.json';
 
@@ -49,6 +50,7 @@ export default function Navbar(): React.ReactElement {
       hideOnScroll={cfg.hideOnScroll}
       slots={{
         search: <SearchBar />,
+        locale: <LocaleDropdown />,
         colorMode: <ColorModeToggle />,
       }}
     />

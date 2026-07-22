@@ -69,6 +69,49 @@
 
   /* 主题强调色（与原站 custom.css !important 覆盖一致） */
   --ifm-color-primary: #2e7d9e;
+
+  /* ===== 主站 custom.css 全局主题变量（与 3000 完全一致，单一可信源） ===== */
+  --ifm-navbar-height: 4.5rem;
+  --ifm-color-primary-dark: #29708e;
+  --ifm-color-primary-darker: #276a85;
+  --ifm-color-primary-darkest: #20576d;
+  --ifm-color-primary-light: #338ab0;
+  --ifm-color-primary-lighter: #3991b8;
+  --ifm-color-primary-lightest: #4fa0c4;
+  --ifm-color-secondary: #d32f2f;
+  --ifm-color-success: #22c55e;
+  --ifm-color-info: #4285f4;
+  --ifm-color-warning: #f59e0b;
+  --ifm-color-danger: #dc2626;
+  --ifm-background-color: #fff9e6;
+  --ifm-card-background-color: #ffffff;
+  --ifm-background-surface-color: #f8f9fa;
+  --ifm-toc-border-color: #e0e0e0;
+  --ifm-footer-link-color: #555;
+  --ifm-footer-link-hover-color: #2e7d9e;
+  --ifm-footer-title-color: #333;
+  --ifm-footer-color: #555;
+  --ifm-footer-background-color: #fff9e6;
+  /* /app 内联样式用到的兼容变量（原由 globals.css 提供，现统一到本文件避免被其错误值覆盖） */
+  --ifm-color-primary-contrast-background: rgba(46, 125, 158, 0.08);
+  --ifm-color-secondary-lightest: #f6f7f9;
+  --ifm-text-color: #1a1a1a;
+  --ifm-heading-color: #1a1a1a;
+  --ifm-font-color-base: #1a1a1a;
+  --ifm-font-color-secondary: #5c6068;
+  --ifm-color-content: #1a1a1a;
+  /* Infima 强调色阶（Docusaurus 默认） */
+  --ifm-color-emphasis-0: #ffffff;
+  --ifm-color-emphasis-100: #f5f6f7;
+  --ifm-color-emphasis-200: #ebebeb;
+  --ifm-color-emphasis-300: #dadde1;
+  --ifm-color-emphasis-400: #babdc4;
+  --ifm-color-emphasis-500: #9ca0a8;
+  --ifm-color-emphasis-600: #7a7f88;
+  --ifm-color-emphasis-700: #5c6068;
+  --ifm-color-emphasis-800: #3e4146;
+  --ifm-color-emphasis-900: #1c1e21;
+  --ifm-color-emphasis-1000: #000000;
 }
 
 [data-theme="dark"] {
@@ -110,6 +153,25 @@
   --footer-bg: 222 20% 5%;
   --search-bg: lch(20% 4% 276);
   --ifm-color-primary: #2e7d9e;
+
+  /* ===== 主站 custom.css 暗色模式全局变量（与 3000 完全一致） ===== */
+  --ifm-background-color: #121212;
+  --ifm-card-background-color: #1e1e1e;
+  --ifm-background-surface-color: #2a2a2a;
+  --ifm-toc-border-color: #383838;
+  --ifm-font-color-base: #eaeaea;
+  --ifm-footer-link-color: #b0b0b0;
+  --ifm-footer-link-hover-color: #7ec8e3;
+  --ifm-footer-title-color: #e0e0e0;
+  --ifm-footer-color: #b0b0b0;
+  --ifm-footer-background-color: #1a1a1a;
+  /* 暗色下主站 custom.css 的 :root 蓝阶未被覆盖，这里对齐为蓝阶（与 3000 完全一致） */
+  --ifm-color-primary-dark: #29708e;
+  --ifm-color-primary-darker: #276a85;
+  --ifm-color-primary-darkest: #20576d;
+  --ifm-color-primary-light: #338ab0;
+  --ifm-color-primary-lighter: #3991b8;
+  --ifm-color-primary-lightest: #4fa0c4;
 }
 
 /* ---------- 2. 导航栏（来自 src/css/navbar.css，含 3001 需要的 sticky shim） ---------- */
@@ -214,6 +276,14 @@
 }
 
 .navbar__link {
+  /* 补全 Infima 原始 .navbar__link 标准属性：
+     主站因叠加 @docusaurus/infima 自带的 .navbar__link 而拥有这些，
+     /app 只有本复刻版会缺失，导致导航项文字垂直不对齐、间距偏窄。
+     补上后两端导航项逐像素一致（主站叠加同值，无害）。 */
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  line-height: 1.5;
   color: hsl(var(--muted-foreground));
   font-size: 1rem;
   font-weight: 400;
@@ -825,4 +895,30 @@ a + .navbar__link > svg {
   .footer__col {
     min-width: 0;
   }
+}
+
+/* ---------- 全局动画（来自主站 custom.css，:::global 已转标准 @keyframes） ---------- */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.01); }
+}
+
+@keyframes pixelBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes digitPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
