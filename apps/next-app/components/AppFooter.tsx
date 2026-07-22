@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { SiteFooter, type LinkComponentProps } from '@mono/ui';
 import siteData from '../../../src/data/siteData.json';
+import { transformFooterColumns } from '@/lib/docusaurusLinks';
 
 const NextLink = (props: LinkComponentProps) => {
   if (props.href) {
@@ -27,16 +28,17 @@ const NextLink = (props: LinkComponentProps) => {
 };
 
 export default function AppFooter() {
-  const cfg = siteData.appFooterConfig;
+  const cfg = siteData.footerConfig;
+  const columns = transformFooterColumns(cfg.links);
   const year = new Date().getFullYear();
-  const copyright = `© ${year} ${cfg.copyright.replace(/^©\s*/, '')}`;
+  const copyright = `Copyright © ${year} ${siteData.siteTitle}. Powered by Docusaurus & Vercel.`;
 
   return (
     <SiteFooter
-      columns={cfg.columns}
+      columns={columns}
       copyright={copyright}
       beian={cfg.beian}
-      brand={cfg.brand}
+      brand={{ title: siteData.siteTitle, href: siteData.siteUrl }}
       linkComponent={NextLink}
     />
   );

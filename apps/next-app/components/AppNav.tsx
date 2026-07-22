@@ -9,6 +9,7 @@ import { SiteHeader, type LinkComponentProps } from '@mono/ui';
 import siteData from '../../../src/data/siteData.json';
 import { useLocale } from '@/lib/i18n';
 import AppLocaleToggle from './AppLocaleToggle';
+import { transformNavItems } from '@/lib/docusaurusLinks';
 
 const NextLink = (props: LinkComponentProps) => {
   if (props.href) {
@@ -121,7 +122,8 @@ export default function AppNav() {
     window.location.href = '/app/login';
   };
 
-  const cfg = siteData.appNavbarConfig;
+  const cfg = siteData.navbarConfig;
+  const items = transformNavItems(cfg.items);
 
   const authSlot: ReactNode =
     loggedIn === null ? null : loggedIn ? (
@@ -141,10 +143,11 @@ export default function AppNav() {
 
   return (
     <SiteHeader
-      brand={cfg.brand}
-      items={cfg.items}
+      brand={{ title: siteData.siteTitle, href: siteData.siteUrl }}
+      items={items}
       linkComponent={NextLink}
       pathname={pathname}
+      hideOnScroll={cfg.hideOnScroll}
       slots={{
         auth: authSlot,
         search: <AppSearchBox />,

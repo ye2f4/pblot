@@ -1,11 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xwhwcmorcmgpfpocmgez.supabase.co';
-const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aHdjbW9yY21ncGZwb2NtZ2V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2ODk2MzQsImV4cCI6MjA5NjI2NTYzNH0.O5YcPuehUMjEofFdoNfE5NDxT71qtcMdYeLCvyyoQgw';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config';
 
 // 服务端客户端：从 cookie 读取会话（替代 Docusaurus 的 localStorage 会话）
 const COOKIE_DOMAIN = process.env.NEXT_PUBLIC_SUPABASE_COOKIE_DOMAIN || undefined;
