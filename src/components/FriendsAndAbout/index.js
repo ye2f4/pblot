@@ -92,7 +92,7 @@ export default function FriendsAndAbout({ siteData }) {
       <div className={styles.sectionCard}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h3 className={styles.sectionTitle} style={{ marginBottom: 0 }}>{siteData.texts.friendsTitle}</h3>
-          <a href="/app/friends" style={{ fontSize: 13, color: 'var(--ifm-color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          <a href="/friends" style={{ fontSize: 13, color: 'var(--ifm-color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
             查看全部 →
           </a>
         </div>

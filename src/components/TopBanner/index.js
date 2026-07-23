@@ -580,7 +580,7 @@ export default function TopBanner({
               {/* 登录、注册强制同一行，弹性均分 */}
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <a
-                  href="/app/login"
+                  href="/login"
                   style={{
                     flex: 1, textAlign: 'center',
                     background: siteData?.loginTheme?.primaryBg || loginTheme.primaryBg,
@@ -597,7 +597,7 @@ export default function TopBanner({
                 </a>
 
                 <a
-                  href="/app/register"
+                  href="/register"
                   style={{
                     flex: 1, textAlign: 'center',
                     background: siteData?.loginTheme?.primaryBg || loginTheme.primaryBg,
@@ -662,7 +662,7 @@ export default function TopBanner({
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <a
-                  href="/app/profile"
+                  href="/profile"
                   style={{
                     flex: 1,
                     minWidth: '100px',

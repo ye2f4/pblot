@@ -47,7 +47,7 @@ export default function Contribute() {
       const { data, error } = await supabase.from('user_submissions').insert([payload]).select('id').single();
       if (error) throw error;
       showAlert('🎉 投稿发布成功！');
-      window.location.href = '/app/submissions/' + (data ? '?id=' + data.id : '');
+      window.location.href = '/submissions/' + (data ? '?id=' + data.id : '');
     } catch (e) {
       console.error('投稿失败', e);
       if (e.message && e.message.includes('relation') && e.message.includes('does not exist')) {
@@ -65,7 +65,7 @@ export default function Contribute() {
       <div style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 20px 60px' }}>
         <h1 style={{ fontSize: 28, marginBottom: 6 }}>✍️ 投稿 · 在线编写 Markdown</h1>
         <p style={{ color: 'var(--ifm-color-emphasis-600)', marginTop: 0 }}>
-          用 Markdown 写下你的教程、笔记或故事，发布后会出现在 <a href="/app/submissions/">投稿广场</a>。
+          用 Markdown 写下你的教程、笔记或故事，发布后会出现在 <a href="/submissions/">投稿广场</a>。
         </p>
 
         {!isSessionChecked ? null : !user ? (
@@ -73,7 +73,7 @@ export default function Contribute() {
             <p style={{ fontSize: 16 }}>投稿需要先登录</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 12 }}>
               <button onClick={handleGitHubLogin} className="button button--primary">GitHub 登录</button>
-              <a className="button button--secondary" href="/app/login/">邮箱登录</a>
+              <a className="button button--secondary" href="/login/">邮箱登录</a>
             </div>
           </div>
         ) : (
@@ -117,7 +117,7 @@ export default function Contribute() {
 
         {user && (
           <div style={{ marginTop: 20, display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <a className="button button--secondary" href="/app/submissions/">查看投稿广场</a>
+            <a className="button button--secondary" href="/submissions/">查看投稿广场</a>
             <button onClick={publish} disabled={submitting} className="button button--primary" style={{ minWidth: 150 }}>
               {submitting ? '发布中…' : '🚀 发布投稿'}
             </button>

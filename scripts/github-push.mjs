@@ -142,7 +142,6 @@ const cfg = {
   branch: 'main',
   message: 'deploy: 自动同步',
   vercelHook: '',
-  nextAppHook: '', // /app 独立 Next.js 项目的 Deploy Hook（重建 next-app-mocha-three 等）
   dryRun: false,
   gitEnabled: true, // 默认开启真实 git commit，用于激活仓库历史 / AI 更新日志
 };
@@ -200,7 +199,6 @@ async function reloadConfig() {
   cfg.branch = branchExplicit ?? 'main';
   cfg.message = process.env.GITHUB_COMMIT_MSG ?? fileConfig.GITHUB_COMMIT_MSG ?? 'deploy: 自动同步';
   cfg.vercelHook = process.env.VERCEL_DEPLOY_HOOK ?? fileConfig.VERCEL_DEPLOY_HOOK ?? '';
-  cfg.nextAppHook = process.env.NEXT_APP_DEPLOY_HOOK ?? fileConfig.NEXT_APP_DEPLOY_HOOK ?? '';
   cfg.dryRun = (process.env.DEPLOY_DRY_RUN ?? fileConfig.DEPLOY_DRY_RUN ?? '0') === '1';
   // GITHUB_GIT_COMMIT=0/false/no 时禁用真实 git 提交，仅使用 GitHub API 推送
   cfg.gitEnabled = process.env.GITHUB_GIT_COMMIT
@@ -464,11 +462,8 @@ async function runDeploy(opts = {}) {
     // 主项目（Docusaurus + /app 反向代理函数）通常由 git push 自动部署；
     // 若配置了 VERCEL_DEPLOY_HOOK 则额外显式触发一次。
     await triggerHook('主项目', cfg.vercelHook);
-    // /app 由独立 Next.js 项目承载，主项目部署不会重建它，
-    // 必须单独触发其 Deploy Hook 才能把改动的 /app 推上线。
-    await triggerHook('/app(next-app)', cfg.nextAppHook);
-    if (!cfg.vercelHook && !cfg.nextAppHook) {
-      log('B 线：未配置任何 Deploy Hook，依赖 git push 自动部署。');
+    if (!cfg.vercelHook) {
+      log('B 线：未配置主项目 Deploy Hook，依赖 git push 自动部署。');
     }
   }
 
@@ -484,7 +479,6 @@ export async function getDeployStatus() {
     repo: cfg.repo || null,
     branch: cfg.branch,
     hasVercelHook: Boolean(cfg.vercelHook),
-    hasNextAppHook: Boolean(cfg.nextAppHook),
     message: cfg.message,
     gitEnabled: cfg.gitEnabled,
   };

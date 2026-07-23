@@ -201,26 +201,6 @@
       "source": "/docs/linux/:path*/",
       "destination": "/docs/meshtasticd/:path*/"
     }
-  ],
-  "redirects": [
-    {
-      "source": "/app",
-      "destination": "/app/forum/"
-    },
-    {
-      "source": "/app/",
-      "destination": "/app/forum/"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/app/:path*/",
-      "destination": "/api/app/:path*"
-    },
-    {
-      "source": "/app/:path*",
-      "destination": "/api/app/:path*"
-    }
   ]
 }
 

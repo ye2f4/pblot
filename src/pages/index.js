@@ -31,7 +31,6 @@ import RankList from '../components/RankList';
 // 全局常量
 const LOCATION_STORAGE_KEY = 'weather_selected_location';
 
-// 懒加载组件
 const WeatherWidget = lazy(() => import('../components/WeatherWidget'));
 const CommentSection = lazy(() => import('../components/CommentSection'));
 const AdSection = lazy(() => import('../components/AdSection'));

@@ -143,7 +143,7 @@ export default function MainContentTop({ siteData }) {
                     ✅ 签到
                 </Link>
                 <a
-                    href="/app/forum?tab=random"
+                    href="/forum?tab=random"
                     className={styles.btnHover}
                     style={{
                         padding: '8px 16px',

@@ -113,7 +113,7 @@ export default function SignIn() {
                                 请登录后使用签到功能
                             </p>
                             <a
-                                href="/app/login"
+                                href="/login"
                                 style={{
                                     display: 'inline-block',
                                     padding: '10px 22px',

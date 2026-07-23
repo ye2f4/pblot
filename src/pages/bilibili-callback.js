@@ -34,7 +34,7 @@ export default function BilibiliCallback() {
           .maybeSingle();
         const hasUsername = !!(profile?.username && String(profile.username).trim());
         if (!hasUsername) {
-          window.location.href = '/app/complete-profile';
+          window.location.href = '/complete-profile';
           return;
         }
       } catch (e) {

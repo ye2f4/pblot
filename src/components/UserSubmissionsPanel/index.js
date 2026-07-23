@@ -38,7 +38,7 @@ export default function UserSubmissionsPanel({ variant = 'page' }) {
       {submissions.map((s) => (
         <li key={s.id}>
           <Link
-            to={`/app/submissions/?id=${s.id}`}
+            to={`/submissions/?id=${s.id}`}
             title={s.title}
             style={{
               display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -110,7 +110,7 @@ export default function UserSubmissionsPanel({ variant = 'page' }) {
                   投稿
                 </span>
                 <Link
-                  to={`/app/submissions/?id=${s.id}`}
+                  to={`/submissions/?id=${s.id}`}
                   style={{
                     flex: 1, color: 'var(--ifm-color-emphasis-800)', textDecoration: 'none',
                     fontSize: 14, fontWeight: 500,

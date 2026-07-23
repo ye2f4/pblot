@@ -267,9 +267,32 @@ const config = {
       configureWebpack() {
         return {
           resolve: {
-            alias: { "@": path.resolve(__dirname, "src") }
+            alias: {
+              "@": path.resolve(__dirname, "src"),
+              // @mono/ui 是 TS 源码包（package.json 的 main/exports 直接指向 src/index.ts），
+              // Docusaurus 默认只转译站点 src 与 @docusaurus 包，不会转译 workspace 里的 TS，
+              // 导致导航栏/页脚 swizzle `import { SiteHeader } from '@mono/ui'` 解析到未转译的
+              // .ts → 模块解析失败、导航栏与页脚加载不出来。显式指到源码目录并让 babel 转译之。
+              "@mono/ui": path.resolve(__dirname, "packages/ui/src"),
+            },
           },
           devtool: isDev ? "source-map" : false,
+          module: {
+            rules: [
+              {
+                test: /\.(ts|tsx|js|jsx)$/,
+                include: [path.resolve(__dirname, "packages/ui/src")],
+                use: {
+                  loader: "babel-loader",
+                  options: {
+                    presets: [require.resolve("@docusaurus/core/lib/babel/preset")],
+                    babelrc: false,
+                    configFile: false,
+                  },
+                },
+              },
+            ],
+          },
         };
       },
     }),
@@ -293,7 +316,9 @@ const config = {
   ],
 
   future: {
-    faster: true,
+    // 生产构建用 rspack 加速；开发模式关闭，因为 rspack 的 dev server 不支持客户端 React.lazy
+    // 动态导入，会让首页的 lazy 组件报 “Loading chunk ... failed (timeout)”。webpack dev 无此问题。
+    faster: process.env.NODE_ENV === 'production',
     v4: true,
   },
 

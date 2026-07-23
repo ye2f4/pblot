@@ -31,7 +31,7 @@ export const supabase = isBrowser
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7天
         // 浏览器端不设 domain：document.cookie 默认落当前域（monoblog.cc.cd），
-        // 使主站与 /app（Next.js）天然共享登录态；domain 由 next-app 服务端显式设置
+        // 主站与 /app 论坛共用同一客户端实例，登录态天然共享
       },
     },
   })
