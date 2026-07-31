@@ -560,3 +560,58 @@ a+.navbar__link {
   margin: 0;
   padding: 0;
 }
+
+/* ========== 主站绿色按钮：投稿 / 聊天 / GitHub ==========
+   官方 Navbar 渲染，按 siteData.json 的 className 匹配（保留原有绿色排版设计）。 */
+.navbar__link.navbar-contribute-btn,
+.navbar__link.navbar-chat-btn,
+.navbar__link.navbar-github-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #22c55e !important;
+  color: #fff !important;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.navbar__link.navbar-contribute-btn:hover,
+.navbar__link.navbar-chat-btn:hover,
+.navbar__link.navbar-github-btn:hover {
+  background-color: #16a34a !important;
+  color: #fff !important;
+  opacity: 1;
+}
+
+/* 投稿按钮（label 为 "+"）更紧凑，视觉更精致 */
+.navbar__link.navbar-contribute-btn {
+  padding: 0.4rem 0.7rem;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+/* 绿色按钮在移动端也保留显示（覆盖上方 <600px 隐藏 .navbar__link 的规则） */
+@media (width < 600px) {
+  .navbar__link.navbar-contribute-btn,
+  .navbar__link.navbar-chat-btn,
+  .navbar__link.navbar-github-btn {
+    display: none !important;
+  }
+}
+
+/* 页脚备案号链接（并入 copyright，通过 <br/> 换行显示） */
+.footer__copyright .footer__beian-link {
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  font-size: 0.8125rem;
+}
+
+.footer__copyright .footer__beian-link:hover {
+  color: hsl(var(--btn-primary));
+  text-decoration: underline;
+}

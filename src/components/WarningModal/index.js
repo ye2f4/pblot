@@ -51,6 +51,7 @@ export default function WarningModal() {
   const [dismissed, setDismissed] = useState(getDismissed());
   const [now, setNow] = useState(() => Date.now());
   const [userGeo, setUserGeo] = useState(getStoredGeo());
+  const [quakeOpen, setQuakeOpen] = useState(false);
 
   useEffect(() => { setDismissed(getDismissed()); }, [warnings]);
 
@@ -92,9 +93,9 @@ export default function WarningModal() {
   };
   const isEq = (w) => (w.type || '') === 'earthquake';
 
-  // 国内地震 + 非地震类预警 → 全屏；国外地震 → 右下角小卡片
+  // 国内地震 + 非地震类预警 → 全屏；国外地震 → 左下角圆形图标（点击展开）
   const fullscreen = sorted.filter((w) => !isEq(w) || isDomestic(w));
-  const minor = sorted.filter((w) => isEq(w) && !isDomestic(w));
+  const foreignQuakes = sorted.filter((w) => isEq(w) && !isDomestic(w));
 
   function closeAll() {
     markDismissed(active.map((w) => w.id));
@@ -195,15 +196,51 @@ export default function WarningModal() {
         </div>
       )}
 
-      {minor.map((w) => (
-        <div key={'minor-' + w.id} style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 99998, width: 340, maxWidth: '90vw', background: '#fff', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
-          {renderCard(w, true)}
-          <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee' }}>
-            <button onClick={closeAll} style={{ fontSize: 13, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}>关闭全部</button>
-            <button onClick={() => closeOne(w.id)} style={{ padding: '6px 14px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>知道了</button>
-          </div>
+      {foreignQuakes.length > 0 && (
+        <div key="foreign-quakes" style={{ position: 'fixed', left: 16, bottom: 16, zIndex: 99998 }}>
+          {/* 圆形悬浮图标：不打扰，仅提示有国外地震速报 */}
+          <button
+            aria-label="国外地震速报"
+            onClick={() => setQuakeOpen((v) => !v)}
+            style={{
+              position: 'relative',
+              width: 52, height: 52, borderRadius: '50%',
+              background: '#fff', border: '2px solid #ef6c00',
+              boxShadow: '0 6px 18px rgba(0,0,0,0.25)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 24, lineHeight: 1, padding: 0,
+            }}
+          >
+            🌍
+            {foreignQuakes.length > 1 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20,
+                padding: '0 5px', borderRadius: 10, background: '#ef6c00', color: '#fff',
+                fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {foreignQuakes.length}
+              </span>
+            )}
+          </button>
+
+          {/* 点击后展开的详情面板（仍在左下角，不挡主内容） */}
+          {quakeOpen && (
+            <div style={{ position: 'absolute', left: 0, bottom: 64, width: 340, maxWidth: '90vw', maxHeight: '70vh', overflowX: 'hidden', overflowY: 'auto', background: '#fff', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+              {foreignQuakes.map((w) => (
+                <div key={'fq-' + w.id}>
+                  {renderCard(w, true)}
+                  <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #eee' }}>
+                    <button onClick={() => closeOne(w.id)} style={{ padding: '6px 14px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>知道了</button>
+                  </div>
+                </div>
+              ))}
+              <div style={{ padding: '8px 12px', textAlign: 'right', borderTop: '1px solid #eee' }}>
+                <button onClick={closeAll} style={{ fontSize: 13, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}>关闭全部</button>
+              </div>
+            </div>
+          )}
         </div>
-      ))}
+      )}
     </>
   );
 }

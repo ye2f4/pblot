@@ -1,165 +1,120 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
-import styles from './index.module.css';
-import articlesData from '../data/articles.json';
-import { supabase } from '../supabase/supabaseClient';
 
-export default function AllArticles() {
-  const [submissions, setSubmissions] = useState([]);
+const entries = [
+  {
+    icon: '📝',
+    title: '博客',
+    desc: '个人随笔、技术分享、开源教程与生活记录',
+    to: '/blog/',
+    color: '#4285f4',
+    tags: ['随笔', '教程', '动态'],
+  },
+  {
+    icon: '📚',
+    title: '文章',
+    desc: '系统整理的文档、系列教程与专题合集',
+    to: '/docs/introduction/',
+    color: '#8b5cf6',
+    tags: ['文档', '教程', '专题'],
+  },
+];
 
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_submissions')
-          .select('id,title,tags,created_at,author_name,excerpt,cover_image,view_count')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false })
-          .limit(50);
-        if (!error && active && data) setSubmissions(data);
-      } catch {
-        // 静默：不影响原有文章展示
-      }
-    })();
-    return () => { active = false; };
-  }, []);
-
-  const fmt = (s) => {
-    const d = new Date(s);
-    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('zh-CN');
-  };
-
-  // 按标签自动分类
-  const grouped = useMemo(() => {
-    const map = new Map();
-    (articlesData?.articles || []).forEach((a) => {
-      const tags = a.tags && a.tags.length > 0 ? a.tags : ['未分类'];
-      tags.forEach((tag) => {
-        if (!map.has(tag)) map.set(tag, []);
-        map.get(tag).push(a);
-      });
-    });
-    // 按文章数量倒序，热门标签靠前
-    return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
-  }, []);
-
-  const total = articlesData?.total ?? 0;
-
+export default function ArticlesEntry() {
   return (
     <Layout
-      title="全部文章"
-      description="Monoの小窝全部文章——按标签自动分类的博客与文档聚合页"
+      title="博客 / 文章"
+      description="Monoの小窝内容导航——前往博客或技术文章文档"
     >
       <div style={{
-        maxWidth: 1100, margin: '0 auto', padding: '32px 16px 60px', width: '100%', boxSizing: 'border-box',
+        minHeight: '70vh',
+        padding: '56px 20px 70px',
+        background: 'var(--ifm-background-color)',
       }}>
-        <div style={{ marginBottom: 28, textAlign: 'center' }}>
-          <h1 style={{ fontSize: 30, margin: '0 0 8px', color: 'var(--ifm-heading-color)' }}>
-            📚 全部文章
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--ifm-color-emphasis-600)', margin: 0 }}>
-            共 {total} 篇文章，按标签自动分类（博客 + 文档）。创建新文章后重新构建即自动更新。
-          </p>
-        </div>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <h1 style={{
+              fontSize: 32, margin: '0 0 10px', color: 'var(--ifm-heading-color)', fontWeight: 700,
+            }}>
+              📂 内容导航
+            </h1>
+            <p style={{ fontSize: 15, color: 'var(--ifm-color-emphasis-600)', margin: 0 }}>
+              选择你想浏览的内容板块
+            </p>
+          </div>
 
-        {submissions.length > 0 && (
-          <section className={styles.sectionCard} style={{ marginBottom: 22 }}>
-            <h3 className={styles.sectionTitle}>
-              ✍️ 用户投稿
-              <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--ifm-color-emphasis-500)', marginLeft: 8 }}>
-                ({submissions.length})
-              </span>
-            </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {submissions.map((s) => (
-                <li key={s.id} style={{
-                  display: 'flex', alignItems: 'baseline', gap: 10, padding: '8px 10px',
-                  borderRadius: 8, transition: 'background 0.2s ease',
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: 20,
+          }}>
+            {entries.map((e) => (
+              <Link
+                key={e.to}
+                to={e.to}
+                style={{
+                  display: 'block',
+                  textDecoration: 'none',
+                  background: 'var(--ifm-card-background-color)',
+                  border: '1px solid var(--ifm-color-emphasis-200)',
+                  borderRadius: 20,
+                  padding: 32,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ifm-background-surface-color)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <span style={{
-                    fontSize: 11, color: '#fff', background: '#22c55e',
-                    borderRadius: 4, padding: '1px 6px', flexShrink: 0, fontWeight: 600,
-                  }}>
-                    投稿
-                  </span>
-                  <Link
-                    to={`/submissions/?id=${s.id}`}
-                    style={{
-                      flex: 1, color: 'var(--ifm-color-emphasis-800)', textDecoration: 'none',
-                      fontSize: 14, fontWeight: 500,
-                    }}
-                  >
-                    {s.title}
-                  </Link>
-                  <span style={{ fontSize: 12, color: 'var(--ifm-color-emphasis-400)', flexShrink: 0 }}>
-                    {s.author_name}{s.created_at ? ' · ' + fmt(s.created_at) : ''}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {grouped.map(([tag, list]) => (
-          <section key={tag} className={styles.sectionCard} style={{ marginBottom: 22 }}>
-            <h3 className={styles.sectionTitle}>
-              🏷️ {tag}
-              <span style={{
-                fontSize: 12, fontWeight: 400, color: 'var(--ifm-color-emphasis-500)', marginLeft: 8,
-              }}>
-                ({list.length})
-              </span>
-            </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {list.map((a, i) => (
-                <li key={`${a.url}-${i}`} style={{
-                  display: 'flex', alignItems: 'baseline', gap: 10, padding: '8px 10px',
-                  borderRadius: 8, transition: 'background 0.2s ease',
+                onMouseEnter={(ev) => {
+                  ev.currentTarget.style.transform = 'translateY(-4px)';
+                  ev.currentTarget.style.boxShadow = '0 14px 32px rgba(0,0,0,0.12)';
                 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ifm-background-surface-color)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <span style={{
-                    fontSize: 11, color: '#fff', background: a.type === 'blog' ? '#4285f4' : '#8b5cf6',
-                    borderRadius: 4, padding: '1px 6px', flexShrink: 0, fontWeight: 600,
+                onMouseLeave={(ev) => {
+                  ev.currentTarget.style.transform = 'none';
+                  ev.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.06)';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+                  <div style={{
+                    width: 54, height: 54, borderRadius: 14, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 28, color: '#fff', background: e.color,
                   }}>
-                    {a.type === 'blog' ? '博客' : '文档'}
-                  </span>
-                  <Link
-                    to={a.url}
-                    style={{
-                      flex: 1, color: 'var(--ifm-color-emphasis-800)', textDecoration: 'none',
-                      fontSize: 14, fontWeight: 500,
-                    }}
-                  >
-                    {a.title}
-                  </Link>
-                  {a.date && (
-                    <span style={{ fontSize: 12, color: 'var(--ifm-color-emphasis-400)', flexShrink: 0 }}>
-                      {a.date}
+                    {e.icon}
+                  </div>
+                  <h2 style={{ fontSize: 22, margin: 0, color: 'var(--ifm-heading-color)' }}>
+                    {e.title}
+                  </h2>
+                </div>
+                <p style={{
+                  fontSize: 14, color: 'var(--ifm-color-emphasis-600)',
+                  lineHeight: 1.7, margin: '0 0 16px',
+                }}>
+                  {e.desc}
+                </p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {e.tags.map((t) => (
+                    <span key={t} style={{
+                      fontSize: 12, padding: '3px 10px', borderRadius: 20,
+                      background: 'var(--ifm-color-emphasis-100)', color: 'var(--ifm-color-emphasis-700)',
+                    }}>
+                      {t}
                     </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+                  ))}
+                </div>
+              </Link>
+            ))}
+          </div>
 
-        <div style={{ textAlign: 'center', marginTop: 24 }}>
-          <Link
-            to="/"
-            style={{
-              display: 'inline-block', padding: '10px 24px', borderRadius: 10,
-              background: 'var(--ifm-color-primary)', color: '#fff', textDecoration: 'none', fontSize: 14,
-            }}
-          >
-            🏠 返回首页
-          </Link>
+          <div style={{ textAlign: 'center', marginTop: 36 }}>
+            <Link
+              to="/"
+              style={{
+                display: 'inline-block', padding: '10px 24px', borderRadius: 10,
+                background: 'var(--ifm-color-primary)', color: '#fff', textDecoration: 'none', fontSize: 14,
+              }}
+            >
+              🏠 返回首页
+            </Link>
+          </div>
         </div>
       </div>
     </Layout>

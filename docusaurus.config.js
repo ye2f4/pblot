@@ -101,7 +101,7 @@ const config = {
           "media-src 'self' data: blob: https://*.music.163.com https://music.163.com https://*.music.126.net https://*.music.127.net http://*.music.126.net http://*.music.127.net" + (process.env.NODE_ENV === 'production' ? '' : ' http://localhost:3009'),
           "font-src 'self' https://fonts.gstatic.com data:",
           "connect-src 'self' https://xwhwcmorcmgpfpocmgez.supabase.co wss://xwhwcmorcmgpfpocmgez.supabase.co https://vitals.vercel-analytics.com https://api.open-meteo.com https://ipapi.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com" + (process.env.NODE_ENV === 'production' ? '' : ' http://localhost:3009'),
-          "frame-src 'self'",
+          "frame-src 'self' https://flasher.meshtastic.org",
           "object-src 'none'",
           "base-uri 'self'",
           "form-action 'self'",
@@ -194,12 +194,20 @@ const config = {
     navbar: {
       hideOnScroll: siteData.navbarConfig?.hideOnScroll ?? false,
       title: siteData.siteTitle,
+      logo: b.logoSrc
+        ? { alt: b.logoAlt || siteData.siteTitle, src: b.logoSrc }
+        : undefined,
       items: siteData.navbarConfig?.items || [],
     },
     footer: {
       style: siteData.footerConfig?.style || 'dark',
       links: siteData.footerConfig?.links || [],
-      copyright: `Copyright © ${currentYear} ${siteData.siteTitle}. Powered by Docusaurus & Vercel.`,
+      copyright: [
+        `Copyright © ${currentYear} ${siteData.siteTitle}. Powered by Docusaurus & Vercel.`,
+        siteData.footerConfig?.beian
+          ? `<a class="footer__beian-link" href="${siteData.footerConfig.beian.href}" target="_blank" rel="noopener noreferrer">${siteData.footerConfig.beian.label}</a>`
+          : '',
+      ].filter(Boolean).join('<br/>'),
     },
     mermaid: {
       theme: { light: "base", dark: "base" },
@@ -269,30 +277,9 @@ const config = {
           resolve: {
             alias: {
               "@": path.resolve(__dirname, "src"),
-              // @mono/ui 是 TS 源码包（package.json 的 main/exports 直接指向 src/index.ts），
-              // Docusaurus 默认只转译站点 src 与 @docusaurus 包，不会转译 workspace 里的 TS，
-              // 导致导航栏/页脚 swizzle `import { SiteHeader } from '@mono/ui'` 解析到未转译的
-              // .ts → 模块解析失败、导航栏与页脚加载不出来。显式指到源码目录并让 babel 转译之。
-              "@mono/ui": path.resolve(__dirname, "packages/ui/src"),
             },
           },
           devtool: isDev ? "source-map" : false,
-          module: {
-            rules: [
-              {
-                test: /\.(ts|tsx|js|jsx)$/,
-                include: [path.resolve(__dirname, "packages/ui/src")],
-                use: {
-                  loader: "babel-loader",
-                  options: {
-                    presets: [require.resolve("@docusaurus/core/lib/babel/preset")],
-                    babelrc: false,
-                    configFile: false,
-                  },
-                },
-              },
-            ],
-          },
         };
       },
     }),
@@ -337,7 +324,7 @@ const config = {
         blog: {
           blogTitle: b.blogTitle,
           blogDescription: b.blogDescription,
-          postsPerPage: 10,
+          postsPerPage: 'ALL',
           blogSidebarCount: 5,
           onUntruncatedBlogPosts: 'ignore',
           feedOptions: {

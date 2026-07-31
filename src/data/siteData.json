@@ -44,9 +44,7 @@
   "navbarConfig": {
     "hideOnScroll": false,
     "items": [
-      { "label": "博客", "to": "/blog/", "position": "left" },
-      { "label": "文章", "to": "/docs/introduction/", "position": "left" },
-      { "label": "全部文章", "to": "/articles/", "position": "left" },
+      { "label": "博客", "to": "/articles/", "position": "left" },
       {
         "type": "dropdown", "label": "资源", "position": "left",
         "items": [
@@ -55,32 +53,9 @@
           { "label": "开发工具", "to": "/tools/" }
         ]
       },
-      {
-        "type": "dropdown", "label": "工具箱", "position": "left",
-        "items": [
-          { "label": "硬件监控", "to": "/hardware/" },
-          { "label": "共享地震台网", "to": "/shake-network/" },
-          { "label": "代码片段", "to": "/snippets/" },
-          { "label": "PCB元器件", "to": "/pcb/" },
-          { "label": "时光胶囊", "to": "/capsule/" },
-          { "label": "排行榜", "to": "/leaderboard/" },
-          { "label": "网易云下载", "to": "/music-downloader/" }
-        ]
-      },
+      { "label": "离网通信", "to": "/off-grid/", "position": "left" },
+      { "label": "更多", "to": "/more/", "position": "left" },
       { "label": "关于", "to": "/about/", "position": "left" },
-      {
-        "type": "dropdown", "label": "更多", "position": "left",
-        "items": [
-          { "label": "说说", "to": "/moments/" },
-          { "label": "友情链接", "to": "/friends/" },
-          { "label": "投稿广场", "to": "/submissions/" },
-          { "label": "更新日志", "to": "/changelog/" },
-          { "label": "系列项目", "to": "/series" },
-          { "label": "隐私政策", "to": "/privacy/" },
-          { "label": "用户协议", "to": "/terms/" },
-          { "label": "RSS订阅", "to": "/rss" }
-        ]
-      },
       { "label": "+", "to": "/contribute/", "position": "right", "className": "navbar-contribute-btn", "title": "投稿" },
       { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" },
       { "label": "GitHub", "href": "https://github.com/ye2f4", "position": "right", "className": "navbar-github-btn" }
