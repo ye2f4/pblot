@@ -1,27 +1,54 @@
 {
   "title": {
-    "message": "Monoの小窝",
+    "message": "Mono's Nest",
     "description": "The title in the navbar"
   },
   "logo.alt": {
     "message": "Mono Logo",
     "description": "The alt text of navbar logo"
   },
-  "item.label.Docs": {
-    "message": "文章",
-    "description": "Navbar item with label Docs"
-  },
   "item.label.Blog": {
-    "message": "博客",
+    "message": "Blog",
     "description": "Navbar item with label Blog"
   },
+  "item.label.Resources": {
+    "message": "Resources",
+    "description": "Navbar item with label Resources"
+  },
   "item.label.Downloads": {
-    "message": "下载",
+    "message": "Downloads",
     "description": "Navbar item with label Downloads"
+  },
+  "item.label.OpenSource": {
+    "message": "Open Source",
+    "description": "Navbar item with label Open Source"
+  },
+  "item.label.DevTools": {
+    "message": "Dev Tools",
+    "description": "Navbar item with label Dev Tools"
+  },
+  "item.label.Off-gridComms": {
+    "message": "Off-grid Comms",
+    "description": "Navbar item with label Off-grid Comms"
+  },
+  "item.label.More": {
+    "message": "More",
+    "description": "Navbar item with label More"
+  },
+  "item.label.About": {
+    "message": "About",
+    "description": "Navbar item with label About"
+  },
+  "item.label.Chat": {
+    "message": "Chat",
+    "description": "Navbar item with label Chat"
   },
   "item.label.GitHub": {
     "message": "GitHub",
     "description": "Navbar item with label GitHub"
+  },
+  "item.label.Contribute": {
+    "message": "Contribute",
+    "description": "Navbar item with label Contribute"
   }
 }
-

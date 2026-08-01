@@ -1,768 +1,767 @@
 {
   "homepage.title": {
-    "message": "开源硬件与无线通信技术分享"
+    "message": "Open-source Hardware & Wireless Communication Tech Sharing"
   },
   "homepage.description": {
-    "message": "专注 ESP32P4 智能手表、LVGL 界面开发、Meshtastic 自组网、开源硬件项目与实战教程。"
+    "message": "Focused on ESP32P4 smartwatches, LVGL UI development, Meshtastic mesh networks, open-source hardware projects and hands-on tutorials."
   },
   "homepage.deviceMockup.react": {
-    "message": "演示交互"
+    "message": "Live Demo"
   },
   "homepage.deviceMockup.demoDisclaimer": {
-    "message": "仅为功能演示"
+    "message": "Demo only"
   },
   "homepage.deviceMockup.reply": {
-    "message": "回复"
+    "message": "Reply"
   },
   "homepage.deviceMockup.channelName": {
-    "message": "技术交流频道"
+    "message": "Tech Channel"
   },
   "homepage.deviceMockup.primaryChannel": {
-    "message": "主频道"
+    "message": "Main Channel"
   },
   "homepage.deviceMockup.placeholder": {
-    "message": "输入消息..."
+    "message": "Type a message..."
   },
   "homepage.devices.partnerDevices": {
-    "message": "合作硬件设备"
+    "message": "Partner Hardware"
   },
   "homepage.devices.viewAll": {
-    "message": "查看全部"
+    "message": "View All"
   },
   "homepage.devices.supportedDevices": {
-    "message": "支持设备"
+    "message": "Supported Devices"
   },
   "homepage.devices.orVisitPartners": {
-    "message": "或直接访问合作站点"
+    "message": "Or visit our partners"
   },
   "homepage.stats.communityDevices": {
-    "message": "社区支持设备"
+    "message": "Community-supported Devices"
   },
   "homepage.stats.contributors": {
-    "message": "全球代码贡献者"
+    "message": "Global Contributors"
   },
   "homepage.stats.regions": {
-    "message": "LoRa 频段区域"
+    "message": "LoRa Frequency Regions"
   },
   "homepage.stats.languages": {
-    "message": "支持语言"
+    "message": "Languages Supported"
   },
   "homepage.hero.offGrid": {
-    "message": "离线通信"
+    "message": "Off-grid Comms"
   },
   "homepage.hero.communication": {
-    "message": "无线互联"
+    "message": "Wireless Connectivity"
   },
   "homepage.hero.forEveryone": {
-    "message": "人人可用"
+    "message": "For Everyone"
   },
   "homepage.hero.tagline": {
-    "message": "基于低成本低功耗硬件搭建开源去中心化自组网，无需基站、无需公网，实现纯点对点无线通信。"
+    "message": "Build an open-source, decentralized mesh network with low-cost, low-power hardware — no base stations, no public internet, pure peer-to-peer wireless communication."
   },
   "homepage.hero.getStarted": {
-    "message": "开始探索"
+    "message": "Get Started"
   },
   "homepage.hero.needHardware": {
-    "message": "需要硬件设备？"
+    "message": "Need hardware?"
   },
   "homepage.hero.readTheDocs": {
-    "message": "查阅文档"
+    "message": "Read the Docs"
   },
   "homepage.devices.ariaLabel": {
-    "message": "设备列表"
+    "message": "Device list"
   },
   "homepage.devices.close": {
-    "message": "关闭"
+    "message": "Close"
   },
   "homepage.downloads.tryItOut": {
-    "message": "立即体验"
+    "message": "Try It Now"
   },
   "homepage.downloads.ariaLabel": {
-    "message": "客户端下载"
+    "message": "Client downloads"
   },
   "homepage.downloads.heading": {
-    "message": "快速接入"
+    "message": "Quick Start"
   },
   "homepage.downloads.description": {
-    "message": "在不同平台连接、控制硬件设备，选择适合你的客户端与使用环境。"
+    "message": "Connect to and control your hardware across platforms. Pick the client that fits your environment."
   },
   "homepage.features.longRange.title": {
-    "message": "远距离通信"
+    "message": "Long-range Communication"
   },
   "homepage.features.longRange.description": {
-    "message": "基于 LoRa 技术，实现数公里远距离无线通信"
+    "message": " kilometers of long-range wireless communication based on LoRa technology"
   },
   "homepage.features.encrypted.title": {
-    "message": "加密传输"
+    "message": "Encrypted Transmission"
   },
   "homepage.features.encrypted.description": {
-    "message": "采用 AES-256 加密算法，保障消息隐私与数据安全"
+    "message": "AES-256 encryption protects message privacy and data security"
   },
   "homepage.features.noInfrastructure.title": {
-    "message": "无需基础设施"
+    "message": "No Infrastructure Needed"
   },
   "homepage.features.noInfrastructure.description": {
-    "message": "脱离基站、WiFi 与互联网，独立运行"
+    "message": "Works independently, free from cell towers, WiFi and the internet"
   },
   "homepage.features.ariaLabel": {
-    "message": "功能特性"
+    "message": "Features"
   },
   "homepage.features.heading": {
-    "message": "核心特性"
+    "message": "Core Features"
   },
   "homepage.languageSelector.ariaLabel": {
-    "message": "选择语言"
+    "message": "Select language"
   },
   "homepage.languageSelector.navAriaLabel": {
-    "message": "语言选择"
+    "message": "Language selection"
   },
   "homepage.sponsors.supportedBy": {
-    "message": "技术支持"
+    "message": "Tech Support"
   },
   "homepage.sponsors.sponsoredBy": {
-    "message": "赞助伙伴"
+    "message": "Sponsors"
   },
   "downloads.title": {
-    "message": "资源下载"
+    "message": "Downloads"
   },
   "downloads.description": {
-    "message": "本站相关固件、客户端、工具与资料下载"
+    "message": "Firmware, clients, tools and resources for this site"
   },
   "downloads.flasher.heading": {
-    "message": "固件烧录工具"
+    "message": "Firmware Flashing Tools"
   },
   "downloads.flasher.webFlasher": {
-    "message": "网页烧录器"
+    "message": "Web Flasher"
   },
   "downloads.flasher.webFlasherDescription": {
-    "message": "基于浏览器的在线烧录工具，支持 Chrome、Edge 等内核浏览器，兼容主流硬件架构。"
+    "message": "Browser-based online flasher supporting Chrome, Edge and other Chromium-based browsers, compatible with mainstream hardware architectures."
   },
   "downloads.flasher.goToWebFlasher": {
-    "message": "打开网页烧录器"
+    "message": "Open Web Flasher"
   },
   "downloads.flasher.dragAndDrop": {
-    "message": "nRF52/RP2040/RP2350 拖拽烧录"
+    "message": "nRF52/RP2040/RP2350 Drag-and-Drop Flashing"
   },
   "downloads.flasher.dragAndDropDescription": {
-    "message": "T-Echo、RAK4631、RAK11300 等设备可通过文件系统拖拽刷写固件，请先使用网页烧录器下载对应固件。"
+    "message": "Devices such as T-Echo, RAK4631 and RAK11300 can be flashed via the filesystem drag-and-drop. Download the matching firmware with the Web Flasher first."
   },
   "downloads.flasher.goToFlasher": {
-    "message": "前往烧录工具"
+    "message": "Go to Flasher"
   },
   "downloads.apps.heading": {
-    "message": "客户端应用"
+    "message": "Client Apps"
   },
   "downloads.apps.apple": {
-    "message": "苹果设备"
+    "message": "Apple Devices"
   },
   "downloads.apps.appleDescription": {
-    "message": "支持 iOS、iPadOS、macOS，兼容最近两个系统大版本。"
+    "message": "Supports iOS, iPadOS and macOS, compatible with the last two major system versions."
   },
   "downloads.apps.appStore": {
     "message": "App Store"
   },
   "downloads.apps.android": {
-    "message": "安卓设备"
+    "message": "Android Devices"
   },
   "downloads.apps.androidSideloading": {
-    "message": "支持手动安装 APK"
+    "message": "Manual APK installation supported"
   },
   "downloads.apps.fdroid": {
     "message": "F-Droid"
   },
   "downloads.apps.playStore": {
-    "message": "应用商店"
+    "message": "Play Store"
   },
   "downloads.apps.web": {
-    "message": "网页端"
+    "message": "Web"
   },
   "downloads.apps.webDescription": {
-    "message": "需使用 Chromium 内核浏览器访问。"
+    "message": "Requires a Chromium-based browser."
   },
   "downloads.firmware.heading": {
-    "message": "设备固件"
+    "message": "Device Firmware"
   },
   "downloads.firmware.stableDescription": {
-    "message": "稳定版本：功能经过充分测试，适合日常使用。"
+    "message": "Stable: well-tested features, suitable for daily use."
   },
   "downloads.firmware.alphaDescription": {
-    "message": "测试版本：包含最新功能，供尝鲜与测试使用。"
+    "message": "Beta: includes the latest features for early access and testing."
   },
   "downloads.firmware.bleeding": {
-    "message": "开发版"
+    "message": "Development"
   },
   "downloads.firmware.bleedingDescription": {
-    "message": "最新编译快照，功能尚未稳定，仅供开发调试。"
+    "message": "Latest build snapshot, features not yet stable, for development and debugging only."
   },
   "downloads.firmware.downloadBleeding": {
-    "message": "下载开发版固件"
+    "message": "Download Development Firmware"
   },
   "theme.NotFound.title": {
-    "message": "页面未找到",
+    "message": "Page Not Found",
     "description": "The title of the 404 page"
   },
   "downloads.firmware.olderVersions": {
-    "message": "历史版本"
+    "message": "Older Versions"
   },
   "downloads.firmware.downloadVariant": {
-    "message": "下载 {variant}"
+    "message": "Download {variant}"
   },
   "downloads.firmware.loading": {
-    "message": "加载中..."
+    "message": "Loading..."
   },
   "theme.NotFound.p1": {
-    "message": "抱歉，你访问的页面不存在。",
+    "message": "Sorry, the page you visited does not exist.",
     "description": "The first paragraph of the 404 page"
   },
   "theme.NotFound.p2": {
-    "message": "请检查链接是否正确，或联系站点管理员修正失效链接。",
+    "message": "Please check if the link is correct, or contact the site administrator to fix the broken link.",
     "description": "The 2nd paragraph of the 404 page"
   },
   "theme.ErrorPageContent.title": {
-    "message": "页面加载出错",
+    "message": "Something went wrong loading this page",
     "description": "The title of the fallback page when the page crashed"
   },
   "theme.BackToTopButton.buttonAriaLabel": {
-    "message": "返回页面顶部",
+    "message": "Back to top",
     "description": "The ARIA label for the back to top button"
   },
   "theme.blog.archive.title": {
-    "message": "文章归档",
+    "message": "Blog Archive",
     "description": "The page & hero title of the blog archive page"
   },
   "theme.blog.archive.description": {
-    "message": "文章归档",
+    "message": "Blog Archive",
     "description": "The page & hero description of the blog archive page"
   },
   "theme.blog.paginator.navAriaLabel": {
-    "message": "博客列表分页导航",
+    "message": "Blog list pagination",
     "description": "The ARIA label for the blog pagination"
   },
   "theme.blog.paginator.newerEntries": {
-    "message": "上一页",
+    "message": "Newer Entries",
     "description": "The label used to navigate to the newer blog posts page (previous page)"
   },
   "theme.blog.paginator.olderEntries": {
-    "message": "下一页",
+    "message": "Older Entries",
     "description": "The label used to navigate to the older blog posts page (next page)"
   },
   "theme.blog.post.paginator.navAriaLabel": {
-    "message": "博文分页导航",
+    "message": "Blog post pagination",
     "description": "The ARIA label for the blog posts pagination"
   },
   "theme.blog.post.paginator.newerPost": {
-    "message": "上一篇",
+    "message": "Newer Post",
     "description": "The blog post button label to navigate to the newer/previous post"
   },
   "theme.blog.post.paginator.olderPost": {
-    "message": "下一篇",
+    "message": "Older Post",
     "description": "The blog post button label to navigate to the older/next post"
   },
   "theme.tags.tagsPageLink": {
-    "message": "查看全部标签",
+    "message": "View all tags",
     "description": "The label of the link targeting the tag list page"
   },
   "theme.colorToggle.ariaLabel.mode.system": {
-    "message": "跟随系统",
+    "message": "System",
     "description": "The name for the system color mode"
   },
   "theme.colorToggle.ariaLabel.mode.light": {
-    "message": "浅色模式",
+    "message": "Light",
     "description": "The name for the light color mode"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
-    "message": "深色模式",
+    "message": "Dark",
     "description": "The name for the dark color mode"
   },
   "theme.colorToggle.ariaLabel": {
-    "message": "切换深浅色模式（当前：{mode}）",
+    "message": "Toggle {mode} mode",
     "description": "The ARIA label for the color mode toggle"
   },
   "theme.docs.breadcrumbs.navAriaLabel": {
-    "message": "面包屑导航",
+    "message": "Breadcrumbs",
     "description": "The ARIA label for the breadcrumbs"
   },
   "theme.docs.paginator.navAriaLabel": {
-    "message": "文档分页导航",
+    "message": "Docs pagination",
     "description": "The ARIA label for the docs pagination"
   },
   "theme.docs.paginator.previous": {
-    "message": "上一页",
+    "message": "Previous",
     "description": "The label used to navigate to the previous doc"
   },
   "theme.docs.paginator.next": {
-    "message": "下一页",
+    "message": "Next",
     "description": "The label used to navigate to the next doc"
   },
   "theme.docs.tagDocListPageTitle.nDocsTagged": {
-    "message": "1 篇文档含有该标签|共 {count} 篇文档含有该标签",
+    "message": "1 doc tagged|{count} docs tagged",
     "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.docs.tagDocListPageTitle": {
-    "message": "{nDocsTagged}：「{tagName}」",
+    "message": "{nDocsTagged}: \"{tagName}\"",
     "description": "The title of the page for a docs tag"
   },
   "theme.docs.versionBadge.label": {
-    "message": "版本：{versionLabel}"
+    "message": "Version: {versionLabel}"
   },
   "theme.docs.versions.unreleasedVersionLabel": {
-    "message": "当前浏览的是 {siteTitle} {versionLabel} 尚未发布的文档。",
+    "message": "You are viewing the unreleased docs for {siteTitle} {versionLabel}.",
     "description": "The label used to tell the user that he's browsing an unreleased doc version"
   },
   "theme.docs.versions.unmaintainedVersionLabel": {
-    "message": "当前浏览的是 {siteTitle} {versionLabel} 版本文档，该版本已不再维护。",
+    "message": "You are viewing the docs for {siteTitle} {versionLabel}, which is no longer maintained.",
     "description": "The label used to tell the user that he's browsing an unmaintained doc version"
   },
   "theme.docs.versions.latestVersionSuggestionLabel": {
-    "message": "如需查看最新文档，请前往 {latestVersionLink}（{versionLabel}）。",
+    "message": "For the latest docs, go to {latestVersionLink} ({versionLabel}).",
     "description": "The label used to tell the user to check the latest version"
   },
   "theme.docs.versions.latestVersionLinkLabel": {
-    "message": "最新版本",
+    "message": "Latest version",
     "description": "The label used for the latest version suggestion link label"
   },
   "theme.common.editThisPage": {
-    "message": "编辑此页",
+    "message": "Edit this page",
     "description": "The link label to edit the current page"
   },
   "theme.common.headingLinkTitle": {
-    "message": "直达「{heading}」标题链接",
+    "message": "Direct link to \"{heading}\"",
     "description": "Title for link to heading"
   },
   "theme.lastUpdated.atDate": {
-    "message": "，更新于 {date}",
+    "message": ", last updated on {date}",
     "description": "The words used to describe on which date a page has been last updated"
   },
   "theme.lastUpdated.byUser": {
-    "message": "，编辑者：{user}",
+    "message": ", by {user}",
     "description": "The words used to describe by who the page has been last updated"
   },
   "theme.lastUpdated.lastUpdatedAtBy": {
-    "message": "最后更新{atDate}{byUser}",
+    "message": "Last updated{atDate}{byUser}",
     "description": "The sentence used to display when a page has been last updated, and by who"
   },
   "theme.navbar.mobileVersionsDropdown.label": {
-    "message": "版本",
+    "message": "Versions",
     "description": "The label for the navbar versions dropdown on mobile view"
   },
   "theme.tags.tagsListLabel": {
-    "message": "标签：",
+    "message": "Tags:",
     "description": "The label alongside a tag list"
   },
   "theme.admonition.caution": {
-    "message": "注意",
+    "message": "Caution",
     "description": "The default label used for the Caution admonition (:::caution)"
   },
   "theme.admonition.danger": {
-    "message": "危险",
+    "message": "Danger",
     "description": "The default label used for the Danger admonition (:::danger)"
   },
   "theme.admonition.info": {
-    "message": "信息",
+    "message": "Info",
     "description": "The default label used for the Info admonition (:::info)"
   },
   "theme.admonition.note": {
-    "message": "备注",
+    "message": "Note",
     "description": "The default label used for the Note admonition (:::note)"
   },
   "theme.admonition.tip": {
-    "message": "提示",
+    "message": "Tip",
     "description": "The default label used for the Tip admonition (:::tip)"
   },
   "theme.admonition.warning": {
-    "message": "警告",
+    "message": "Warning",
     "description": "The default label used for the Warning admonition (:::warning)"
   },
   "theme.AnnouncementBar.closeButtonAriaLabel": {
-    "message": "关闭公告栏",
+    "message": "Close announcement bar",
     "description": "The ARIA label for close button of announcement bar"
   },
   "theme.blog.sidebar.navAriaLabel": {
-    "message": "博客最新文章导航",
+    "message": "Blog recent posts navigation",
     "description": "The ARIA label for recent posts in the blog sidebar"
   },
   "theme.DocSidebarItem.expandCategoryAriaLabel": {
-    "message": "展开分类「{label}」",
+    "message": "Expand sidebar category \"{label}\"",
     "description": "The ARIA label to expand the sidebar category"
   },
   "theme.DocSidebarItem.collapseCategoryAriaLabel": {
-    "message": "收起分类「{label}」",
+    "message": "Collapse sidebar category \"{label}\"",
     "description": "The ARIA label to collapse the sidebar category"
   },
   "theme.IconExternalLink.ariaLabel": {
-    "message": "（在新标签页打开）",
+    "message": "(opens in a new tab)",
     "description": "The ARIA label for the external link icon"
   },
   "theme.NavBar.navAriaLabel": {
-    "message": "主导航",
+    "message": "Main navigation",
     "description": "The ARIA label for the main navigation"
   },
   "theme.navbar.mobileLanguageDropdown.label": {
-    "message": "语言",
+    "message": "Language",
     "description": "The label for the mobile language switcher dropdown"
   },
   "theme.TOCCollapsible.toggleButtonLabel": {
-    "message": "本页目录",
+    "message": "On this page",
     "description": "The label used by the button on the collapsible TOC component"
   },
   "theme.blog.post.readMore": {
-    "message": "阅读全文",
+    "message": "Read more",
     "description": "The label used in blog post item excerpts to link to full blog posts"
   },
   "theme.blog.post.readMoreLabel": {
-    "message": "阅读完整文章：{title}",
+    "message": "Read the full article: {title}",
     "description": "The ARIA label for the link to full blog posts from excerpts"
   },
   "theme.blog.post.readingTime.plurals": {
-    "message": "预计阅读 1 分钟|预计阅读 {readingTime} 分钟",
+    "message": "1 min read|{readingTime} min read",
     "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.CodeBlock.copy": {
-    "message": "复制",
+    "message": "Copy",
     "description": "The copy button label on code blocks"
   },
   "theme.CodeBlock.copied": {
-    "message": "已复制",
+    "message": "Copied",
     "description": "The copied button label on code blocks"
   },
   "theme.CodeBlock.copyButtonAriaLabel": {
-    "message": "复制代码到剪贴板",
+    "message": "Copy code to clipboard",
     "description": "The ARIA label for copy code blocks button"
   },
   "theme.CodeBlock.wordWrapToggle": {
-    "message": "切换代码自动换行",
+    "message": "Toggle word wrap",
     "description": "The title attribute for toggle word wrapping button of code block lines"
   },
   "theme.docs.breadcrumbs.home": {
-    "message": "首页",
+    "message": "Home",
     "description": "The ARIA label for the home page in the breadcrumbs"
   },
   "theme.docs.sidebar.collapseButtonTitle": {
-    "message": "收起侧边栏",
+    "message": "Collapse sidebar",
     "description": "The title attribute for collapse button of doc sidebar"
   },
   "theme.docs.sidebar.collapseButtonAriaLabel": {
-    "message": "收起侧边栏",
+    "message": "Collapse sidebar",
     "description": "The title attribute for collapse button of doc sidebar"
   },
   "theme.docs.sidebar.navAriaLabel": {
-    "message": "文档侧边栏导航",
+    "message": "Docs sidebar navigation",
     "description": "The ARIA label for the sidebar navigation"
   },
   "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
-    "message": "关闭导航栏",
+    "message": "Close navigation",
     "description": "The ARIA label for close button of mobile sidebar"
   },
   "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
-    "message": "← 返回主菜单",
+    "message": "← Back to main menu",
     "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
   },
   "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
-    "message": "展开/收起导航栏",
+    "message": "Toggle navigation bar",
     "description": "The ARIA label for hamburger menu button of mobile navigation"
   },
   "theme.navbar.mobileDropdown.collapseButton.expandAriaLabel": {
-    "message": "展开下拉菜单",
+    "message": "Expand dropdown menu",
     "description": "The ARIA label of the button to expand the mobile dropdown navbar item"
   },
   "theme.navbar.mobileDropdown.collapseButton.collapseAriaLabel": {
-    "message": "收起下拉菜单",
+    "message": "Collapse dropdown menu",
     "description": "The ARIA label of the button to collapse the mobile dropdown navbar item"
   },
   "theme.docs.sidebar.expandButtonTitle": {
-    "message": "展开侧边栏",
+    "message": "Expand sidebar",
     "description": "The ARIA label and title attribute for expand button of doc sidebar"
   },
   "theme.docs.sidebar.expandButtonAriaLabel": {
-    "message": "展开侧边栏",
+    "message": "Expand sidebar",
     "description": "The ARIA label and title attribute for expand button of doc sidebar"
   },
   "theme.SearchBar.seeAll": {
-    "message": "查看全部 {count} 条结果"
+    "message": "See all {count} results"
   },
   "theme.SearchPage.documentsFound.plurals": {
-    "message": "找到 1 条相关内容|共找到 {count} 条相关内容",
+    "message": "1 result found|{count} results found",
     "description": "Pluralized label for \"{count} documents found\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.SearchPage.existingResultsTitle": {
-    "message": "「{query}」的搜索结果",
+    "message": "Search results for \"{query}\"",
     "description": "The search page title for non-empty query"
   },
   "theme.SearchPage.emptyResultsTitle": {
-    "message": "站内文档搜索",
+    "message": "Search the docs",
     "description": "The search page title for empty query"
   },
   "theme.SearchPage.inputPlaceholder": {
-    "message": "在此输入搜索内容",
+    "message": "Type your search here",
     "description": "The placeholder for search page input"
   },
   "theme.SearchPage.inputLabel": {
-    "message": "搜索",
+    "message": "Search",
     "description": "The ARIA label for search page input"
   },
   "theme.SearchPage.algoliaLabel": {
-    "message": "搜索服务由 Algolia 提供",
+    "message": "Search by Algolia",
     "description": "The description label for Algolia mention"
   },
   "theme.SearchPage.noResultsText": {
-    "message": "未找到相关内容",
+    "message": "No results found",
     "description": "The paragraph for empty search result"
   },
   "theme.SearchPage.fetchingNewResults": {
-    "message": "正在加载搜索结果...",
+    "message": "Fetching results...",
     "description": "The paragraph for fetching new search results"
   },
   "theme.SearchBar.label": {
-    "message": "搜索",
+    "message": "Search",
     "description": "The ARIA label and placeholder for search button"
   },
   "theme.SearchModal.searchBox.resetButtonTitle": {
-    "message": "清空搜索内容",
+    "message": "Clear search",
     "description": "The label and ARIA label for search box reset button"
   },
   "theme.SearchModal.searchBox.cancelButtonText": {
-    "message": "取消",
+    "message": "Cancel",
     "description": "The label and ARIA label for search box cancel button"
   },
   "theme.SearchModal.searchBox.placeholderText": {
-    "message": "搜索文档...",
+    "message": "Search docs...",
     "description": "The placeholder text for the main search input field"
   },
   "theme.SearchModal.searchBox.placeholderTextAskAi": {
-    "message": "继续提问...",
+    "message": "Ask a follow-up...",
     "description": "The placeholder text when in AI question mode"
   },
   "theme.SearchModal.searchBox.placeholderTextAskAiStreaming": {
-    "message": "正在回答中...",
+    "message": "Answering...",
     "description": "The placeholder text for search box when AI is streaming an answer"
   },
   "theme.SearchModal.searchBox.enterKeyHint": {
-    "message": "搜索",
+    "message": "Search",
     "description": "The hint for the search box enter key text"
   },
   "theme.SearchModal.searchBox.enterKeyHintAskAi": {
-    "message": "确认",
+    "message": "Send",
     "description": "The hint for the Ask AI search box enter key text"
   },
   "theme.SearchModal.searchBox.searchInputLabel": {
-    "message": "搜索输入框",
+    "message": "Search input",
     "description": "The ARIA label for search input"
   },
   "theme.SearchModal.searchBox.backToKeywordSearchButtonText": {
-    "message": "返回关键词搜索",
+    "message": "Back to keyword search",
     "description": "The text for back to keyword search button"
   },
   "theme.SearchModal.searchBox.backToKeywordSearchButtonAriaLabel": {
-    "message": "返回关键词搜索",
+    "message": "Back to keyword search",
     "description": "The ARIA label for back to keyword search button"
   },
   "theme.SearchModal.startScreen.recentSearchesTitle": {
-    "message": "最近搜索",
+    "message": "Recent Searches",
     "description": "The title for recent searches"
   },
   "theme.SearchModal.startScreen.noRecentSearchesText": {
-    "message": "暂无搜索记录",
+    "message": "No recent searches",
     "description": "The text when there are no recent searches"
   },
   "theme.SearchModal.startScreen.saveRecentSearchButtonTitle": {
-    "message": "保存该搜索记录",
+    "message": "Save this search",
     "description": "The title for save recent search button"
   },
   "theme.SearchModal.startScreen.removeRecentSearchButtonTitle": {
-    "message": "删除这条搜索记录",
+    "message": "Remove this search",
     "description": "The title for remove recent search button"
   },
   "theme.SearchModal.startScreen.favoriteSearchesTitle": {
-    "message": "收藏",
+    "message": "Favorites",
     "description": "The title for favorite searches"
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
-    "message": "取消收藏该搜索",
+    "message": "Remove from favorites",
     "description": "The title for remove favorite search button"
   },
   "theme.SearchModal.startScreen.recentConversationsTitle": {
-    "message": "最近对话",
+    "message": "Recent Conversations",
     "description": "The title for recent conversations"
   },
   "theme.SearchModal.startScreen.removeRecentConversationButtonTitle": {
-    "message": "删除这条对话记录",
+    "message": "Remove this conversation",
     "description": "The title for remove recent conversation button"
   },
   "theme.SearchModal.errorScreen.titleText": {
-    "message": "获取搜索结果失败",
+    "message": "Failed to fetch search results",
     "description": "The title for error screen"
   },
   "theme.SearchModal.errorScreen.helpText": {
-    "message": "请检查你的网络连接后重试。",
+    "message": "Please check your network connection and try again.",
     "description": "The help text for error screen"
   },
   "theme.SearchModal.resultsScreen.askAiPlaceholder": {
-    "message": "AI问答：",
+    "message": "Ask AI:",
     "description": "The placeholder text for Ask AI input"
   },
   "theme.SearchModal.askAiScreen.disclaimerText": {
-    "message": "AI 回答内容仅供参考，可能存在错误，请自行核实信息。",
+    "message": "AI answers are for reference only and may contain errors. Please verify the information yourself.",
     "description": "The disclaimer text for AI answers"
   },
   "theme.SearchModal.askAiScreen.relatedSourcesText": {
-    "message": "相关参考资料",
+    "message": "Related sources",
     "description": "The text for related sources"
   },
   "theme.SearchModal.askAiScreen.thinkingText": {
-    "message": "思考中...",
+    "message": "Thinking...",
     "description": "The text when AI is thinking"
   },
   "theme.SearchModal.askAiScreen.copyButtonText": {
-    "message": "复制",
+    "message": "Copy",
     "description": "The text for copy button"
   },
   "theme.SearchModal.askAiScreen.copyButtonCopiedText": {
-    "message": "已复制！",
+    "message": "Copied!",
     "description": "The text for copy button when copied"
   },
   "theme.SearchModal.askAiScreen.copyButtonTitle": {
-    "message": "复制内容",
+    "message": "Copy content",
     "description": "The title for copy button"
   },
   "theme.SearchModal.askAiScreen.likeButtonTitle": {
-    "message": "点赞",
+    "message": "Like",
     "description": "The title for like button"
   },
   "theme.SearchModal.askAiScreen.dislikeButtonTitle": {
-    "message": "踩踩",
+    "message": "Dislike",
     "description": "The title for dislike button"
   },
   "theme.SearchModal.askAiScreen.thanksForFeedbackText": {
-    "message": "感谢你的反馈！",
+    "message": "Thanks for your feedback!",
     "description": "The text for thanks for feedback"
   },
   "theme.SearchModal.askAiScreen.preToolCallText": {
-    "message": "正在检索资料...",
+    "message": "Retrieving sources...",
     "description": "The text before tool call"
   },
   "theme.SearchModal.askAiScreen.duringToolCallText": {
-    "message": "正在查找：",
+    "message": "Looking up:",
     "description": "The text during tool call"
   },
   "theme.SearchModal.askAiScreen.afterToolCallText": {
-    "message": "已检索：",
+    "message": "Retrieved:",
     "description": "The text after tool call"
   },
   "theme.SearchModal.footer.selectText": {
-    "message": "选择",
+    "message": "Select",
     "description": "The select text for footer"
   },
   "theme.SearchModal.footer.submitQuestionText": {
-    "message": "提交问题",
+    "message": "Submit question",
     "description": "The submit question text for footer"
   },
   "theme.SearchModal.footer.selectKeyAriaLabel": {
-    "message": "回车键",
+    "message": "Enter key",
     "description": "The ARIA label for select key in footer"
   },
   "theme.SearchModal.footer.navigateText": {
-    "message": "切换",
+    "message": "Navigate",
     "description": "The navigate text for footer"
   },
   "theme.SearchModal.footer.navigateUpKeyAriaLabel": {
-    "message": "向上方向键",
+    "message": "Up arrow key",
     "description": "The ARIA label for navigate up key in footer"
   },
   "theme.SearchModal.footer.navigateDownKeyAriaLabel": {
-    "message": "向下方向键",
+    "message": "Down arrow key",
     "description": "The ARIA label for navigate down key in footer"
   },
   "theme.SearchModal.footer.closeText": {
-    "message": "关闭",
+    "message": "Close",
     "description": "The close text for footer"
   },
   "theme.SearchModal.footer.closeKeyAriaLabel": {
-    "message": "ESC 键",
+    "message": "ESC key",
     "description": "The ARIA label for close key in footer"
   },
   "theme.SearchModal.footer.searchByText": {
-    "message": "搜索支持：",
+    "message": "Search powered by:",
     "description": "The 'Powered by' text for footer"
   },
   "theme.SearchModal.footer.backToSearchText": {
-    "message": "返回搜索",
+    "message": "Back to search",
     "description": "The back to search text for footer"
   },
   "theme.SearchModal.noResultsScreen.noResultsText": {
-    "message": "未找到与「",
+    "message": "No results for \"",
     "description": "The text when there are no results"
   },
   "theme.SearchModal.noResultsScreen.suggestedQueryText": {
-    "message": "你可以尝试搜索：",
+    "message": "You can try searching:",
     "description": "The text for suggested query"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsText": {
-    "message": "你认为该关键词应有相关内容？",
+    "message": "Think this keyword should have results?",
     "description": "The text for reporting missing results"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsLinkText": {
-    "message": "告诉我们。",
+    "message": "Tell us.",
     "description": "The link text for reporting missing results"
   },
   "theme.SearchModal.placeholder": {
-    "message": "搜索文档...",
+    "message": "Search docs...",
     "description": "The placeholder of the input of the DocSearch pop-up modal"
   },
   "theme.blog.post.plurals": {
-    "message": "共 1 篇文章|共 {count} 篇文章",
+    "message": "1 post|{count} posts",
     "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.blog.tagTitle": {
-    "message": "「{tagName}」相关文章（{nPosts}）",
+    "message": "Posts tagged \"{tagName}\" ({nPosts})",
     "description": "The title of the page for a blog tag"
   },
   "theme.blog.author.pageTitle": {
-    "message": "{authorName} - 共 {nPosts} 篇文章",
+    "message": "{authorName} - {nPosts} posts",
     "description": "The title of the page for a blog author"
   },
   "theme.blog.authorsList.pageTitle": {
-    "message": "作者列表",
+    "message": "Authors",
     "description": "The title of the authors page"
   },
   "theme.blog.authorsList.viewAll": {
-    "message": "查看全部作者",
+    "message": "View all authors",
     "description": "The label of the link targeting the blog authors page"
   },
   "theme.blog.author.noPosts": {
-    "message": "该作者暂未发布任何文章。",
+    "message": "This author has not published any posts yet.",
     "description": "The text for authors with 0 blog post"
   },
   "theme.contentVisibility.unlistedBanner.title": {
-    "message": "非公开页面",
+    "message": "Unlisted Page",
     "description": "The unlisted content banner title"
   },
   "theme.contentVisibility.unlistedBanner.message": {
-    "message": "此页面未对外公开，搜索引擎不会收录，仅拥有直达链接的用户可以访问。",
+    "message": "This page is not public. Search engines will not index it. Only users with the direct link can access it.",
     "description": "The unlisted content banner message"
   },
   "theme.contentVisibility.draftBanner.title": {
-    "message": "草稿页面",
+    "message": "Draft Page",
     "description": "The draft content banner title"
   },
   "theme.contentVisibility.draftBanner.message": {
-    "message": "此页面为草稿状态，仅在开发环境可见，不会发布到正式站点。",
+    "message": "This page is in draft state, visible only in development and not published to the live site.",
     "description": "The draft content banner message"
   },
   "theme.docs.DocCard.categoryDescription.plurals": {
-    "message": "共 1 个内容项|共 {count} 个内容项",
+    "message": "1 item|{count} items",
     "description": "The default description for a category card in the generated index about how many items this category includes"
   },
   "theme.ErrorPageContent.tryAgain": {
-    "message": "重新加载",
+    "message": "Try Again",
     "description": "The label of the button to try again rendering when the React error boundary captures an error"
   },
   "theme.common.skipToMainContent": {
-    "message": "直达主要内容",
+    "message": "Skip to main content",
     "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
   },
   "theme.tags.tagsPageTitle": {
-    "message": "标签列表",
+    "message": "Tags",
     "description": "The title of the tag list page"
   }
 }
-

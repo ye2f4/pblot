@@ -1,6 +1,26 @@
 {
   "copyright": {
-    "message": "Powered by <a href=\"https://docusaurus.io/\" target=\"_blank\">Docusaurus</a> © 2025 <a href=\"https://ye2f4.github.io/\" target=\"_blank\">Monoの小窝</a> | <a href=\"https://github.com/ye2f4/pblot\" target=\"_blank\">GitHub</a>",
-    "description": "博客页脚版权信息"
+    "message": "Copyright © 2026 Mono's Nest. Powered by Docusaurus & Vercel.",
+    "description": "Footer copyright"
+  },
+  "link.title.Navigation": {
+    "message": "Navigation",
+    "description": "Footer column title Navigation"
+  },
+  "link.title.Features": {
+    "message": "Features",
+    "description": "Footer column title Features"
+  },
+  "link.title.About": {
+    "message": "About",
+    "description": "Footer column title About"
+  },
+  "link.title.External": {
+    "message": "External",
+    "description": "Footer column title External"
+  },
+  "link.title.FriendLinks": {
+    "message": "Friend Links",
+    "description": "Footer column title Friend Links"
   }
 }

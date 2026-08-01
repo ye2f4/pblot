@@ -44,21 +44,21 @@
   "navbarConfig": {
     "hideOnScroll": false,
     "items": [
-      { "label": "博客", "to": "/articles/", "position": "left" },
+      { "label": { "zh-CN": "博客", "en": "Blog" }, "to": "/articles/", "position": "left" },
       {
-        "type": "dropdown", "label": "资源", "position": "left",
+        "type": "dropdown", "label": { "zh-CN": "资源", "en": "Resources" }, "position": "left",
         "items": [
-          { "label": "资料下载", "to": "/downloads/" },
-          { "label": "开源项目", "to": "/projects/" },
-          { "label": "开发工具", "to": "/tools/" }
+          { "label": { "zh-CN": "资料下载", "en": "Downloads" }, "to": "/downloads/" },
+          { "label": { "zh-CN": "开源项目", "en": "Open Source" }, "to": "/projects/" },
+          { "label": { "zh-CN": "开发工具", "en": "Dev Tools" }, "to": "/tools/" }
         ]
       },
-      { "label": "离网通信", "to": "/off-grid/", "position": "left" },
-      { "label": "更多", "to": "/more/", "position": "left" },
-      { "label": "关于", "to": "/about/", "position": "left" },
-      { "label": "+", "to": "/contribute/", "position": "right", "className": "navbar-contribute-btn", "title": "投稿" },
-      { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" },
-      { "label": "GitHub", "href": "https://github.com/ye2f4", "position": "right", "className": "navbar-github-btn" }
+      { "label": { "zh-CN": "离网通信", "en": "Off-grid Comms" }, "to": "/off-grid/", "position": "left" },
+      { "label": { "zh-CN": "更多", "en": "More" }, "to": "/more/", "position": "left" },
+      { "label": { "zh-CN": "关于", "en": "About" }, "to": "/about/", "position": "left" },
+      { "label": { "zh-CN": "+", "en": "+" }, "to": "/contribute/", "position": "right", "className": "navbar-contribute-btn", "title": { "zh-CN": "投稿", "en": "Contribute" } },
+      { "label": { "zh-CN": "聊天", "en": "Chat" }, "to": "/chat/", "position": "right", "className": "navbar-chat-btn" },
+      { "label": { "zh-CN": "GitHub", "en": "GitHub" }, "href": "https://github.com/ye2f4", "position": "right", "className": "navbar-github-btn" }
     ]
   },
 
@@ -66,50 +66,50 @@
     "style": "dark",
     "links": [
       {
-        "title": "导航",
+        "title": { "zh-CN": "导航", "en": "Navigation" },
         "items": [
-          { "label": "博客", "to": "/blog/" },
-          { "label": "文章", "to": "/docs/introduction/" },
-          { "label": "论坛", "to": "/forum/" },
-          { "label": "聊天", "to": "/chat/" }
+          { "label": { "zh-CN": "博客", "en": "Blog" }, "to": "/blog/" },
+          { "label": { "zh-CN": "文章", "en": "Articles" }, "to": "/docs/introduction/" },
+          { "label": { "zh-CN": "论坛", "en": "Forum" }, "to": "/forum/" },
+          { "label": { "zh-CN": "聊天", "en": "Chat" }, "to": "/chat/" }
         ]
       },
       {
-        "title": "功能",
+        "title": { "zh-CN": "功能", "en": "Features" },
         "items": [
-          { "label": "全球访问地图", "to": "/visit-map/" },
-          { "label": "共享地震台网", "to": "/shake-network/" },
-          { "label": "排行榜", "to": "/leaderboard/" },
-          { "label": "资料下载", "to": "/downloads/" },
-          { "label": "RSS订阅", "to": "/rss" }
+          { "label": { "zh-CN": "全球访问地图", "en": "Global Visit Map" }, "to": "/visit-map/" },
+          { "label": { "zh-CN": "共享地震台网", "en": "Shared Seismic Network" }, "to": "/shake-network/" },
+          { "label": { "zh-CN": "排行榜", "en": "Leaderboard" }, "to": "/leaderboard/" },
+          { "label": { "zh-CN": "资料下载", "en": "Downloads" }, "to": "/downloads/" },
+          { "label": { "zh-CN": "RSS订阅", "en": "RSS Feed" }, "to": "/rss" }
         ]
       },
       {
-        "title": "关于",
+        "title": { "zh-CN": "关于", "en": "About" },
         "items": [
-          { "label": "关于本站", "to": "/about/" },
-          { "label": "用户协议", "to": "/terms/" },
-          { "label": "隐私政策", "to": "/privacy/" },
-          { "label": "更新日志", "to": "/changelog/" }
+          { "label": { "zh-CN": "关于本站", "en": "About Us" }, "to": "/about/" },
+          { "label": { "zh-CN": "用户协议", "en": "Terms of Service" }, "to": "/terms/" },
+          { "label": { "zh-CN": "隐私政策", "en": "Privacy Policy" }, "to": "/privacy/" },
+          { "label": { "zh-CN": "更新日志", "en": "Changelog" }, "to": "/changelog/" }
         ]
       },
       {
-        "title": "外部",
+        "title": { "zh-CN": "外部", "en": "External" },
         "items": [
-          { "label": "GitHub", "href": "https://github.com/ye2f4" },
-          { "label": "Vercel", "href": "https://vercel.com" },
-          { "label": "Supabase", "href": "https://supabase.com" }
+          { "label": { "zh-CN": "GitHub", "en": "GitHub" }, "href": "https://github.com/ye2f4" },
+          { "label": { "zh-CN": "Vercel", "en": "Vercel" }, "href": "https://vercel.com" },
+          { "label": { "zh-CN": "Supabase", "en": "Supabase" }, "href": "https://supabase.com" }
         ]
       },
       {
-        "title": "友情链接",
+        "title": { "zh-CN": "友情链接", "en": "Friend Links" },
         "items": [
-          { "label": "夜白的小屋", "href": "https://yibi2333.fun/" },
-          { "label": "加入友链", "href": "https://github.com/ye2f4/pblot/issues/new?title=友链申请", "title": "申请与本站互换友链" }
+          { "label": { "zh-CN": "夜白的小屋", "en": "Ye Bai's Blog" }, "href": "https://yibi2333.fun/" },
+          { "label": { "zh-CN": "加入友链", "en": "Join Friend Links" }, "href": "https://github.com/ye2f4/pblot/issues/new?title=友链申请", "title": { "zh-CN": "申请与本站互换友链", "en": "Apply to exchange friend links" } }
         ]
       }
     ],
-    "beian": { "href": "https://icp.gov.moe/?keyword=20265033", "label": "萌ICP备20265033号" }
+    "beian": { "href": "https://icp.gov.moe/?keyword=20265033", "label": { "zh-CN": "萌ICP备20265033号", "en": "Moe ICP License 20265033" } }
   },
 
   "carouselConfig": {
