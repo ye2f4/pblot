@@ -57,8 +57,7 @@
       { "label": "更多", "to": "/more/", "position": "left" },
       { "label": "关于", "to": "/about/", "position": "left" },
       { "label": "+", "to": "/contribute/", "position": "right", "className": "navbar-contribute-btn", "title": "投稿" },
-      { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" },
-      { "label": "GitHub", "href": "https://github.com/ye2f4", "position": "right", "className": "navbar-github-btn" }
+      { "label": "聊天", "to": "/chat/", "position": "right", "className": "navbar-chat-btn" }
     ]
   },
 

@@ -112,6 +112,8 @@
   transition: opacity 0.2s;
   /* 修复：中文导航项在窄容器里被按字断行（"博客"变"博\n客"） */
   white-space: nowrap;
+  /* 英文翻译后词更长，禁止被 flex 压缩导致字符重叠 */
+  flex-shrink: 0;
 
   &:hover {
     color: hsl(var(--muted-foreground));
@@ -210,6 +212,13 @@ a+.navbar__link {
   flex: 1;
   /* 修复：左栏不再被压缩到内容最小宽度以下，避免文字错位 */
   min-width: max-content;
+  /* 英文翻译后导航项变长，超出时允许横向滚动而非挤压重叠 */
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* 隐藏滚动条但保留滚动能力 */
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .navbar__items--right {
@@ -561,11 +570,10 @@ a+.navbar__link {
   padding: 0;
 }
 
-/* ========== 主站绿色按钮：投稿 / 聊天 / GitHub ==========
+/* ========== 主站绿色按钮：投稿 / 聊天 ==========
    官方 Navbar 渲染，按 siteData.json 的 className 匹配（保留原有绿色排版设计）。 */
 .navbar__link.navbar-contribute-btn,
-.navbar__link.navbar-chat-btn,
-.navbar__link.navbar-github-btn {
+.navbar__link.navbar-chat-btn {
   display: inline-flex !important;
   align-items: center;
   gap: 0.4rem;
@@ -578,11 +586,12 @@ a+.navbar__link {
   transition: background-color 0.2s;
   font-size: 0.95rem;
   line-height: 1.2;
+  /* 英文翻译后词更长，禁止压缩/换行/重叠 */
+  flex-shrink: 0;
 }
 
 .navbar__link.navbar-contribute-btn:hover,
-.navbar__link.navbar-chat-btn:hover,
-.navbar__link.navbar-github-btn:hover {
+.navbar__link.navbar-chat-btn:hover {
   background-color: #16a34a !important;
   color: #fff !important;
   opacity: 1;
@@ -598,8 +607,7 @@ a+.navbar__link {
 /* 绿色按钮在移动端也保留显示（覆盖上方 <600px 隐藏 .navbar__link 的规则） */
 @media (width < 600px) {
   .navbar__link.navbar-contribute-btn,
-  .navbar__link.navbar-chat-btn,
-  .navbar__link.navbar-github-btn {
+  .navbar__link.navbar-chat-btn {
     display: none !important;
   }
 }
