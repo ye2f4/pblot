@@ -3,6 +3,8 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 
 export default function RSSPage() {
+  // Docusaurus 博客 feed 只在默认 locale(zh-CN) 生成一份，路径固定为 /blog/*，
+  // 不按 locale 加前缀，否则 /en/rss 会链到不存在的 /en/blog/rss.xml 导致 broken link。
   const feedUrls = {
     rss: '/blog/rss.xml',
     atom: '/blog/atom.xml',

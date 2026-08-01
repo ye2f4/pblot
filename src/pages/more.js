@@ -33,7 +33,6 @@ const groups = [
       { label: '友情链接', to: '/friends/' },
       { label: '投稿广场', to: '/submissions/' },
       { label: '更新日志', to: '/changelog/' },
-      { label: '系列项目', to: '/series' },
       { label: '隐私政策', to: '/privacy/' },
       { label: '用户协议', to: '/terms/' },
       { label: 'RSS订阅', to: '/rss' },
