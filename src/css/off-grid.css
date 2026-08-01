@@ -115,7 +115,7 @@
   }
 }
 
-/* 网络地图背景点阵 */
+/* 网络地图动态背景容器（canvas 充满 + 静态点阵兜底） */
 .off-grid-mapbg {
   position: absolute;
   inset: 0;
@@ -125,15 +125,26 @@
     radial-gradient(circle at 20% 20%, hsl(var(--btn-primary) / 0.12), transparent 40%),
     radial-gradient(circle at 80% 60%, hsl(var(--btn-primary) / 0.10), transparent 45%);
 }
+/* canvas 动态层充满容器 */
+.off-grid-mapbg canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+/* 静态点阵兜底（canvas 加载前/不支持时仍有纹理） */
 .off-grid-mapbg::before {
   content: "";
   position: absolute;
   inset: -50%;
+  z-index: 0;
   background-image: radial-gradient(hsl(var(--btn-primary) / 0.25) 1.5px, transparent 1.5px);
   background-size: 28px 28px;
   mask-image: radial-gradient(circle at center, black, transparent 70%);
   -webkit-mask-image: radial-gradient(circle at center, black, transparent 70%);
   opacity: 0.5;
+  pointer-events: none;
 }
 
 /* 设备弹窗遮罩 */

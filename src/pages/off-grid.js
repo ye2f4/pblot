@@ -368,6 +368,130 @@ if (typeof document !== 'undefined') {
 }
 
 /* ---------- 主区域 ---------- */
+/* ---------- 网络地图动态背景（移植自 meshtastic 主页） ---------- */
+/* 离网节点群：节点呼吸光晕 + 节点间无线电波扩散 + 背景径向渐变 */
+const MAP_NODES = [
+  { x: 0.18, y: 0.30 }, { x: 0.32, y: 0.55 }, { x: 0.45, y: 0.22 },
+  { x: 0.58, y: 0.48 }, { x: 0.68, y: 0.32 }, { x: 0.78, y: 0.62 },
+  { x: 0.40, y: 0.72 }, { x: 0.55, y: 0.80 }, { x: 0.85, y: 0.40 },
+  { x: 0.25, y: 0.78 }, { x: 0.62, y: 0.68 }, { x: 0.50, y: 0.40 },
+];
+
+const MapBackground = () => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let raf;
+    let width = 0;
+    let height = 0;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.max(1, Math.floor(width * dpr));
+      canvas.height = Math.max(1, Math.floor(height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // 预计算节点像素位置 + 各自随机相位
+    const nodes = MAP_NODES.map((n) => ({
+      bx: n.x,
+      by: n.y,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.6 + Math.random() * 0.8,
+    }));
+
+    const start = performance.now();
+
+    const draw = (t) => {
+      const elapsed = (t - start) / 1000;
+      const dark = isDark();
+      ctx.clearRect(0, 0, width, height);
+
+      // 背景径向渐变
+      const gx = width * 0.3;
+      const gy = height * 0.3;
+      const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.max(width, height) * 0.8);
+      if (dark) {
+        grad.addColorStop(0, 'rgba(19, 73, 47, 0.22)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      } else {
+        grad.addColorStop(0, 'rgba(27, 110, 70, 0.14)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      }
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      const px = nodes.map((n) => ({ x: n.bx * width, y: n.by * height }));
+
+      // 节点间无线电波（连线脉冲）
+      ctx.lineWidth = 1;
+      const pulse = (Math.sin(elapsed * 0.8) + 1) / 2;
+      for (let i = 0; i < px.length; i++) {
+        for (let j = i + 1; j < px.length; j++) {
+          const dx = px[i].x - px[j].x;
+          const dy = px[i].y - px[j].y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < Math.min(width, height) * 0.42) {
+            const alpha = (1 - dist / (Math.min(width, height) * 0.42)) * 0.18 * (0.5 + pulse * 0.5);
+            ctx.strokeStyle = dark
+              ? `rgba(132, 224, 168, ${alpha})`
+              : `rgba(27, 110, 70, ${alpha})`;
+            ctx.beginPath();
+            ctx.moveTo(px[i].x, px[i].y);
+            ctx.lineTo(px[j].x, px[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // 节点呼吸光晕
+      for (let i = 0; i < px.length; i++) {
+        const n = nodes[i];
+        const breath = (Math.sin(elapsed * n.speed + n.phase) + 1) / 2;
+        const r = 2 + breath * 2.5;
+        const halo = 10 + breath * 22;
+        const cx = px[i].x;
+        const cy = px[i].y;
+
+        const hg = ctx.createRadialGradient(cx, cy, 0, cx, cy, halo);
+        hg.addColorStop(0, dark
+          ? `rgba(132, 224, 168, ${0.35 * (0.4 + breath * 0.6)})`
+          : `rgba(27, 110, 70, ${0.35 * (0.4 + breath * 0.6)})`);
+        hg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = hg;
+        ctx.beginPath();
+        ctx.arc(cx, cy, halo, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = dark ? 'rgba(160, 240, 190, 0.95)' : 'rgba(27, 110, 70, 0.95)';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />;
+};
+
 export default function OffGridPage() {
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
 
@@ -386,7 +510,9 @@ export default function OffGridPage() {
         <main className="container" style={{ maxWidth: '80rem', margin: '0 auto', position: 'relative', paddingTop: '3rem', paddingBottom: '4rem' }}>
           {/* ---------- Hero ---------- */}
           <section style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid hsl(var(--border))', padding: 'clamp(2rem, 6vw, 5rem)', background: 'hsl(var(--surface))' }}>
-            <div className="off-grid-mapbg" />
+            <div className="off-grid-mapbg">
+              <MapBackground />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2" style={{ position: 'relative', zIndex: 1, gap: '2.5rem', alignItems: 'center' }}>
               <div>
                 <div style={{
