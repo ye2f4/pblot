@@ -3,24 +3,24 @@
     "message": "Copyright © 2026 Mono's Nest. Powered by Docusaurus & Vercel.",
     "description": "Footer copyright"
   },
-  "link.title.Navigation": {
+  "link.title.导航": {
     "message": "Navigation",
-    "description": "Footer column title Navigation"
+    "description": "Footer column title 导航"
   },
-  "link.title.Features": {
+  "link.title.功能": {
     "message": "Features",
-    "description": "Footer column title Features"
+    "description": "Footer column title 功能"
   },
-  "link.title.About": {
+  "link.title.关于": {
     "message": "About",
-    "description": "Footer column title About"
+    "description": "Footer column title 关于"
   },
-  "link.title.External": {
+  "link.title.外部": {
     "message": "External",
-    "description": "Footer column title External"
+    "description": "Footer column title 外部"
   },
-  "link.title.FriendLinks": {
+  "link.title.友情链接": {
     "message": "Friend Links",
-    "description": "Footer column title Friend Links"
+    "description": "Footer column title 友情链接"
   }
 }

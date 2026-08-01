@@ -197,7 +197,10 @@ const config = {
       logo: b.logoSrc
         ? { alt: b.logoAlt || siteData.siteTitle, src: b.logoSrc }
         : undefined,
-      items: siteData.navbarConfig?.items || [],
+      items: [
+        ...(siteData.navbarConfig?.items || []),
+        { type: "localeDropdown", position: "right" },
+      ],
     },
     footer: {
       style: siteData.footerConfig?.style || 'dark',

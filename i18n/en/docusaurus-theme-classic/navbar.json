@@ -7,48 +7,52 @@
     "message": "Mono Logo",
     "description": "The alt text of navbar logo"
   },
-  "item.label.Blog": {
+  "item.label.博客": {
     "message": "Blog",
-    "description": "Navbar item with label Blog"
+    "description": "Navbar item with label 博客"
   },
-  "item.label.Resources": {
+  "item.label.资源": {
     "message": "Resources",
-    "description": "Navbar item with label Resources"
+    "description": "Navbar item with label 资源"
   },
-  "item.label.Downloads": {
+  "item.label.资料下载": {
     "message": "Downloads",
-    "description": "Navbar item with label Downloads"
+    "description": "Navbar item with label 资料下载"
   },
-  "item.label.OpenSource": {
+  "item.label.开源项目": {
     "message": "Open Source",
-    "description": "Navbar item with label Open Source"
+    "description": "Navbar item with label 开源项目"
   },
-  "item.label.DevTools": {
+  "item.label.开发工具": {
     "message": "Dev Tools",
-    "description": "Navbar item with label Dev Tools"
+    "description": "Navbar item with label 开发工具"
   },
-  "item.label.Off-gridComms": {
+  "item.label.离网通信": {
     "message": "Off-grid Comms",
-    "description": "Navbar item with label Off-grid Comms"
+    "description": "Navbar item with label 离网通信"
   },
-  "item.label.More": {
+  "item.label.更多": {
     "message": "More",
-    "description": "Navbar item with label More"
+    "description": "Navbar item with label 更多"
   },
-  "item.label.About": {
+  "item.label.关于": {
     "message": "About",
-    "description": "Navbar item with label About"
+    "description": "Navbar item with label 关于"
   },
-  "item.label.Chat": {
+  "item.label.聊天": {
     "message": "Chat",
-    "description": "Navbar item with label Chat"
+    "description": "Navbar item with label 聊天"
   },
   "item.label.GitHub": {
     "message": "GitHub",
     "description": "Navbar item with label GitHub"
   },
-  "item.label.Contribute": {
+  "item.label.+": {
+    "message": "+",
+    "description": "Navbar item with label +"
+  },
+  "item.label.投稿": {
     "message": "Contribute",
-    "description": "Navbar item with label Contribute"
+    "description": "Navbar item title 投稿"
   }
 }
