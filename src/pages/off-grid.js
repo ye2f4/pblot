@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@theme/Layout';
-import { useTranslate } from '@docusaurus/Translate';
+import { translate } from '@docusaurus/Translate';
+
+// Docusaurus 3.x 无 useTranslate hook，用 translate 函数式 API 包装成一致的 t()
+const t = (...args) => {
+  const [opts, values] = args;
+  if (typeof opts === 'string') return translate({ id: opts }, values);
+  const vals = values ?? opts?.values ?? (opts?.count !== undefined ? { count: opts.count } : undefined);
+  return translate(opts, vals);
+};
 
 /* ---------- 内联图标（复刻 lucide 形状，避免引入缺失依赖） ---------- */
 const Svg = ({ children, className = '', size = 24, ...rest }) => (
@@ -90,7 +98,6 @@ const DEVICES = [
 const FLASHER_URL = 'https://flasher.meshtastic.org/';
 
 const DeviceDialog = ({ onClose }) => {
-  const t = useTranslate();
   const [showDevices, setShowDevices] = useState(false);
   return (
     <div
@@ -220,7 +227,6 @@ const NODE_CORPUS = [
 
 /* ---------- 节点群 / 离线消息 动态面板 ---------- */
 const NodeChat = () => {
-  const t = useTranslate();
   const [messages, setMessages] = useState([
     { id: 0, who: '系统', text: '节点群已连接，正在监听离线消息…', self: false, sys: true },
     { id: 1, who: 'B', text: '中继已上线，欢迎入网', self: false },
@@ -496,7 +502,6 @@ const MapBackground = () => {
 };
 
 export default function OffGridPage() {
-  const t = useTranslate();
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
 
   return (
@@ -623,4 +628,8 @@ export default function OffGridPage() {
         </div>
 
         {/* 设备弹窗 */}
-        {deviceDialogOpen && <DeviceD
+        {deviceDialogOpen && <DeviceDialog onClose={() => setDeviceDialogOpen(false)} />}
+      </div>
+    </Layout>
+  );
+}

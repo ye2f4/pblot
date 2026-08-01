@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from '@docusaurus/Link';
-import { useTranslate } from '@docusaurus/Translate';
+import { translate } from '@docusaurus/Translate';
+
+// Docusaurus 3.x 无 useTranslate hook，用 translate 函数式 API 包装成一致的 t()
+const t = (...args) => {
+  const [opts, values] = args;
+  if (typeof opts === 'string') return translate({ id: opts }, values);
+  const vals = values ?? opts?.values ?? (opts?.count !== undefined ? { count: opts.count } : undefined);
+  return translate(opts, vals);
+};
 import articlesData from '../../data/articles.json';
 import styles from '../../pages/index.module.css';
 import { supabase, AVATAR_CACHE_EXPIRE } from '../../supabase/supabaseClient';
@@ -353,7 +361,6 @@ export default function TopBanner({
   timeZoneOffset = 0,
   timeZone = ""
 }) {
-  const t = useTranslate();
   // 最新博客速览：取 articles.json 中 type==='blog' 的文章，按日期倒序取前 4 篇
   const blogList = (articlesData?.articles || [])
     .filter((a) => a.type === 'blog' && a.date)

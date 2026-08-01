@@ -138,3 +138,101 @@
   color: #fff;
   text-decoration: none;
 }
+
+/* 友链申请表单（评论区式） */
+.reqForm {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.reqTitle {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.reqHint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--ifm-color-emphasis-600);
+  line-height: 1.5;
+}
+
+.reqTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font-size: 14px;
+  line-height: 1.7;
+  font-family: var(--ifm-font-family-monospace);
+  resize: vertical;
+  outline: none;
+}
+
+.reqTextarea:focus {
+  border-color: var(--ifm-color-primary);
+}
+
+.reqError {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.reqSuccess {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.reqActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.reqSubmit {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--ifm-color-primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.reqSubmit:hover {
+  opacity: 0.88;
+}
+
+.reqSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reqCancel {
+  padding: 8px 20px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ifm-font-color-base);
+  cursor: pointer;
+}
+
+.reqCancel:hover {
+  background: var(--ifm-color-emphasis-100);
+}

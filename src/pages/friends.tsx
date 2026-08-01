@@ -20,10 +20,62 @@ function Avatar({ friend }: { friend: any }) {
   return <span className={styles.avatarFallback}>{initial}</span>;
 }
 
+// 申请表单预填模板
+const REQUEST_TEMPLATE = `名称：Monoの小窝
+简介：个人随笔、技术分享、开源教程
+链接：https://monoblog.cc.cd
+头像：https://monoblog.cc.cd/img/pblot_logo.png`;
+
 export default function FriendsPage() {
   const [friends, setFriends] = useState<any[]>([]);
   const [groups, setGroups] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
+
+  // 申请表单
+  const [showForm, setShowForm] = useState(false);
+  const [reqText, setReqText] = useState(REQUEST_TEMPLATE);
+  const [reqBusy, setReqBusy] = useState(false);
+  const [reqMsg, setReqMsg] = useState<{ type: '' | 'error' | 'success'; text: string }>({ type: '', text: '' });
+
+  function parseRequest(text: string) {
+    const map: Record<string, string> = {};
+    text.split('\n').forEach((line) => {
+      const m = line.match(/^\s*(名称|简介|链接|头像)\s*[:：]\s*(.+)$/);
+      if (m) map[m[1]] = m[2].trim();
+    });
+    return map;
+  }
+
+  async function submitRequest(e: React.FormEvent) {
+    e.preventDefault();
+    setReqBusy(true);
+    setReqMsg({ type: '', text: '' });
+    const f = parseRequest(reqText);
+    if (!f['名称'] || !f['链接']) {
+      setReqMsg({ type: 'error', text: '请至少填写「名称」和「链接」字段' });
+      setReqBusy(false);
+      return;
+    }
+    try {
+      if (!supabase) throw new Error('服务未连接');
+      const { error } = await supabase.from('friend_link_requests').insert({
+        name: f['名称'],
+        url: f['链接'],
+        avatar: f['头像'] || null,
+        description: f['简介'] || null,
+        tag: '朋友',
+        status: 'pending',
+      });
+      if (error) throw error;
+      setReqMsg({ type: 'success', text: '申请已提交，等待站长审核～' });
+      setReqText(REQUEST_TEMPLATE);
+      setShowForm(false);
+    } catch (err: any) {
+      setReqMsg({ type: 'error', text: '提交失败：' + (err?.message || String(err)) });
+    } finally {
+      setReqBusy(false);
+    }
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -110,8 +162,39 @@ export default function FriendsPage() {
 
       <div className={styles.cta}>
         <span>想和我交换友链？</span>
-        <a href="/contribute" className={styles.ctaBtn}>申请友链 →</a>
+        <button type="button" className={styles.ctaBtn} onClick={() => setShowForm((v) => !v)}>
+          {showForm ? '收起申请' : '申请友链 →'}
+        </button>
       </div>
+
+      {showForm && (
+        <form className={styles.reqForm} onSubmit={submitRequest}>
+          <h3 className={styles.reqTitle}>提交友链申请</h3>
+          <p className={styles.reqHint}>
+            请按下方格式填写，把示例替换为你的站点信息（名称、简介、链接、头像四项）：
+          </p>
+          <textarea
+            className={styles.reqTextarea}
+            value={reqText}
+            onChange={(e) => setReqText(e.target.value)}
+            rows={6}
+            spellCheck={false}
+          />
+          {reqMsg.text && (
+            <div className={reqMsg.type === 'error' ? styles.reqError : styles.reqSuccess}>
+              {reqMsg.text}
+            </div>
+          )}
+          <div className={styles.reqActions}>
+            <button type="submit" className={styles.reqSubmit} disabled={reqBusy}>
+              {reqBusy ? '提交中…' : '提交申请'}
+            </button>
+            <button type="button" className={styles.reqCancel} onClick={() => { setShowForm(false); setReqMsg({ type: '', text: '' }); }}>
+              取消
+            </button>
+          </div>
+        </form>
+      )}
     </main>
   );
 }

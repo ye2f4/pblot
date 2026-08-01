@@ -1,7 +1,15 @@
 import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
-import { useTranslate } from '@docusaurus/Translate';
+import { translate } from '@docusaurus/Translate';
+
+// Docusaurus 3.x 无 useTranslate hook，用 translate 函数式 API 包装成一致的 t()
+const t = (...args) => {
+  const [opts, values] = args;
+  if (typeof opts === 'string') return translate({ id: opts }, values);
+  const vals = values ?? opts?.values ?? (opts?.count !== undefined ? { count: opts.count } : undefined);
+  return translate(opts, vals);
+};
 
 const groups = [
   {
@@ -45,7 +53,6 @@ const groups = [
 ];
 
 export default function MorePage() {
-  const t = useTranslate();
   return (
     <Layout
       title={t({ id: 'more.pageTitle', message: '更多' })}

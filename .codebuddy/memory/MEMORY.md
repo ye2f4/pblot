@@ -20,6 +20,7 @@
 - **路由 API 铁律**:`@docusaurus/router` 是 react-router v5,**只导 `Redirect`/`matchPath`/`useHistory`/`useLocation`**,不导 `Link`/`Switch`/`useNavigate`。`Link` 必须 `import Link from '@docusaurus/Link'`;跳转用 `const h = useHistory(); h.push(path)`,绝不用 `useNavigate`。
 - **dev / 构建铁律**:`pnpm start` 主站 :3000;`docusaurus.config.js` `future.faster: process.env.NODE_ENV==='production'`(rspack dev 不支持 `React.lazy`,生产正常)。首页 `WeatherWidget`/`CommentSection`/`AdSection` 及 `Carousel` 用 `React.lazy` 仅在 production 生效。
 - 绿色按钮基色 `#22c55e`、hover `#16a34a`;主站搜索页 `/search`;ICP 备案 `萌ICP备20265033号`(`https://icp.gov.moe/?keyword=20265033`)。
+- **i18n 铁律**:本仓库是 **Docusaurus 3.10**,**`@docusaurus/Translate` 只导出 `Translate`(默认组件)和 `translate`(imperative 函数),没有 `useTranslate` hook**（那是 Docusaurus 4.x API）。在 JS/JSX 页面做函数式翻译,用 `import { translate } from '@docusaurus/Translate'` + 模块顶层封装 `const t = (...a) => { const [o,v]=a; if(typeof o==='string') return translate({id:o},v); const vals=v??o?.values??(o?.count!==undefined?{count:o.count}:undefined); return translate(o,vals); }`,组件内直接调 `t({ id, message })`,不要 `const t = useTranslate()`。中文取 message、英文取 `i18n/en/code.json`(键为 id,值为英文)。
 - 主域名 `monoblog.cc.cd`(Cloudflare)。
 
 ## 关键排查经验

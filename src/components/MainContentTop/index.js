@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Link from '@docusaurus/Link';
-import { useTranslate } from '@docusaurus/Translate';
+import { translate } from '@docusaurus/Translate';
+
+// Docusaurus 3.x 无 useTranslate hook，用 translate 函数式 API 包装成一致的 t()
+const t = (...args) => {
+  const [opts, values] = args;
+  if (typeof opts === 'string') return translate({ id: opts }, values);
+  const vals = values ?? opts?.values ?? (opts?.count !== undefined ? { count: opts.count } : undefined);
+  return translate(opts, vals);
+};
 import styles from '../../pages/index.module.css';
 import { useMusic } from '../../utils/musicContext';
 
 export default function MainContentTop({ siteData }) {
-    const t = useTranslate();
     const [isMobile, setIsMobile] = useState(false);
     const { share } = useMusic();
     // 播放音乐且有歌词时显示当前歌词行（居中静态），否则显示公告跑马灯

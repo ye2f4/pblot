@@ -59,6 +59,11 @@ export default function AdminPage() {
   const [fForm, setFForm] = useState({ name: '', url: '', avatar: '', description: '', tag: '朋友', sort_order: 0, is_approved: true });
   const [fEditId, setFEditId] = useState(null);
 
+  // 友链申请审核
+  const [friendReqs, setFriendReqs] = useState([]);
+  const [reqFilter, setReqFilter] = useState('pending');
+  const [reqBusy, setReqBusy] = useState(false);
+
   // 说说管理
   const [moments, setMoments] = useState([]);
   const [mForm, setMForm] = useState({ content: '', author_name: '站长', author_avatar: '', is_pinned: false });
@@ -88,6 +93,7 @@ export default function AdminPage() {
     if (!token) return;
     if (tab === 'submissions') loadSubs();
     if (tab === 'friends') loadFriends();
+    if (tab === 'friendRequests') loadFriendRequests();
     if (tab === 'moments') loadMoments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, tab]);
@@ -357,6 +363,47 @@ export default function AdminPage() {
     else { await loadFriends(); }
   }
 
+  // ── 友链申请审核 ──
+  const REQ_STATUS = {
+    pending: { label: '待审核', color: '#ef6c00' },
+    approved: { label: '已通过', color: '#2e7d32' },
+    rejected: { label: '已拒绝', color: '#c0392b' },
+  };
+
+  async function loadFriendRequests() {
+    setReqBusy(true);
+    const { data, error } = await friendFn('requests_list', { status: reqFilter });
+    if (error || !data?.ok) setMsg({ type: 'error', text: data?.error || error?.message || '加载友链申请失败' });
+    else setFriendReqs(data.requests || []);
+    setReqBusy(false);
+  }
+
+  async function doApproveReq(r) {
+    setReqBusy(true);
+    const { data, error } = await friendFn('request_approve', { id: r.id });
+    if (error || !data?.ok) setMsg({ type: 'error', text: data?.error || error?.message || '通过失败' });
+    else { setMsg({ type: 'success', text: '已通过并写入友链' }); await loadFriendRequests(); await loadFriends(); }
+    setReqBusy(false);
+  }
+
+  async function doRejectReq(r) {
+    const note = prompt('拒绝理由（可选）：') || '';
+    setReqBusy(true);
+    const { data, error } = await friendFn('request_reject', { id: r.id, review_note: note });
+    if (error || !data?.ok) setMsg({ type: 'error', text: data?.error || error?.message || '拒绝失败' });
+    else { setMsg({ type: 'success', text: '已拒绝该申请' }); await loadFriendRequests(); }
+    setReqBusy(false);
+  }
+
+  async function doDeleteReq(r) {
+    if (!confirm('确定删除该申请记录？')) return;
+    setReqBusy(true);
+    const { error } = await friendFn('request_delete', { id: r.id });
+    if (error) setMsg({ type: 'error', text: '删除失败' });
+    else { setMsg({ type: 'success', text: '已删除' }); await loadFriendRequests(); }
+    setReqBusy(false);
+  }
+
   // ── 说说管理 ──
   async function loadMoments() {
     const { data, error } = await momentFn('list', {});
@@ -441,6 +488,7 @@ export default function AdminPage() {
             <button onClick={() => setTab('warnings')} style={{ padding: '6px 14px', background: tab === 'warnings' ? '#509feb' : '#f0f0f0', color: tab === 'warnings' ? '#fff' : '#333', border: 'none', borderRadius: 6, cursor: 'pointer' }}>预警管理</button>
             <button onClick={() => setTab('submissions')} style={{ padding: '6px 14px', background: tab === 'submissions' ? '#509feb' : '#f0f0f0', color: tab === 'submissions' ? '#fff' : '#333', border: 'none', borderRadius: 6, cursor: 'pointer' }}>投稿审核</button>
             <button onClick={() => setTab('friends')} style={{ padding: '6px 14px', background: tab === 'friends' ? '#509feb' : '#f0f0f0', color: tab === 'friends' ? '#fff' : '#333', border: 'none', borderRadius: 6, cursor: 'pointer' }}>友链管理</button>
+            <button onClick={() => setTab('friendRequests')} style={{ padding: '6px 14px', background: tab === 'friendRequests' ? '#509feb' : '#f0f0f0', color: tab === 'friendRequests' ? '#fff' : '#333', border: 'none', borderRadius: 6, cursor: 'pointer' }}>友链审核</button>
             <button onClick={() => setTab('moments')} style={{ padding: '6px 14px', background: tab === 'moments' ? '#509feb' : '#f0f0f0', color: tab === 'moments' ? '#fff' : '#333', border: 'none', borderRadius: 6, cursor: 'pointer' }}>说说管理</button>
             <button onClick={() => setShowChange((v) => !v)} style={{ padding: '6px 12px', background: '#f0f0f0', border: 'none', borderRadius: 6, cursor: 'pointer' }}>修改密码</button>
             <button onClick={logout} style={{ padding: '6px 12px', background: '#fde8e8', color: '#c0392b', border: 'none', borderRadius: 6, cursor: 'pointer' }}>退出</button>
@@ -644,6 +692,49 @@ export default function AdminPage() {
                   <button onClick={() => doToggleFriend(f)} style={{ padding: '5px 12px', background: f.is_approved ? '#fff3e0' : '#e8f5e9', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>{f.is_approved ? '停用' : '启用'}</button>
                   <button onClick={() => doEditFriend(f)} style={{ padding: '5px 12px', background: '#e3f2fd', border: '1px solid #bbdefb', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>编辑</button>
                   <button onClick={() => doDeleteFriend(f)} style={{ padding: '5px 12px', background: '#fde8e8', color: '#c0392b', border: '1px solid #f5c6c6', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>删除</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'friendRequests' && (
+          <div style={{ marginTop: 16 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+              {[['pending', '待审核'], ['approved', '已通过'], ['rejected', '已拒绝'], ['all', '全部']].map(([v, label]) => (
+                <button key={v} onClick={() => { setReqFilter(v); }} disabled={reqBusy}
+                  style={{ padding: '6px 14px', background: reqFilter === v ? '#509feb' : '#f0f0f0', color: reqFilter === v ? '#fff' : '#333', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>
+                  {label}
+                </button>
+              ))}
+              <button onClick={loadFriendRequests} disabled={reqBusy} style={{ padding: '6px 12px', background: '#f0f0f0', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>🔄 刷新</button>
+            </div>
+            {reqBusy && <div style={{ color: '#999', fontSize: 14 }}><img src="/img/LOADING.gif" alt="加载中" width={40} style={{ opacity: 0.92 }} /></div>}
+            {!reqBusy && friendReqs.length === 0 && <div style={{ color: '#999', fontSize: 14 }}>该状态下暂无申请</div>}
+            {friendReqs.map((r) => (
+              <div key={r.id} style={{ border: '1px solid #eee', borderLeft: `4px solid ${REQ_STATUS[r.status]?.color || '#888'}`, borderRadius: 8, padding: '12px 14px', margin: '8px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 14, flex: 1, minWidth: 240 }}>
+                    <span style={{ fontWeight: 700 }}>{r.name}</span>
+                    <span style={{ marginLeft: 8, fontSize: 11, color: '#888', border: '1px solid #ddd', borderRadius: 10, padding: '1px 8px' }}>{r.tag || '朋友'}</span>
+                    <div style={{ color: '#666', fontSize: 12, marginTop: 4 }}>
+                      {REQ_STATUS[r.status]?.label || r.status} · {new Date(r.created_at).toLocaleDateString('zh-CN')}
+                    </div>
+                    <div style={{ color: '#666', fontSize: 13, marginTop: 4, wordBreak: 'break-all' }}>
+                      {r.url}{r.description ? ` · ${r.description}` : ''}
+                    </div>
+                    {r.avatar && <div style={{ marginTop: 4 }}><img src={r.avatar} alt="" width={32} height={32} style={{ borderRadius: '50%', objectFit: 'cover', border: '1px solid #eee' }} onError={(e) => { e.target.style.display = 'none'; }} /></div>}
+                    {r.review_note && <div style={{ color: '#b26a00', fontSize: 12, marginTop: 4 }}>审核备注：{r.review_note}</div>}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {r.status === 'pending' && (
+                      <>
+                        <button onClick={() => doApproveReq(r)} disabled={reqBusy} style={{ padding: '5px 12px', background: '#e8f5e9', color: '#2e7d32', border: '1px solid #c8e6c9', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>通过</button>
+                        <button onClick={() => doRejectReq(r)} disabled={reqBusy} style={{ padding: '5px 12px', background: '#fde8e8', color: '#c0392b', border: '1px solid #f5c6c6', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>拒绝</button>
+                      </>
+                    )}
+                    <button onClick={() => doDeleteReq(r)} disabled={reqBusy} style={{ padding: '5px 12px', background: '#fde8e8', color: '#c0392b', border: '1px solid #f5c6c6', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>删除</button>
+                  </div>
                 </div>
               </div>
             ))}

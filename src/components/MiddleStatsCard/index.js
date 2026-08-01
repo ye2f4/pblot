@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../supabase/supabaseClient';
-import { useTranslate } from '@docusaurus/Translate';
+import { translate } from '@docusaurus/Translate';
+
+// Docusaurus 3.x 无 useTranslate hook，用 translate 函数式 API 包装成一致的 t()
+const t = (...args) => {
+  const [opts, values] = args;
+  if (typeof opts === 'string') return translate({ id: opts }, values);
+  return translate(opts, values ?? opts?.values);
+};
 import siteData from '../../data/siteData.json';
 import articlesData from '../../data/articles.json';
 import styles from '../../pages/index.module.css';
@@ -129,7 +136,6 @@ export default function MiddleStatsCard({
   timeZoneOffset = 0,
   timeZone = ""
 }) {
-  const t = useTranslate();
   const [visitStats, setVisitStats] = useState({
     online: 0,
     today: 0,

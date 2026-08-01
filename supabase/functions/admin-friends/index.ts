@@ -130,5 +130,80 @@ serve(async (req: Request) => {
     return json({ ok: true });
   }
 
+  // ── 友链申请审核 ──
+  // 列表（可按 status 过滤：pending/approved/rejected/all）
+  if (action === "requests_list") {
+    const status = body?.status;
+    let q = supabaseAdmin
+      .from("friend_link_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (status && status !== "all") q = q.eq("status", status as string);
+    const { data, error } = await q;
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true, requests: data });
+  }
+
+  // 通过：写入 friend_links（is_approved=true）并标记申请 approved
+  if (action === "request_approve") {
+    const id = body?.id;
+    if (!id) return json({ error: "缺少 id" }, 400);
+    const { data: req, error: reqErr } = await supabaseAdmin
+      .from("friend_link_requests")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (reqErr || !req) return json({ error: reqErr?.message || "申请不存在" }, 500);
+    // 防重复：同 url 已存在则不重复插入
+    const { data: exists } = await supabaseAdmin
+      .from("friend_links")
+      .select("id")
+      .eq("url", req.url)
+      .maybeSingle();
+    if (!exists) {
+      const { error: insErr } = await supabaseAdmin.from("friend_links").insert({
+        name: req.name,
+        url: req.url,
+        avatar: req.avatar || null,
+        description: req.description || null,
+        tag: req.tag || "朋友",
+        is_approved: true,
+        sort_order: 0,
+      });
+      if (insErr) return json({ error: insErr.message }, 500);
+    }
+    const { error: updErr } = await supabaseAdmin
+      .from("friend_link_requests")
+      .update({ status: "approved", reviewed_at: new Date().toISOString() })
+      .eq("id", id);
+    if (updErr) return json({ error: updErr.message }, 500);
+    return json({ ok: true });
+  }
+
+  // 拒绝：标记申请 rejected
+  if (action === "request_reject") {
+    const id = body?.id;
+    if (!id) return json({ error: "缺少 id" }, 400);
+    const { error } = await supabaseAdmin
+      .from("friend_link_requests")
+      .update({
+        status: "rejected",
+        review_note: body?.review_note ? String(body.review_note) : null,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
+  // 删除申请
+  if (action === "request_delete") {
+    const id = body?.id;
+    if (!id) return json({ error: "缺少 id" }, 400);
+    const { error } = await supabaseAdmin.from("friend_link_requests").delete().eq("id", id);
+    if (error) return json({ error: error.message }, 500);
+    return json({ ok: true });
+  }
+
   return json({ error: "未知 action" }, 400);
 });
