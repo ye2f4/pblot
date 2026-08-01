@@ -1,50 +1,55 @@
 import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
+import { useTranslate } from '@docusaurus/Translate';
 
 const groups = [
   {
+    id: 'resources',
     title: '资源',
     emoji: '📦',
     items: [
-      { label: '资料下载', to: '/downloads/' },
-      { label: '开源项目', to: '/projects/' },
-      { label: '开发工具', to: '/tools/' },
+      { id: 'downloads', label: '资料下载', to: '/downloads/' },
+      { id: 'projects', label: '开源项目', to: '/projects/' },
+      { id: 'tools', label: '开发工具', to: '/tools/' },
     ],
   },
   {
+    id: 'toolbox',
     title: '工具箱',
     emoji: '🧰',
     items: [
-      { label: '硬件监控', to: '/hardware/' },
-      { label: '共享地震台网', to: '/shake-network/' },
-      { label: '代码片段', to: '/snippets/' },
-      { label: 'PCB元器件', to: '/pcb/' },
-      { label: '时光胶囊', to: '/capsule/' },
-      { label: '排行榜', to: '/leaderboard/' },
-      { label: '网易云下载', to: '/music-downloader/' },
+      { id: 'hardware', label: '硬件监控', to: '/hardware/' },
+      { id: 'shake', label: '共享地震台网', to: '/shake-network/' },
+      { id: 'snippets', label: '代码片段', to: '/snippets/' },
+      { id: 'pcb', label: 'PCB元器件', to: '/pcb/' },
+      { id: 'capsule', label: '时光胶囊', to: '/capsule/' },
+      { id: 'leaderboard', label: '排行榜', to: '/leaderboard/' },
+      { id: 'music', label: '网易云下载', to: '/music-downloader/' },
     ],
   },
   {
+    id: 'community',
     title: '社区与更多',
     emoji: '✨',
     items: [
-      { label: '说说', to: '/moments/' },
-      { label: '友情链接', to: '/friends/' },
-      { label: '投稿广场', to: '/submissions/' },
-      { label: '更新日志', to: '/changelog/' },
-      { label: '隐私政策', to: '/privacy/' },
-      { label: '用户协议', to: '/terms/' },
-      { label: 'RSS订阅', to: '/rss' },
+      { id: 'moments', label: '说说', to: '/moments/' },
+      { id: 'friends', label: '友情链接', to: '/friends/' },
+      { id: 'submissions', label: '投稿广场', to: '/submissions/' },
+      { id: 'changelog', label: '更新日志', to: '/changelog/' },
+      { id: 'privacy', label: '隐私政策', to: '/privacy/' },
+      { id: 'terms', label: '用户协议', to: '/terms/' },
+      { id: 'rss', label: 'RSS订阅', to: '/rss' },
     ],
   },
 ];
 
 export default function MorePage() {
+  const t = useTranslate();
   return (
     <Layout
-      title="更多"
-      description="Monoの小窝全站导航——社区、工具箱、资源与条款入口"
+      title={t({ id: 'more.pageTitle', message: '更多' })}
+      description={t({ id: 'more.pageDesc', message: 'Monoの小窝全站导航——社区、工具箱、资源与条款入口' })}
     >
       <div style={{
         minHeight: '70vh',
@@ -56,10 +61,10 @@ export default function MorePage() {
             <h1 style={{
               fontSize: 32, margin: '0 0 10px', color: 'var(--ifm-heading-color)', fontWeight: 700,
             }}>
-              🧭 全站导航
+              🧭 {t({ id: 'more.heading', message: '全站导航' })}
             </h1>
             <p style={{ fontSize: 15, color: 'var(--ifm-color-emphasis-600)', margin: 0 }}>
-              这里收录了网站的全部板块（博客与文章请在导航栏「博客」中查看）
+              {t({ id: 'more.subtitle', message: '这里收录了网站的全部板块（博客与文章请在导航栏「博客」中查看）' })}
             </p>
           </div>
 
@@ -78,9 +83,9 @@ export default function MorePage() {
                 <h2 style={{
                   fontSize: 19, margin: '0 0 16px', color: 'var(--ifm-heading-color)',
                   display: 'flex', alignItems: 'center', gap: 8,
-                }}>
+                }}                >
                   <span style={{ fontSize: 22 }}>{g.emoji}</span>
-                  {g.title}
+                  {t({ id: `more.group.${g.id}`, message: g.title })}
                 </h2>
                 <div style={{
                   display: 'grid',
@@ -107,7 +112,7 @@ export default function MorePage() {
                         ev.currentTarget.style.color = 'var(--ifm-color-emphasis-800)';
                       }}
                     >
-                      {it.label}
+                      {t({ id: `more.item.${it.id}`, message: it.label })}
                     </Link>
                   ))}
                 </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from '@docusaurus/Link';
+import { useTranslate } from '@docusaurus/Translate';
 import articlesData from '../../data/articles.json';
 import styles from '../../pages/index.module.css';
 import { supabase, AVATAR_CACHE_EXPIRE } from '../../supabase/supabaseClient';
@@ -352,6 +353,7 @@ export default function TopBanner({
   timeZoneOffset = 0,
   timeZone = ""
 }) {
+  const t = useTranslate();
   // 最新博客速览：取 articles.json 中 type==='blog' 的文章，按日期倒序取前 4 篇
   const blogList = (articlesData?.articles || [])
     .filter((a) => a.type === 'blog' && a.date)
@@ -487,7 +489,7 @@ export default function TopBanner({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
             <span style={{ fontSize: 32, animation: 'pixelBounce 2s infinite' }}>📢</span>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1a1a1a' }}>
-              {siteData?.texts?.welcomeTitle || '欢迎来到Monoの小窝'}
+              {t({ id: 'topBanner.welcomeTitle', message: '欢迎来到Monoの小窝' })}
             </h3>
           </div>
           <div>
@@ -496,7 +498,7 @@ export default function TopBanner({
             ) : siteData?.features?.showBlogPreview !== false ? (
               <>
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 4 }}>
-                  📝 最新博客
+                  📝 {t({ id: 'topBanner.latestBlog', message: '最新博客' })}
                 </div>
                 {blogList.length > 0 ? (
                   blogList.map((p) => (
@@ -516,20 +518,20 @@ export default function TopBanner({
                     </Link>
                   ))
                 ) : (
-                  <div style={{ fontSize: 13, color: '#999', padding: '6px 0' }}>暂无博客文章</div>
+                  <div style={{ fontSize: 13, color: '#999', padding: '6px 0' }}>{t({ id: 'topBanner.noBlog', message: '暂无博客文章' })}</div>
                 )}
                 <div style={{ marginTop: 8 }}>
                   <Link
                     to="/blog/"
                     style={{ fontSize: 13, color: '#509feb', fontWeight: 600, textDecoration: 'none' }}
                   >
-                    浏览全部博客 →
+                    {t({ id: 'topBanner.viewAllBlogs', message: '浏览全部博客' })} →
                   </Link>
                 </div>
               </>
             ) : (
-              <div style={{ fontSize: 13, color: '#666', padding: '6px 0', lineHeight: 1.6 }}>
-                {siteData?.branding?.tagline || '欢迎来到本站，探索更多技术分享~'}
+                <div style={{ fontSize: 13, color: '#666', padding: '6px 0', lineHeight: 1.6 }}>
+                {siteData?.branding?.tagline || t({ id: 'topBanner.tagline', message: '欢迎来到本站，探索更多技术分享~' })}
               </div>
             )}
           </div>
@@ -574,7 +576,7 @@ export default function TopBanner({
           ) : !user ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ fontSize: 14, color: '#666' }}>
-                {siteData?.texts?.visitorWelcome || '欢迎访客，登录解锁完整功能'}
+                {t({ id: 'topBanner.visitorWelcome', message: '欢迎访客，登录解锁完整功能' })}
               </div>
 
               {/* 登录、注册强制同一行，弹性均分 */}
@@ -650,7 +652,7 @@ export default function TopBanner({
                 onMouseOut={(e) => { e.target.style.background = siteData?.loginTheme?.githubBg || loginTheme.githubBg; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.13)'; }}
               >
                 <GitHubLogo />
-                {siteData?.texts?.buttons?.githubLogin || 'GitHub 登录'}
+                {t({ id: 'topBanner.buttons.githubLogin', message: 'GitHub 登录' })}
               </button>
 
             </div>
@@ -698,7 +700,7 @@ export default function TopBanner({
                   onMouseOver={(e) => { if (!signOutLoading) e.target.style.background = siteData?.loginTheme?.logoutHoverBg || loginTheme.logoutHoverBg; }}
                   onMouseOut={(e) => { if (!signOutLoading) e.target.style.background = siteData?.loginTheme?.logoutBg || loginTheme.logoutBg; }}
                 >
-                  {signOutLoading ? (siteData?.texts?.buttons?.loggingOut || '退出中') : (siteData?.texts?.buttons?.logout || '退出登录')}
+                  {signOutLoading ? (t({ id: 'topBanner.buttons.loggingOut', message: '退出中' })) : (t({ id: 'topBanner.buttons.logout', message: '退出登录' }))}
                 </button>
               </div>
             </div>

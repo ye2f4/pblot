@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@theme/Layout';
+import { useTranslate } from '@docusaurus/Translate';
 
 /* ---------- 内联图标（复刻 lucide 形状，避免引入缺失依赖） ---------- */
 const Svg = ({ children, className = '', size = 24, ...rest }) => (
@@ -89,6 +90,7 @@ const DEVICES = [
 const FLASHER_URL = 'https://flasher.meshtastic.org/';
 
 const DeviceDialog = ({ onClose }) => {
+  const t = useTranslate();
   const [showDevices, setShowDevices] = useState(false);
   return (
     <div
@@ -118,12 +120,12 @@ const DeviceDialog = ({ onClose }) => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1.25rem', borderBottom: '1px solid hsl(var(--border))' }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: 700 }}>设备刷写器</h2>
+            <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: 700 }}>{t({ id: 'offGrid.dialog.title', message: '设备刷写器' })}</h2>
             <div style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginTop: '0.2rem' }}>
-              连接设备后在此刷写 / 更新 Meshtastic 固件
+              {t({ id: 'offGrid.dialog.sub', message: '连接设备后在此刷写 / 更新 Meshtastic 固件' })}
             </div>
           </div>
-          <button onClick={onClose} aria-label="关闭" style={{ background: 'none', border: 'none', color: 'hsl(var(--muted-foreground))', cursor: 'pointer', padding: 4 }}>
+          <button onClick={onClose} aria-label={t({ id: 'offGrid.dialog.close', message: '关闭' })} style={{ background: 'none', border: 'none', color: 'hsl(var(--muted-foreground))', cursor: 'pointer', padding: 4 }}>
             <IconX size={22} />
           </button>
         </div>
@@ -141,7 +143,7 @@ const DeviceDialog = ({ onClose }) => {
             onClick={() => setShowDevices((v) => !v)}
             style={{ background: 'none', border: 'none', color: 'hsl(var(--btn-primary))', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', padding: 0 }}
           >
-            {showDevices ? '收起兼容设备列表' : '查看兼容设备列表'}
+            {showDevices ? t({ id: 'offGrid.dialog.collapseList', message: '收起兼容设备列表' }) : t({ id: 'offGrid.dialog.viewList', message: '查看兼容设备列表' })}
           </button>
           {showDevices && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '0.75rem', maxHeight: '160px', overflowY: 'auto' }}>
@@ -218,6 +220,7 @@ const NODE_CORPUS = [
 
 /* ---------- 节点群 / 离线消息 动态面板 ---------- */
 const NodeChat = () => {
+  const t = useTranslate();
   const [messages, setMessages] = useState([
     { id: 0, who: '系统', text: '节点群已连接，正在监听离线消息…', self: false, sys: true },
     { id: 1, who: 'B', text: '中继已上线，欢迎入网', self: false },
@@ -304,9 +307,9 @@ const NodeChat = () => {
     <div style={{ width: '100%', maxWidth: '360px', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.85rem', borderBottom: '1px solid hsl(var(--border))', background: 'hsl(var(--muted))' }}>
         <IconRadio size={18} />
-        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>节点群 / 离线消息</span>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{t({ id: 'offGrid.nodeChat.title', message: '节点群 / 离线消息' })}</span>
         <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'hsl(var(--btn-primary))', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'hsl(var(--btn-primary))', display: 'inline-block' }} /> 实时
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'hsl(var(--btn-primary))', display: 'inline-block' }} /> {t({ id: 'offGrid.nodeChat.live', message: '实时' })}
         </span>
       </div>
 
@@ -353,7 +356,7 @@ const NodeChat = () => {
           disabled={sending}
           style={{ padding: '0.55rem 1.1rem', borderRadius: '26px', background: sending ? '#94e3b9' : '#07c160', color: '#fff', border: 'none', cursor: sending ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
         >
-          {sending ? '发送中' : '发送'}
+          {sending ? t({ id: 'offGrid.nodeChat.sending', message: '发送中' }) : t({ id: 'offGrid.nodeChat.send', message: '发送' })}
         </button>
       </div>
     </div>
@@ -493,6 +496,7 @@ const MapBackground = () => {
 };
 
 export default function OffGridPage() {
+  const t = useTranslate();
   const [deviceDialogOpen, setDeviceDialogOpen] = useState(false);
 
   return (
@@ -520,24 +524,23 @@ export default function OffGridPage() {
                   borderRadius: '999px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))',
                   fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginBottom: '1.25rem',
                 }}>
-                  <IconRadio size={16} /> 不依赖公网 · 去中心化
+                  <IconRadio size={16} /> {t({ id: 'offGrid.badge', message: '不依赖公网 · 去中心化' })}
                 </div>
                 <h1 className="font-mono" style={{ fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', lineHeight: 1.1, margin: '0 0 1rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
-                  离网也能<br />保持联络
+                  {t({ id: 'offGrid.heroTitleA', message: '离网也能' })}<br />{t({ id: 'offGrid.heroTitleB', message: '保持联络' })}
                 </h1>
                 <p style={{ fontSize: '1.05rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.75, maxWidth: '34rem', margin: '0 0 2rem' }}>
-                  Meshtastic 是基于 LoRa 无线电的开源项目，让你在手机没信号、断网、灾备、野外探险时，
-                  仍能通过廉价节点与身边人自由通信。无需 SIM 卡，无需基站。
+                  {t({ id: 'offGrid.heroDesc', message: 'Meshtastic 是基于 LoRa 无线电的开源项目，让你在手机没信号、断网、灾备、野外探险时，仍能通过廉价节点与身边人自由通信。无需 SIM 卡，无需基站。' })}
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
                   <a href="https://meshtastic.org/docs/" target="_blank" rel="noopener noreferrer" className="font-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.7rem 1.2rem', borderRadius: 'var(--radius)', background: 'hsl(var(--btn-primary))', color: 'hsl(var(--btn-primary-foreground))', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}>
-                    阅读文档 <IconArrowRight size={18} />
+                    {t({ id: 'offGrid.readDocs', message: '阅读文档' })} <IconArrowRight size={18} />
                   </a>
                   <a href="#download" className="font-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.7rem 1.2rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem', background: 'hsl(var(--card))' }}>
                     下载应用 <IconDownload size={18} />
                   </a>
                   <button onClick={() => setDeviceDialogOpen(true)} className="font-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.7rem 1.2rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))', background: 'transparent', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
-                    设备刷写器 <IconSmartphone size={18} />
+                    {t({ id: 'offGrid.flasher', message: '设备刷写器' })} <IconSmartphone size={18} />
                   </button>
                 </div>
               </div>
@@ -549,24 +552,24 @@ export default function OffGridPage() {
 
           {/* ---------- 统计 ---------- */}
           <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginTop: '2.5rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))', padding: '1.5rem 0' }}>
-            <Stat value={30000} suffix="+" label="公网节点" />
-            <Stat value={220} suffix="+" label="覆盖国家" />
-            <Stat value={100} suffix="%" label="开源免费" />
-            <Stat value={0} suffix="" label="无需 SIM 卡" />
+            <Stat value={30000} suffix="+" label={t({ id: 'offGrid.stat.nodes', message: '公网节点' })} />
+            <Stat value={220} suffix="+" label={t({ id: 'offGrid.stat.countries', message: '覆盖国家' })} />
+            <Stat value={100} suffix="%" label={t({ id: 'offGrid.stat.open', message: '开源免费' })} />
+            <Stat value={0} suffix="" label={t({ id: 'offGrid.stat.noSim', message: '无需 SIM 卡' })} />
           </section>
 
           {/* ---------- 特性 ---------- */}
           <section style={{ marginTop: '3.5rem' }}>
-            <h2 className="font-mono" style={{ fontSize: '1.8rem', textAlign: 'center', margin: '0 0 0.5rem', fontWeight: 700 }}>为什么选择离网通信</h2>
-            <p style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', margin: '0 0 2rem' }}>一套运行在 LoRa 之上的去中心化通信协议</p>
+            <h2 className="font-mono" style={{ fontSize: '1.8rem', textAlign: 'center', margin: '0 0 0.5rem', fontWeight: 700 }}>{t({ id: 'offGrid.featuresTitle', message: '为什么选择离网通信' })}</h2>
+            <p style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', margin: '0 0 2rem' }}>{t({ id: 'offGrid.featuresSub', message: '一套运行在 LoRa 之上的去中心化通信协议' })}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
               {[
-                { icon: IconRadio, title: '去中心化网络', desc: '无中心服务器，节点间自动中继转发，网络自愈。' },
-                { icon: IconGlobe, title: '超远传输距离', desc: 'LoRa 远距离特性，空旷环境可达数公里至十余公里。' },
-                { icon: IconUser, title: '端到端加密', desc: '消息可选加密，保护你的通信隐私不被窃听。' },
-                { icon: IconUsers, title: '群组与位置共享', desc: '支持群聊、GPS 位置广播与离线消息留存。' },
-                { icon: IconSmartphone, title: '手机直连', desc: '通过蓝牙 / WiFi 与手机 App 配对，无需流量。' },
-                { icon: IconDownload, title: '开源免费', desc: '固件与 App 全部开源，硬件成本仅需几十元。' },
+                { icon: IconRadio, title: t({ id: 'offGrid.feat.decentralized', message: '去中心化网络' }), desc: t({ id: 'offGrid.feat.decentralizedDesc', message: '无中心服务器，节点间自动中继转发，网络自愈。' }) },
+                { icon: IconGlobe, title: t({ id: 'offGrid.feat.range', message: '超远传输距离' }), desc: t({ id: 'offGrid.feat.rangeDesc', message: 'LoRa 远距离特性，空旷环境可达数公里至十余公里。' }) },
+                { icon: IconUser, title: t({ id: 'offGrid.feat.encrypt', message: '端到端加密' }), desc: t({ id: 'offGrid.feat.encryptDesc', message: '消息可选加密，保护你的通信隐私不被窃听。' }) },
+                { icon: IconUsers, title: t({ id: 'offGrid.feat.group', message: '群组与位置共享' }), desc: t({ id: 'offGrid.feat.groupDesc', message: '支持群聊、GPS 位置广播与离线消息留存。' }) },
+                { icon: IconSmartphone, title: t({ id: 'offGrid.feat.phone', message: '手机直连' }), desc: t({ id: 'offGrid.feat.phoneDesc', message: '通过蓝牙 / WiFi 与手机 App 配对，无需流量。' }) },
+                { icon: IconDownload, title: t({ id: 'offGrid.feat.open', message: '开源免费' }), desc: t({ id: 'offGrid.feat.openDesc', message: '固件与 App 全部开源，硬件成本仅需几十元。' }) },
               ].map((f) => (
                 <div key={f.title} style={{ borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))', padding: '1.5rem' }}>
                   <div style={{ width: '2.75rem', height: '2.75rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'hsl(var(--muted))', color: 'hsl(var(--btn-primary))', marginBottom: '1rem' }}>
@@ -581,8 +584,8 @@ export default function OffGridPage() {
 
           {/* ---------- 下载区 ---------- */}
           <section id="download" style={{ marginTop: '3.5rem', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', background: 'hsl(var(--surface))', padding: 'clamp(1.5rem, 4vw, 3rem)', textAlign: 'center' }}>
-            <h2 className="font-mono" style={{ fontSize: '1.8rem', margin: '0 0 0.5rem', fontWeight: 700 }}>准备搭建你的网络？</h2>
-            <p style={{ color: 'hsl(var(--muted-foreground))', margin: '0 0 2rem' }}>下载 Meshtastic App，烧录固件到设备，几分钟内即可离线通信。</p>
+            <h2 className="font-mono" style={{ fontSize: '1.8rem', margin: '0 0 0.5rem', fontWeight: 700 }}>{t({ id: 'offGrid.downloadTitle', message: '准备搭建你的网络？' })}</h2>
+            <p style={{ color: 'hsl(var(--muted-foreground))', margin: '0 0 2rem' }}>{t({ id: 'offGrid.downloadSub', message: '下载 Meshtastic App，烧录固件到设备，几分钟内即可离线通信。' })}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
               <a href="https://play.google.com/store/apps/details?id=com.meshtastic" target="_blank" rel="noopener noreferrer" className="font-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.7rem 1.2rem', borderRadius: 'var(--radius)', background: 'hsl(var(--btn-primary))', color: 'hsl(var(--btn-primary-foreground))', textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem' }}>
                 <IconDownload size={18} /> 安卓 App
@@ -598,10 +601,10 @@ export default function OffGridPage() {
 
           {/* ---------- 赞助商 ---------- */}
           <section style={{ marginTop: '3.5rem', textAlign: 'center' }}>
-            <h2 className="font-mono" style={{ fontSize: '1.4rem', margin: '0 0 0.5rem', fontWeight: 700 }}>项目支持者</h2>
-            <p style={{ color: 'hsl(var(--muted-foreground))', margin: '0 0 1.5rem' }}>感谢为离网通信生态贡献的社区与个人</p>
+            <h2 className="font-mono" style={{ fontSize: '1.4rem', margin: '0 0 0.5rem', fontWeight: 700 }}>{t({ id: 'offGrid.sponsorsTitle', message: '项目支持者' })}</h2>
+            <p style={{ color: 'hsl(var(--muted-foreground))', margin: '0 0 1.5rem' }}>{t({ id: 'offGrid.sponsorsSub', message: '感谢为离网通信生态贡献的社区与个人' })}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-              {['开源硬件厂商', '无线电爱好者社区', '野外救援志愿者', '独立开发者'].map((s) => (
+              {[t({ id: 'offGrid.sponsor.hw', message: '开源硬件厂商' }), t({ id: 'offGrid.sponsor.radio', message: '无线电爱好者社区' }), t({ id: 'offGrid.sponsor.rescue', message: '野外救援志愿者' }), t({ id: 'offGrid.sponsor.dev', message: '独立开发者' })].map((s) => (
                 <span key={s} style={{ padding: '0.5rem 1rem', borderRadius: '999px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))', color: 'hsl(var(--muted-foreground))', fontSize: '0.9rem' }}>
                   {s}
                 </span>
@@ -620,8 +623,4 @@ export default function OffGridPage() {
         </div>
 
         {/* 设备弹窗 */}
-        {deviceDialogOpen && <DeviceDialog onClose={() => setDeviceDialogOpen(false)} />}
-      </div>
-    </Layout>
-  );
-}
+        {deviceDialogOpen && <DeviceD

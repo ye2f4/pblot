@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../supabase/supabaseClient';
+import { useTranslate } from '@docusaurus/Translate';
 import siteData from '../../data/siteData.json';
 import articlesData from '../../data/articles.json';
 import styles from '../../pages/index.module.css';
@@ -128,6 +129,7 @@ export default function MiddleStatsCard({
   timeZoneOffset = 0,
   timeZone = ""
 }) {
+  const t = useTranslate();
   const [visitStats, setVisitStats] = useState({
     online: 0,
     today: 0,
@@ -663,7 +665,7 @@ export default function MiddleStatsCard({
           display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
           gap: '4px',
         }}>
-          <span style={{ fontSize: 10, color: '#666' }}>{siteData.texts?.systemStatus || '⚙️ 系统状态'}</span>
+          <span style={{ fontSize: 10, color: '#666' }}>{t({ id: 'middleStats.systemStatus', message: '⚙️ 系统状态' })}</span>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{
@@ -718,7 +720,7 @@ export default function MiddleStatsCard({
           title="点击查看全球访问地图"
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#666' }}>
-            <span>{siteData.texts?.todayHeatmap || '📊 今日访问热力'}</span>
+            <span>{t({ id: 'middleStats.todayHeatmap', message: '📊 今日访问热力' })}</span>
             <span>当前{currentHour}:00 峰值{maxHourCount} 🔗地图</span>
           </div>
           <div style={{
@@ -787,7 +789,7 @@ export default function MiddleStatsCard({
           }}>
             <span>{display.year}-{padZero(display.month)}-{padZero(display.day)}</span>
             <span style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: 'normal' }}>
-              第{display.weekNum}周
+              {t({ id: 'middleStats.weekNum', message: '第{count}周', count: display.weekNum })}
             </span>
           </div>
         </div>

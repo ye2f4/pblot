@@ -763,5 +763,302 @@
   "theme.tags.tagsPageTitle": {
     "message": "Tags",
     "description": "The title of the tag list page"
+  },
+  "topBanner.welcomeTitle": {
+    "message": "Welcome to Mono's little nest"
+  },
+  "topBanner.searchPlaceholder": {
+    "message": "Search articles, tutorials, blogs..."
+  },
+  "topBanner.visitorWelcome": {
+    "message": "Welcome, visitor. Sign in to unlock full features"
+  },
+  "topBanner.buttons.login": {
+    "message": "Sign In"
+  },
+  "topBanner.buttons.register": {
+    "message": "Sign Up"
+  },
+  "topBanner.buttons.bilibiliLogin": {
+    "message": "Bilibili Login"
+  },
+  "topBanner.buttons.githubLogin": {
+    "message": "GitHub Login"
+  },
+  "topBanner.welcomeBack": {
+    "message": "👋 Welcome back, "
+  },
+  "topBanner.buttons.profile": {
+    "message": "Profile"
+  },
+  "topBanner.buttons.loggingOut": {
+    "message": "Signing out"
+  },
+  "topBanner.buttons.logout": {
+    "message": "Sign Out"
+  },
+  "topBanner.latestBlog": {
+    "message": "Latest Blog"
+  },
+  "topBanner.noBlog": {
+    "message": "No blog posts yet"
+  },
+  "topBanner.viewAllBlogs": {
+    "message": "View all blogs"
+  },
+  "topBanner.tagline": {
+    "message": "Welcome to this site, explore more tech sharing~"
+  },
+  "middleStats.communityTitle": {
+    "message": "Community Activity"
+  },
+  "middleStats.communityDesc": {
+    "message": "Real-time statistics showing community activity and growth."
+  },
+  "middleStats.systemStatus": {
+    "message": "⚙️ System Status"
+  },
+  "middleStats.todayHeatmap": {
+    "message": "📊 Today's Visits Heatmap"
+  },
+  "middleStats.siteNotice": {
+    "message": "Site Notice"
+  },
+  "middleStats.announcement": {
+    "message": "This site continuously updates React & embedded tutorials. Welcome to exchange ideas~"
+  },
+  "middleStats.localTime": {
+    "message": " local time"
+  },
+  "middleStats.weekJpSuffix": {
+    "message": " day"
+  },
+  "middleStats.weekNum": {
+    "message": "Week {count}"
+  },
+  "mainContentTop.viewTab": {
+    "message": "View {name} content"
+  },
+  "mainContentTop.checkin": {
+    "message": "✅ Check-in"
+  },
+  "mainContentTop.random": {
+    "message": "🎲 Random Post"
+  },
+  "mainContentTop.visitMap": {
+    "message": "🌍 Visit Map"
+  },
+  "offGrid.badge": {
+    "message": "No public network · Decentralized"
+  },
+  "offGrid.heroTitleA": {
+    "message": "Stay connected"
+  },
+  "offGrid.heroTitleB": {
+    "message": "off-grid"
+  },
+  "offGrid.heroDesc": {
+    "message": "Meshtastic is an open-source project based on LoRa radio, letting you communicate freely with people nearby via cheap nodes when your phone has no signal, during outages, disasters, or wilderness adventures. No SIM card, no base station."
+  },
+  "offGrid.readDocs": {
+    "message": "Read Docs"
+  },
+  "offGrid.downloadApp": {
+    "message": "Download App"
+  },
+  "offGrid.flasher": {
+    "message": "Device Flasher"
+  },
+  "offGrid.stat.nodes": {
+    "message": "Public nodes"
+  },
+  "offGrid.stat.countries": {
+    "message": "Countries covered"
+  },
+  "offGrid.stat.open": {
+    "message": "Open & free"
+  },
+  "offGrid.stat.noSim": {
+    "message": "No SIM card"
+  },
+  "offGrid.featuresTitle": {
+    "message": "Why off-grid communication"
+  },
+  "offGrid.featuresSub": {
+    "message": "A decentralized protocol running over LoRa"
+  },
+  "offGrid.feat.decentralized": {
+    "message": "Decentralized network"
+  },
+  "offGrid.feat.decentralizedDesc": {
+    "message": "No central server; nodes auto-relay and the network self-heals."
+  },
+  "offGrid.feat.range": {
+    "message": "Long range"
+  },
+  "offGrid.feat.rangeDesc": {
+    "message": "LoRa's long-range特性 reaches several to over ten kilometers in open areas."
+  },
+  "offGrid.feat.encrypt": {
+    "message": "End-to-end encryption"
+  },
+  "offGrid.feat.encryptDesc": {
+    "message": "Optional message encryption protects your privacy from eavesdropping."
+  },
+  "offGrid.feat.group": {
+    "message": "Groups & location sharing"
+  },
+  "offGrid.feat.groupDesc": {
+    "message": "Supports group chat, GPS location broadcast and offline message storage."
+  },
+  "offGrid.feat.phone": {
+    "message": "Direct phone connection"
+  },
+  "offGrid.feat.phoneDesc": {
+    "message": "Pair with your phone App via Bluetooth / WiFi, no data needed."
+  },
+  "offGrid.feat.open": {
+    "message": "Open source & free"
+  },
+  "offGrid.feat.openDesc": {
+    "message": "Firmware and App are fully open source; hardware costs only tens of yuan."
+  },
+  "offGrid.downloadTitle": {
+    "message": "Ready to build your network?"
+  },
+  "offGrid.downloadSub": {
+    "message": "Download the Meshtastic App, flash firmware to your device, and communicate off-grid within minutes."
+  },
+  "offGrid.android": {
+    "message": "Android App"
+  },
+  "offGrid.ios": {
+    "message": "iOS App"
+  },
+  "offGrid.viewDocs": {
+    "message": "View Docs"
+  },
+  "offGrid.sponsorsTitle": {
+    "message": "Project Supporters"
+  },
+  "offGrid.sponsorsSub": {
+    "message": "Thanks to the communities and individuals contributing to the off-grid ecosystem"
+  },
+  "offGrid.sponsor.hw": {
+    "message": "Open-source hardware makers"
+  },
+  "offGrid.sponsor.radio": {
+    "message": "Radio hobbyist community"
+  },
+  "offGrid.sponsor.rescue": {
+    "message": "Wilderness rescue volunteers"
+  },
+  "offGrid.sponsor.dev": {
+    "message": "Independent developers"
+  },
+  "offGrid.dialog.title": {
+    "message": "Device Flasher"
+  },
+  "offGrid.dialog.sub": {
+    "message": "Connect your device here to flash / update Meshtastic firmware"
+  },
+  "offGrid.dialog.close": {
+    "message": "Close"
+  },
+  "offGrid.dialog.collapseList": {
+    "message": "Collapse compatible device list"
+  },
+  "offGrid.dialog.viewList": {
+    "message": "View compatible device list"
+  },
+  "offGrid.nodeChat.title": {
+    "message": "Node group / Offline messages"
+  },
+  "offGrid.nodeChat.live": {
+    "message": "Live"
+  },
+  "offGrid.nodeChat.typing": {
+    "message": "Node"
+  },
+  "offGrid.nodeChat.input": {
+    "message": "Type a message and press Enter to send…"
+  },
+  "offGrid.nodeChat.sending": {
+    "message": "Sending"
+  },
+  "offGrid.nodeChat.send": {
+    "message": "Send"
+  },
+  "more.pageTitle": {
+    "message": "More"
+  },
+  "more.pageDesc": {
+    "message": "Mono's nest full-site navigation — community, toolbox, resources and terms"
+  },
+  "more.heading": {
+    "message": "Full-site navigation"
+  },
+  "more.subtitle": {
+    "message": "Here are all sections of the site (blogs and articles are in the navbar 'Blog')."
+  },
+  "more.group.resources": {
+    "message": "Resources"
+  },
+  "more.group.toolbox": {
+    "message": "Toolbox"
+  },
+  "more.group.community": {
+    "message": "Community & More"
+  },
+  "more.item.downloads": {
+    "message": "Downloads"
+  },
+  "more.item.projects": {
+    "message": "Open Source Projects"
+  },
+  "more.item.tools": {
+    "message": "Dev Tools"
+  },
+  "more.item.hardware": {
+    "message": "Hardware Monitor"
+  },
+  "more.item.shake": {
+    "message": "Shared Seismic Network"
+  },
+  "more.item.snippets": {
+    "message": "Code Snippets"
+  },
+  "more.item.pcb": {
+    "message": "PCB Components"
+  },
+  "more.item.capsule": {
+    "message": "Time Capsule"
+  },
+  "more.item.leaderboard": {
+    "message": "Leaderboard"
+  },
+  "more.item.music": {
+    "message": "NetEase Cloud Downloader"
+  },
+  "more.item.moments": {
+    "message": "Moments"
+  },
+  "more.item.friends": {
+    "message": "Friend Links"
+  },
+  "more.item.submissions": {
+    "message": "Submission Square"
+  },
+  "more.item.changelog": {
+    "message": "Changelog"
+  },
+  "more.item.privacy": {
+    "message": "Privacy Policy"
+  },
+  "more.item.terms": {
+    "message": "Terms of Service"
+  },
+  "more.item.rss": {
+    "message": "RSS Subscription"
   }
 }

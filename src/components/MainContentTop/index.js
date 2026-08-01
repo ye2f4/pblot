@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from '@docusaurus/Link';
+import { useTranslate } from '@docusaurus/Translate';
 import styles from '../../pages/index.module.css';
 import { useMusic } from '../../utils/musicContext';
 
 export default function MainContentTop({ siteData }) {
+    const t = useTranslate();
     const [isMobile, setIsMobile] = useState(false);
     const { share } = useMusic();
     // 播放音乐且有歌词时显示当前歌词行（居中静态），否则显示公告跑马灯
@@ -54,7 +56,7 @@ export default function MainContentTop({ siteData }) {
                         key={i}
                         to={tab.link}
                         className={styles.btnHover}
-                        aria-label={`查看${tab.name}内容`}
+                        aria-label={t({ id: 'mainContentTop.viewTab', message: '查看{name}内容', values: { name: tab.name } })}
                         style={{
                             padding: '8px 16px',
                             backgroundColor: tab.color,
@@ -140,7 +142,7 @@ export default function MainContentTop({ siteData }) {
                         justifyContent: 'center',
                     }}
                 >
-                    ✅ 签到
+                    {t({ id: 'mainContentTop.checkin', message: '✅ 签到' })}
                 </Link>
                 <a
                     href="/forum?tab=random"
@@ -182,7 +184,7 @@ export default function MainContentTop({ siteData }) {
                         justifyContent: 'center',
                     }}
                 >
-                    🌍 访问地图
+                    {t({ id: 'mainContentTop.visitMap', message: '🌍 访问地图' })}
                 </Link>
             </div>
         </div>
