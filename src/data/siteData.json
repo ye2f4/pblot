@@ -53,7 +53,7 @@
           { "label": "开发工具", "to": "/tools/" }
         ]
       },
-      { "label": "离网通信", "to": "/off-grid/", "position": "left" },
+      { "label": "离网通信", "href": "https://meshroc.cc.cd", "target": "_blank", "position": "left" },
       { "label": "更多", "to": "/more/", "position": "left" },
       { "label": "关于", "to": "/about/", "position": "left" },
       { "label": "+", "to": "/contribute/", "position": "right", "className": "navbar-contribute-btn", "title": "投稿" },

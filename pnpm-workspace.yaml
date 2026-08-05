@@ -3,5 +3,6 @@ packages:
 allowBuilds:
   '@swc/core': true
   core-js: true
+  esbuild: set this to true or false
   sharp: true
-
+  vue-demi: set this to true or false

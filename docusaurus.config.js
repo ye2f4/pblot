@@ -34,7 +34,7 @@ const config = {
     }
   },
 
-  favicon: b.favicon,
+  favicon: b.favicon ? (b.favicon.startsWith('/') ? b.favicon : `/${b.favicon}`) : undefined,
   organizationName: siteData.organizationName,
   projectName: "",
 
@@ -195,7 +195,7 @@ const config = {
       hideOnScroll: siteData.navbarConfig?.hideOnScroll ?? false,
       title: siteData.siteTitle,
       logo: b.logoSrc
-        ? { alt: b.logoAlt || siteData.siteTitle, src: b.logoSrc }
+        ? { alt: b.logoAlt || siteData.siteTitle, src: b.logoSrc.startsWith('/') ? b.logoSrc : `/${b.logoSrc}` }
         : undefined,
       items: [
         ...(siteData.navbarConfig?.items || []),

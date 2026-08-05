@@ -67,6 +67,12 @@ $null
 .pnpm-store/
 .pnpm-home/
 
+# 站点规划器源码（克隆自 meshtastic-site-planner 的本地改造副本，不入库）
+packages/site-planner/
+
+# Agent 工作记忆（非用户代码）
+.codebuddy/
+
 # ===== 严格补充（通用忽略）=====
 dist/
 out/
